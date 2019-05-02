@@ -1,0 +1,28 @@
+# setup.py
+build
+dist
+*.egg*
+
+# Python
+*.pyc
+*.pyo
+
+# IDEs
+.idea
+
+
+# Other
+.tox
+.coverage
+.pypirc
+.ipynb_checkpoints/
+*.ipynb
+*~
+.html/
+.mypy_cache/
+
+#eclipse files
+.pydevproject
+.project
+
+/test

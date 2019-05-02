@@ -1,0 +1,9 @@
+setuptools
+cython
+numpy>=1.7.1
+scipy>=0.18.1
+ConfigSpace>=0.4.6,<0.5
+scikit-learn>=0.18.0
+pyrfr>=0.5.0
+emcee>=2.1.0
+george
