@@ -484,6 +484,14 @@ class InterleavedLocalAndRandomSearch(AcquisitionFunctionMaximizer):
         random_configuration_chooser.next_smbo_iteration()
         return challengers
 
+    def _maximize(
+            self,
+            runhistory: HistoryContainer,
+            num_points: int,
+            **kwargs
+    ) -> Iterable[Tuple[float, Configuration]]:
+        raise NotImplementedError()
+
 
 class ChallengerList(object):
     """Helper class to interleave random configurations in a list of challengers.

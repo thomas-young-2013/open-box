@@ -2,7 +2,7 @@ from typing import List
 
 import numpy as np
 
-from smac.configspace import Configuration, ConfigurationSpace
+from litebo.configspace import Configuration, ConfigurationSpace
 
 
 def convert_configurations_to_array(configs: List[Configuration]) -> np.ndarray:
