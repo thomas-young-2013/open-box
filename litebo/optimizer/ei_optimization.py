@@ -266,7 +266,7 @@ class LocalSearch(AcquisitionFunctionMaximizer):
             # Get one exchange neighborhood returns an iterator (in contrast of
             # the previously returned list).
             all_neighbors = get_one_exchange_neighbourhood(
-                incumbent, seed=self.rng.randint(MAXINT))
+                incumbent, seed=self.rng.seed())
 
             neighbors = []
             for neighbor in all_neighbors:
