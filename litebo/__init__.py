@@ -1,7 +1,7 @@
 import sys
 from litebo.utils import dependencies
 
-__version__ = '0.0.1'
+__version__ = '0.5.0'
 __author__ = 'UNNAMED'
 
 __MANDATORY_PACKAGES__ = """
