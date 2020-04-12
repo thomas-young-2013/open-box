@@ -77,17 +77,28 @@ class BayesianOptimization(BaseFacade):
         Y = np.array(self.perfs, dtype=np.float64)
         config = self.choose_next(X, Y)
 
-        # Evaluate this configuration.
-        perf = self.objective_function(config)
-        self.configurations.append(config)
-        self.perfs.append(perf)
-        self.history_container.add(config, perf)
+        # TODO: how to skip this.
+        if config not in self.configurations:
+            # Evaluate this configuration.
+            perf = self.objective_function(config)
+            self.configurations.append(config)
+            self.perfs.append(perf)
+            self.history_container.add(config, perf)
+        else:
+            self.logger.info('This configuration has been evaluated! Skip it.')
+            config_idx = self.configurations.index(config)
+            perf = self.perfs[config_idx]
+
         self.iteration_id += 1
-        self.logger.info('In %d-th iteration, the perf is %.4f' % (self.iteration_id, perf))
+        self.logger.info('Iteration %d, evaluation result: %.4f' % (self.iteration_id, perf))
 
     def choose_next(self, X: np.ndarray, Y: np.ndarray):
-        if X.shape[0] < self.init_num:
-            return self._random_search.maximize(runhistory=self.history_container, num_points=1)[0]
+        _config_num = X.shape[0]
+        if _config_num < self.init_num:
+            if _config_num == 0:
+                return self.configspace.get_default_configuration()
+            else:
+                return self._random_search.maximize(runhistory=self.history_container, num_points=1)[0]
 
         self.model.train(X, Y)
 
