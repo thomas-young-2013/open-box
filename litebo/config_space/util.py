@@ -2,7 +2,7 @@ from typing import List
 
 import numpy as np
 
-from litebo.configspace import Configuration, ConfigurationSpace
+from litebo.config_space import Configuration, ConfigurationSpace
 
 
 def convert_configurations_to_array(configs: List[Configuration]) -> np.ndarray:

@@ -6,8 +6,8 @@ from typing import List
 import numpy as np
 from scipy.stats import norm
 
-from litebo.configspace import Configuration
-from litebo.configspace.util import convert_configurations_to_array
+from litebo.config_space import Configuration
+from litebo.config_space.util import convert_configurations_to_array
 from litebo.model.base_model import AbstractModel
 
 

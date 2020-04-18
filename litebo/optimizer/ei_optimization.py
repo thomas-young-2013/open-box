@@ -6,7 +6,7 @@ from typing import Iterable, List, Union, Tuple, Optional
 import numpy as np
 
 from litebo.acquisition_function.acquisition import AbstractAcquisitionFunction
-from litebo.configspace import get_one_exchange_neighbourhood, \
+from litebo.config_space import get_one_exchange_neighbourhood, \
     Configuration, ConfigurationSpace
 from litebo.optimizer.random_configuration_chooser import ChooserNoCoolDown
 from litebo.utils.constants import MAXINT
@@ -23,7 +23,7 @@ class AcquisitionFunctionMaximizer(object, metaclass=abc.ABCMeta):
     ----------
     acquisition_function : ~litebo.acquisition_function.acquisition.AbstractAcquisitionFunction
 
-    config_space : ~litebo.configspace.ConfigurationSpace
+    config_space : ~litebo.config_space.ConfigurationSpace
 
     rng : np.random.RandomState or int, optional
     """
@@ -68,7 +68,7 @@ class AcquisitionFunctionMaximizer(object, metaclass=abc.ABCMeta):
         Returns
         -------
         iterable
-            An iterable consisting of :class:`litebo.configspace.Configuration`.
+            An iterable consisting of :class:`litebo.config_space.Configuration`.
         """
         return [t[1] for t in self._maximize(runhistory, num_points, **kwargs)]
 
@@ -99,7 +99,7 @@ class AcquisitionFunctionMaximizer(object, metaclass=abc.ABCMeta):
         -------
         iterable
             An iterable consistng of
-            tuple(acqusition_value, :class:`litebo.configspace.Configuration`).
+            tuple(acqusition_value, :class:`litebo.config_space.Configuration`).
         """
         raise NotImplementedError()
 
@@ -140,7 +140,7 @@ class LocalSearch(AcquisitionFunctionMaximizer):
     ----------
     acquisition_function : ~litebo.acquisition_function.acquisition.AbstractAcquisitionFunction
 
-    config_space : ~litebo.configspace.ConfigurationSpace
+    config_space : ~litebo.config_space.ConfigurationSpace
 
     rng : np.random.RandomState or int, optional
 
@@ -314,7 +314,7 @@ class RandomSearch(AcquisitionFunctionMaximizer):
     ----------
     acquisition_function : ~litebo.acquisition_function.acquisition.AbstractAcquisitionFunction
 
-    config_space : ~litebo.configspace.ConfigurationSpace
+    config_space : ~litebo.config_space.ConfigurationSpace
 
     rng : np.random.RandomState or int, optional
     """
@@ -343,7 +343,7 @@ class RandomSearch(AcquisitionFunctionMaximizer):
         -------
         iterable
             An iterable consistng of
-            tuple(acqusition_value, :class:`litebo.configspace.Configuration`).
+            tuple(acqusition_value, :class:`litebo.config_space.Configuration`).
         """
 
         if num_points > 1:
@@ -373,7 +373,7 @@ class InterleavedLocalAndRandomSearch(AcquisitionFunctionMaximizer):
     ----------
     acquisition_function : ~litebo.acquisition_function.acquisition.AbstractAcquisitionFunction
 
-    config_space : ~litebo.configspace.ConfigurationSpace
+    config_space : ~litebo.config_space.ConfigurationSpace
 
     rng : np.random.RandomState or int, optional
 

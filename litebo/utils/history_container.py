@@ -1,5 +1,5 @@
 import collections
-from litebo.configspace import Configuration
+from litebo.config_space import Configuration
 from litebo.utils.constants import MAXINT
 
 

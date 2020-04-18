@@ -5,7 +5,7 @@ from sklearn import svm, datasets
 from sklearn.model_selection import cross_val_score
 
 # Import ConfigSpace and different types of parameters
-from litebo.configspace import ConfigurationSpace
+from litebo.config_space import ConfigurationSpace
 from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
     UniformFloatHyperparameter, UniformIntegerHyperparameter
 from ConfigSpace.conditions import InCondition
