@@ -79,7 +79,7 @@ class BayesianOptimization(BaseFacade):
 
         trial_state = SUCCESS
         trial_info = None
-        # TODO: how to skip this.
+
         if config not in self.configurations:
             # Evaluate this configuration.
             try:
