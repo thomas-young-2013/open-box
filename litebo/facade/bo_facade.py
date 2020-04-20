@@ -98,7 +98,7 @@ class BayesianOptimization(BaseFacade):
 
         self.iteration_id += 1
         self.logger.info('Iteration %d, evaluation result: %.4f' % (self.iteration_id, perf))
-        return config, trial_state, trial_info
+        return config, trial_state, perf, trial_info
 
     def choose_next(self, X: np.ndarray, Y: np.ndarray):
         _config_num = X.shape[0]
