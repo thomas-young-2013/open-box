@@ -9,6 +9,7 @@ from litebo.optimizer.random_configuration_chooser import ChooserProb
 from litebo.utils.util_funcs import get_types, get_rng
 from litebo.config_space.util import convert_configurations_to_array
 from litebo.utils.constants import MAXINT, SUCCESS, FAILDED, TIMEOUT
+from litebo.utils.limit import time_limit, TimeoutException
 
 
 class BaseFacade(object, metaclass=abc.ABCMeta):
@@ -33,7 +34,9 @@ class BaseFacade(object, metaclass=abc.ABCMeta):
 
 
 class BayesianOptimization(BaseFacade):
-    def __init__(self, objective_function, config_space, max_runs=200, task_id=None, rng=None):
+    def __init__(self, objective_function, config_space,
+                 time_limit_per_trial=180, max_runs=200,
+                 task_id=None, rng=None):
         super().__init__(config_space, task_id)
         if rng is None:
             run_id, rng = get_rng()
@@ -43,6 +46,7 @@ class BayesianOptimization(BaseFacade):
         self.iteration_id = 0
         self.sls_max_steps = None
         self.sls_n_steps_plateau_walk = 10
+        self.time_limit_per_trial = time_limit_per_trial
 
         self.configurations = list()
         self.perfs = list()
@@ -83,11 +87,13 @@ class BayesianOptimization(BaseFacade):
         if config not in self.configurations:
             # Evaluate this configuration.
             try:
-                perf = self.objective_function(config)
+                with time_limit(self.time_limit_per_trial):
+                    perf = self.objective_function(config)
             except Exception as e:
                 perf = MAXINT
                 trial_info = str(e)
-                trial_state = FAILDED
+                trial_state = FAILDED if not isinstance(e, TimeoutException) else TIMEOUT
+
             self.configurations.append(config)
             self.perfs.append(perf)
             self.history_container.add(config, perf)

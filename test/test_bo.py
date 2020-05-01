@@ -15,6 +15,7 @@ from litebo.facade.bo_facade import BayesianOptimization
 # We load the iris-dataset (a widely used benchmark)
 iris = datasets.load_iris()
 
+
 def svm_from_cfg(cfg):
     # For deactivated parameters, the configuration stores None-values.
     # This is not accepted by the SVM, so we remove them.
@@ -27,7 +28,6 @@ def svm_from_cfg(cfg):
         cfg.pop("gamma_value", None)  # Remove "gamma_value"
 
     clf = svm.SVC(**cfg, random_state=42)
-
     scores = cross_val_score(clf, iris.data, iris.target, cv=5)
     return 1-np.mean(scores)  # Minimize!
 
@@ -71,7 +71,7 @@ print("Default Value: %.2f" % (def_value))
 
 # Optimize, using a SMAC-object
 print("Optimizing! Depending on your machine, this might take a few minutes.")
-bo = BayesianOptimization(svm_from_cfg, cs, max_runs=30)
+bo = BayesianOptimization(svm_from_cfg, cs, max_runs=30, time_limit_per_trial=120)
 bo.run()
 inc_value = bo.get_incumbent()
 

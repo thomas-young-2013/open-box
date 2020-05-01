@@ -1,8 +1,8 @@
 import sys
 from litebo.utils import dependencies
 
-__version__ = '0.5.2'
-__author__ = 'TY'
+__version__ = '0.5.3'
+__author__ = 'ThomasYoung'
 
 __MANDATORY_PACKAGES__ = """
 numpy>=1.7.1
