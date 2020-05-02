@@ -9,7 +9,7 @@ from litebo.optimizer.random_configuration_chooser import ChooserProb
 from litebo.utils.util_funcs import get_types, get_rng
 from litebo.config_space.util import convert_configurations_to_array
 from litebo.utils.constants import MAXINT, SUCCESS, FAILDED, TIMEOUT
-from litebo.utils.limit import time_limit, TimeoutException
+from func_timeout import func_timeout, FunctionTimedOut
 
 
 class BaseFacade(object, metaclass=abc.ABCMeta):
@@ -87,12 +87,13 @@ class BayesianOptimization(BaseFacade):
         if config not in self.configurations:
             # Evaluate this configuration.
             try:
-                with time_limit(self.time_limit_per_trial):
-                    perf = self.objective_function(config)
-            except Exception as e:
+                perf = func_timeout(self.time_limit_per_trial, self.objective_function, args=(config,))
+                # with time_limit(self.time_limit_per_trial):
+                #     perf = self.objective_function(config)
+            except FunctionTimedOut as e:
                 perf = MAXINT
                 trial_info = str(e)
-                trial_state = FAILDED if not isinstance(e, TimeoutException) else TIMEOUT
+                trial_state = FAILDED if not isinstance(e, FunctionTimedOut) else TIMEOUT
 
             self.configurations.append(config)
             self.perfs.append(perf)
