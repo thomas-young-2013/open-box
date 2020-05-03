@@ -6,15 +6,18 @@ __version__ = '0.5.4'
 __author__ = 'ThomasYoung'
 
 __MANDATORY_PACKAGES__ = """
+cython
+pyrfr>=0.5.0
+setuptools
 numpy>=1.7.1
 scipy>=0.18.1
 ConfigSpace>=0.4.6,<0.5
-scikit-learn>=0.18.0
-pyrfr>=0.5.0
+scikit-learn==0.21.3
 """
 
-with open(os.path.join(os.path.dirname(__file__), 'requirements.txt')) as fh:
-    dependencies.verify_packages(fh.read())
+# with open(os.path.join(os.path.dirname(__file__), 'requirements.txt')) as fh:
+#     dependencies.verify_packages(fh.read())
+dependencies.verify_packages(__MANDATORY_PACKAGES__)
 
 supported_platforms = ['win32', 'linux2', 'linux1', 'darwin']
 if sys.platform not in supported_platforms:
