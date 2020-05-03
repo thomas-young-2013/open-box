@@ -1,6 +1,7 @@
 import sys
-import signal
 from contextlib import contextmanager
+if sys.platform != 'win32':
+    import signal
 
 
 class TimeoutException(Exception):
