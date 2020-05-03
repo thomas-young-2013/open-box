@@ -1,3 +1,4 @@
+import sys
 import signal
 from contextlib import contextmanager
 
@@ -13,6 +14,9 @@ https://stackoverflow.com/questions/366682/how-to-limit-execution-time-of-a-func
 
 @contextmanager
 def time_limit(seconds):
+    if sys.platform == 'win32':
+        yield
+
     def signal_handler(signum, frame):
         raise TimeoutException("Timed out!")
     signal.signal(signal.SIGALRM, signal_handler)
