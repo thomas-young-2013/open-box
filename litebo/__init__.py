@@ -1,7 +1,8 @@
+import os
 import sys
 from litebo.utils import dependencies
 
-__version__ = '0.5.3'
+__version__ = '0.5.4'
 __author__ = 'ThomasYoung'
 
 __MANDATORY_PACKAGES__ = """
@@ -11,7 +12,14 @@ ConfigSpace>=0.4.6,<0.5
 scikit-learn>=0.18.0
 pyrfr>=0.5.0
 """
-dependencies.verify_packages(__MANDATORY_PACKAGES__)
+
+with open(os.path.join(os.path.dirname(__file__), 'requirements.txt')) as fh:
+    dependencies.verify_packages(fh.read())
+
+supported_platforms = ['win32', 'linux2', 'linux1', 'darwin']
+if sys.platform not in supported_platforms:
+    raise ValueError('Lite-BO cannot run on platform-%s' % sys.platform)
 
 if sys.version_info < (3, 5, 2):
     raise ValueError("Lite-BO requires Python 3.5.2 or newer.")
+

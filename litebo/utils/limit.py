@@ -4,6 +4,19 @@ if sys.platform != 'win32':
     import signal
 
 
+def get_platform():
+    platforms = {
+        'linux1': 'Linux',
+        'linux2': 'Linux',
+        'darwin': 'OS X',
+        'win32': 'Windows'
+    }
+    if sys.platform not in platforms:
+        raise ValueError('Unsupported OS: %s' % sys.platform)
+
+    return platforms[sys.platform]
+
+
 class TimeoutException(Exception):
     pass
 

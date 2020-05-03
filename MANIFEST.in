@@ -1,0 +1,2 @@
+recursive-include litebo *.pyx
+include requirements.txt

@@ -29,11 +29,12 @@ def get_author():
 
 setup(
     name="litebo",
+    author=get_author(),
+    version=get_version(),
     python_requires=">=3.5.2",
     packages=find_packages(),
     install_requires=requirements,
-    author=get_author(),
-    version=get_version(),
+    include_package_data=True,
     test_suite="nose.collector",
     tests_require=["mock", "nose"]
 )
