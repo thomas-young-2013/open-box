@@ -14,14 +14,15 @@ https://stackoverflow.com/questions/366682/how-to-limit-execution-time-of-a-func
 
 @contextmanager
 def time_limit(seconds):
-    if sys.platform == 'win32':
-        yield
+    skip_flag = False if sys.platform == 'win32' else True
 
     def signal_handler(signum, frame):
         raise TimeoutException("Timed out!")
-    signal.signal(signal.SIGALRM, signal_handler)
-    signal.alarm(seconds)
+    if skip_flag:
+        signal.signal(signal.SIGALRM, signal_handler)
+        signal.alarm(seconds)
     try:
         yield
     finally:
-        signal.alarm(0)
+        if skip_flag:
+            signal.alarm(0)
