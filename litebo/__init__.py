@@ -19,7 +19,7 @@ scikit-learn==0.21.3
 #     dependencies.verify_packages(fh.read())
 dependencies.verify_packages(__MANDATORY_PACKAGES__)
 
-supported_platforms = ['win32', 'linux2', 'linux1', 'darwin']
+supported_platforms = ['win32', 'linux2', 'linux1', 'linux', 'darwin']
 if sys.platform not in supported_platforms:
     raise ValueError('Lite-BO cannot run on platform-%s' % sys.platform)
 
