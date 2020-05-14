@@ -35,18 +35,23 @@ class BaseFacade(object, metaclass=abc.ABCMeta):
 
 class BayesianOptimization(BaseFacade):
     def __init__(self, objective_function, config_space,
-                 time_limit_per_trial=180, max_runs=200,
-                 task_id=None, rng=None):
+                 time_limit_per_trial=180,
+                 max_runs=200,
+                 initial_configurations=None,
+                 initial_runs=3,
+                 task_id=None,
+                 rng=None):
         super().__init__(config_space, task_id)
         if rng is None:
             run_id, rng = get_rng()
 
-        self.init_num = 3
+        self.init_num = initial_runs
         self.max_iterations = max_runs
         self.iteration_id = 0
         self.sls_max_steps = None
         self.sls_n_steps_plateau_walk = 10
         self.time_limit_per_trial = time_limit_per_trial
+        self.default_obj_value = MAXINT
 
         self.configurations = list()
         self.perfs = list()
@@ -94,16 +99,18 @@ class BayesianOptimization(BaseFacade):
                 trial_info = str(e)
                 trial_state = FAILDED if not isinstance(e, TimeoutException) else TIMEOUT
 
+            if len(self.configurations) == 0:
+                self.default_obj_value = perf
             self.configurations.append(config)
             self.perfs.append(perf)
             self.history_container.add(config, perf)
         else:
-            self.logger.info('This configuration has been evaluated! Skip it.')
+            self.logger.debug('This configuration has been evaluated! Skip it.')
             config_idx = self.configurations.index(config)
             perf = self.perfs[config_idx]
 
         self.iteration_id += 1
-        self.logger.info('Iteration %d, evaluation result: %.4f' % (self.iteration_id, perf))
+        self.logger.debug('Iteration-%d, objective improvement: %.4f' % (self.iteration_id, max(0, self.default_obj_value - perf)))
         return config, trial_state, perf, trial_info
 
     def choose_next(self, X: np.ndarray, Y: np.ndarray):
