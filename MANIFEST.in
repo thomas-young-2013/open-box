@@ -1,2 +1,3 @@
+include litebo/utils/logging.yaml
 recursive-include litebo *.pyx
 include requirements.txt

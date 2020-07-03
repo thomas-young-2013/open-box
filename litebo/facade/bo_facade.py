@@ -1,3 +1,4 @@
+import os
 import abc
 import logging
 import numpy as np
@@ -10,11 +11,16 @@ from litebo.utils.util_funcs import get_types, get_rng
 from litebo.config_space.util import convert_configurations_to_array
 from litebo.utils.constants import MAXINT, SUCCESS, FAILDED, TIMEOUT
 from litebo.utils.limit import time_limit, TimeoutException
+from litebo.utils.logging_utils import setup_logger, get_logger
 
 
 class BaseFacade(object, metaclass=abc.ABCMeta):
-    def __init__(self, config_space, task_id):
-        self.logger = logging.getLogger(self.__module__ + "." + self.__class__.__name__)
+    def __init__(self, config_space, task_id, output_dir):
+        self.output_dir = output_dir
+        if not os.path.exists(self.output_dir):
+            os.makedirs(self.output_dir)
+
+        self.logger = None
         self.history_container = HistoryContainer(task_id)
         self.config_space = config_space
 
@@ -32,16 +38,23 @@ class BaseFacade(object, metaclass=abc.ABCMeta):
     def get_incumbent(self):
         return self.history_container.get_incumbents()
 
+    def _get_logger(self, name):
+        logger_name = 'lite-bo-%s' % name
+        setup_logger(os.path.join(self.output_dir, '%s.log' % str(logger_name)))
+        return get_logger(logger_name)
+
 
 class BayesianOptimization(BaseFacade):
     def __init__(self, objective_function, config_space,
                  time_limit_per_trial=180,
                  max_runs=200,
+                 logging_dir='./',
                  initial_configurations=None,
                  initial_runs=3,
                  task_id=None,
                  rng=None):
-        super().__init__(config_space, task_id)
+        super().__init__(config_space, task_id, output_dir=logging_dir)
+        self.logger = super()._get_logger(self.__class__.__name__)
         if rng is None:
             run_id, rng = get_rng()
 
@@ -98,6 +111,7 @@ class BayesianOptimization(BaseFacade):
                 perf = MAXINT
                 trial_info = str(e)
                 trial_state = FAILDED if not isinstance(e, TimeoutException) else TIMEOUT
+                self.logger.error(trial_info)
 
             if len(self.configurations) == 0:
                 self.default_obj_value = perf
@@ -105,12 +119,12 @@ class BayesianOptimization(BaseFacade):
             self.perfs.append(perf)
             self.history_container.add(config, perf)
         else:
-            self.logger.debug('This configuration has been evaluated! Skip it.')
+            self.logger.info('This configuration has been evaluated! Skip it.')
             config_idx = self.configurations.index(config)
             perf = self.perfs[config_idx]
 
         self.iteration_id += 1
-        self.logger.debug('Iteration-%d, objective improvement: %.4f' % (self.iteration_id, max(0, self.default_obj_value - perf)))
+        self.logger.info('Iteration-%d, objective improvement: %.4f' % (self.iteration_id, max(0, self.default_obj_value - perf)))
         return config, trial_state, perf, trial_info
 
     def choose_next(self, X: np.ndarray, Y: np.ndarray):
