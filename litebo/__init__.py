@@ -2,7 +2,7 @@ import os
 import sys
 from litebo.utils import dependencies
 
-__version__ = '0.5.6'
+__version__ = '0.5.7'
 __author__ = 'ThomasYoung'
 
 __MANDATORY_PACKAGES__ = """
