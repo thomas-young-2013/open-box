@@ -1,5 +1,7 @@
 import os
+import sys
 import abc
+import traceback
 import logging
 import numpy as np
 from litebo.utils.history_container import HistoryContainer
@@ -48,7 +50,7 @@ class BayesianOptimization(BaseFacade):
     def __init__(self, objective_function, config_space,
                  time_limit_per_trial=180,
                  max_runs=200,
-                 logging_dir='./',
+                 logging_dir='./logs',
                  initial_configurations=None,
                  initial_runs=3,
                  task_id=None,
@@ -67,6 +69,7 @@ class BayesianOptimization(BaseFacade):
         self.default_obj_value = MAXINT
 
         self.configurations = list()
+        self.failed_configurations = list()
         self.perfs = list()
 
         # Initialize the basic component in BO.
@@ -108,6 +111,7 @@ class BayesianOptimization(BaseFacade):
                 with time_limit(self.time_limit_per_trial):
                     perf = self.objective_function(config)
             except Exception as e:
+                traceback.print_exc(file=sys.stdout)
                 perf = MAXINT
                 trial_info = str(e)
                 trial_state = FAILDED if not isinstance(e, TimeoutException) else TIMEOUT
@@ -115,13 +119,20 @@ class BayesianOptimization(BaseFacade):
 
             if len(self.configurations) == 0:
                 self.default_obj_value = perf
-            self.configurations.append(config)
-            self.perfs.append(perf)
-            self.history_container.add(config, perf)
+
+            if trial_state == SUCCESS and perf < MAXINT:
+                self.configurations.append(config)
+                self.perfs.append(perf)
+                self.history_container.add(config, perf)
+            else:
+                self.failed_configurations.append(config)
         else:
-            self.logger.info('This configuration has been evaluated! Skip it.')
-            config_idx = self.configurations.index(config)
-            perf = self.perfs[config_idx]
+            self.logger.debug('This configuration has been evaluated! Skip it.')
+            if config in self.configurations:
+                config_idx = self.configurations.index(config)
+                trial_state, perf = SUCCESS, self.perfs[config_idx]
+            else:
+                trial_state, perf = FAILDED, MAXINT
 
         self.iteration_id += 1
         self.logger.info('Iteration-%d, objective improvement: %.4f' % (self.iteration_id, max(0, self.default_obj_value - perf)))
