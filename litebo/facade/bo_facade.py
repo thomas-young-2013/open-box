@@ -105,7 +105,7 @@ class BayesianOptimization(BaseFacade):
         trial_state = SUCCESS
         trial_info = None
 
-        if config not in self.configurations:
+        if config not in (self.configurations + self.failed_configurations):
             # Evaluate this configuration.
             try:
                 with time_limit(self.time_limit_per_trial):
