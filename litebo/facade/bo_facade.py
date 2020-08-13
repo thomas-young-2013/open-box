@@ -117,10 +117,10 @@ class BayesianOptimization(BaseFacade):
                 trial_state = FAILDED if not isinstance(e, TimeoutException) else TIMEOUT
                 self.logger.error(trial_info)
 
-            if len(self.configurations) == 0:
-                self.default_obj_value = perf
-
             if trial_state == SUCCESS and perf < MAXINT:
+                if len(self.configurations) == 0:
+                    self.default_obj_value = perf
+
                 self.configurations.append(config)
                 self.perfs.append(perf)
                 self.history_container.add(config, perf)
@@ -141,8 +141,9 @@ class BayesianOptimization(BaseFacade):
     def choose_next(self, X: np.ndarray, Y: np.ndarray):
         _config_num = X.shape[0]
         if _config_num < self.init_num:
-            if _config_num == 0:
-                return self.config_space.get_default_configuration()
+            default_config = self.config_space.get_default_configuration()
+            if default_config not in (self.configurations + self.failed_configurations):
+                return default_config
             else:
                 return self._random_search.maximize(runhistory=self.history_container, num_points=1)[0]
 
