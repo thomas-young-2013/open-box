@@ -63,7 +63,8 @@ class BayesianOptimization(BaseFacade):
         self.init_num = initial_runs
         self.max_iterations = max_runs
         self.iteration_id = 0
-        self.sls_max_steps = 500
+        self.sls_max_steps = 5
+        self.n_sls_iterations = 5
         self.sls_n_steps_plateau_walk = 10
         self.time_limit_per_trial = time_limit_per_trial
         self.default_obj_value = MAXINT
@@ -83,7 +84,8 @@ class BayesianOptimization(BaseFacade):
                 config_space=self.config_space,
                 rng=np.random.RandomState(seed=rng.randint(MAXINT)),
                 max_steps=self.sls_max_steps,
-                n_steps_plateau_walk=self.sls_n_steps_plateau_walk
+                n_steps_plateau_walk=self.sls_n_steps_plateau_walk,
+                n_sls_iterations=self.n_sls_iterations
             )
         self._random_search = RandomSearch(
             self.acquisition_function, self.config_space, rng
@@ -155,7 +157,7 @@ class BayesianOptimization(BaseFacade):
 
         challengers = self.optimizer.maximize(
             runhistory=self.history_container,
-            num_points=1000,
+            num_points=2000,
             random_configuration_chooser=self.random_configuration_chooser
         )
         return list(challengers)[0]
