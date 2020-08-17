@@ -63,7 +63,7 @@ class BayesianOptimization(BaseFacade):
         self.init_num = initial_runs
         self.max_iterations = max_runs
         self.iteration_id = 0
-        self.sls_max_steps = None
+        self.sls_max_steps = 500
         self.sls_n_steps_plateau_walk = 10
         self.time_limit_per_trial = time_limit_per_trial
         self.default_obj_value = MAXINT
