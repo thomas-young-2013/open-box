@@ -32,7 +32,7 @@ class AcquisitionFunctionMaximizer(object, metaclass=abc.ABCMeta):
             self,
             acquisition_function: AbstractAcquisitionFunction,
             config_space: ConfigurationSpace,
-            rng: Union[bool, np.random.RandomState]=None
+            rng: Union[bool, np.random.RandomState] = None
     ):
         self.logger = logging.getLogger(
             self.__module__ + "." + self.__class__.__name__
@@ -157,8 +157,8 @@ class LocalSearch(AcquisitionFunctionMaximizer):
             acquisition_function: AbstractAcquisitionFunction,
             config_space: ConfigurationSpace,
             rng: Union[bool, np.random.RandomState] = None,
-            max_steps: Optional[int]=None,
-            n_steps_plateau_walk: int=10,
+            max_steps: Optional[int] = None,
+            n_steps_plateau_walk: int = 10,
     ):
         super().__init__(acquisition_function, config_space, rng)
         self.max_steps = max_steps
@@ -197,7 +197,7 @@ class LocalSearch(AcquisitionFunctionMaximizer):
 
         init_points = self._get_initial_points(
             num_points, runhistory)
-            
+
         configs_acq = []
         # Start N local search from different random start points
         for start_point in init_points:
@@ -216,7 +216,7 @@ class LocalSearch(AcquisitionFunctionMaximizer):
         return configs_acq
 
     def _get_initial_points(self, num_points, runhistory):
-        
+
         if runhistory.empty():
             init_points = self.config_space.sample_configuration(
                 size=num_points)
@@ -233,7 +233,7 @@ class LocalSearch(AcquisitionFunctionMaximizer):
                 map(lambda x: x[1],
                     configs_previous_runs_sorted[:num_configs_local_search])
             )
-            
+
         return init_points
 
     def _one_iter(
@@ -248,7 +248,6 @@ class LocalSearch(AcquisitionFunctionMaximizer):
 
         local_search_steps = 0
         neighbors_looked_at = 0
-        n_no_improvements = 0
         time_n = []
         while True:
 
@@ -268,30 +267,18 @@ class LocalSearch(AcquisitionFunctionMaximizer):
             all_neighbors = get_one_exchange_neighbourhood(
                 incumbent, seed=self.rng.seed())
 
-            neighbors = []
             for neighbor in all_neighbors:
                 s_time = time.time()
                 acq_val = self.acquisition_function([neighbor], **kwargs)
                 neighbors_looked_at += 1
                 time_n.append(time.time() - s_time)
 
-                if acq_val == acq_val_incumbent:
-                    neighbors.append(neighbor)
                 if acq_val > acq_val_incumbent:
                     self.logger.debug("Switch to one of the neighbors")
                     incumbent = neighbor
                     acq_val_incumbent = acq_val
                     changed_inc = True
                     break
-
-            if (
-                not changed_inc
-                and n_no_improvements < self.n_steps_plateau_walk
-                and len(neighbors) > 0
-            ):
-                n_no_improvements += 1
-                incumbent = neighbors[0]
-                changed_inc = True
 
             if (not changed_inc) or \
                     (self.max_steps is not None and
@@ -323,7 +310,7 @@ class RandomSearch(AcquisitionFunctionMaximizer):
             self,
             runhistory: HistoryContainer,
             num_points: int,
-            _sorted: bool=False,
+            _sorted: bool = False,
             **kwargs
     ) -> List[Tuple[float, Configuration]]:
         """Randomly sampled configurations
@@ -412,13 +399,13 @@ class InterleavedLocalAndRandomSearch(AcquisitionFunctionMaximizer):
         )
         self.n_sls_iterations = n_sls_iterations
 
-        #=======================================================================
+        # =======================================================================
         # self.local_search = DiffOpt(
         #     acquisition_function=acquisition_function,
         #     config_space=config_space,
         #     rng=rng
         # )
-        #=======================================================================
+        # =======================================================================
 
     def maximize(
             self,
@@ -468,8 +455,8 @@ class InterleavedLocalAndRandomSearch(AcquisitionFunctionMaximizer):
         # the list ensures this (even after adding the configurations by local
         # search, and then sorting them)
         next_configs_by_acq_value = (
-            next_configs_by_random_search_sorted
-            + next_configs_by_local_search
+                next_configs_by_random_search_sorted
+                + next_configs_by_local_search
         )
         next_configs_by_acq_value.sort(reverse=True, key=lambda x: x[0])
         self.logger.debug(

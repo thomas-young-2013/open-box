@@ -80,13 +80,13 @@ class BayesianOptimization(BaseFacade):
         self.model = RandomForestWithInstances(types=types, bounds=bounds, seed=rng.randint(MAXINT))
         self.acquisition_function = EI(self.model)
         self.optimizer = InterleavedLocalAndRandomSearch(
-                acquisition_function=self.acquisition_function,
-                config_space=self.config_space,
-                rng=np.random.RandomState(seed=rng.randint(MAXINT)),
-                max_steps=self.sls_max_steps,
-                n_steps_plateau_walk=self.sls_n_steps_plateau_walk,
-                n_sls_iterations=self.n_sls_iterations
-            )
+            acquisition_function=self.acquisition_function,
+            config_space=self.config_space,
+            rng=np.random.RandomState(seed=rng.randint(MAXINT)),
+            max_steps=self.sls_max_steps,
+            n_steps_plateau_walk=self.sls_n_steps_plateau_walk,
+            n_sls_iterations=self.n_sls_iterations
+        )
         self._random_search = RandomSearch(
             self.acquisition_function, self.config_space, rng
         )
@@ -137,7 +137,8 @@ class BayesianOptimization(BaseFacade):
                 trial_state, perf = FAILDED, MAXINT
 
         self.iteration_id += 1
-        self.logger.info('Iteration-%d, objective improvement: %.4f' % (self.iteration_id, max(0, self.default_obj_value - perf)))
+        self.logger.info(
+            'Iteration-%d, objective improvement: %.4f' % (self.iteration_id, max(0, self.default_obj_value - perf)))
         return config, trial_state, perf, trial_info
 
     def choose_next(self, X: np.ndarray, Y: np.ndarray):
@@ -153,11 +154,13 @@ class BayesianOptimization(BaseFacade):
 
         incumbent_value = self.history_container.get_incumbents()[0][1]
 
-        self.acquisition_function.update(model=self.model, eta=incumbent_value, num_data=len(self.history_container.data))
+        self.acquisition_function.update(model=self.model, eta=incumbent_value,
+                                         num_data=len(self.history_container.data))
 
         challengers = self.optimizer.maximize(
             runhistory=self.history_container,
-            num_points=2000,
+            num_points=5000,
             random_configuration_chooser=self.random_configuration_chooser
         )
-        return list(challengers)[0]
+
+        return challengers.challengers[0]
