@@ -150,17 +150,20 @@ class BayesianOptimization(BaseFacade):
             else:
                 return self._random_search.maximize(runhistory=self.history_container, num_points=1)[0]
 
-        self.model.train(X, Y)
+        if self.random_configuration_chooser.check(self.iteration_id):
+            return self.config_space.sample_configuration()
+        else:
+            self.model.train(X, Y)
 
-        incumbent_value = self.history_container.get_incumbents()[0][1]
+            incumbent_value = self.history_container.get_incumbents()[0][1]
 
-        self.acquisition_function.update(model=self.model, eta=incumbent_value,
-                                         num_data=len(self.history_container.data))
+            self.acquisition_function.update(model=self.model, eta=incumbent_value,
+                                             num_data=len(self.history_container.data))
 
-        challengers = self.optimizer.maximize(
-            runhistory=self.history_container,
-            num_points=5000,
-            random_configuration_chooser=self.random_configuration_chooser
-        )
+            challengers = self.optimizer.maximize(
+                runhistory=self.history_container,
+                num_points=5000,
+                random_configuration_chooser=self.random_configuration_chooser
+            )
 
-        return challengers.challengers[0]
+            return challengers.challengers[0]
