@@ -63,7 +63,7 @@ class BayesianOptimization(BaseFacade):
         self.init_num = initial_runs
         self.max_iterations = max_runs
         self.iteration_id = 0
-        self.sls_max_steps = 5
+        self.sls_max_steps = None
         self.n_sls_iterations = 5
         self.sls_n_steps_plateau_walk = 10
         self.time_limit_per_trial = time_limit_per_trial
@@ -74,6 +74,7 @@ class BayesianOptimization(BaseFacade):
         self.perfs = list()
 
         # Initialize the basic component in BO.
+        self.config_space.seed(rng.randint(MAXINT))
         self.objective_function = objective_function
         types, bounds = get_types(config_space)
         # TODO: what is the feature array.
@@ -90,7 +91,7 @@ class BayesianOptimization(BaseFacade):
         self._random_search = RandomSearch(
             self.acquisition_function, self.config_space, rng
         )
-        self.random_configuration_chooser = ChooserProb(prob=0.3, rng=rng)
+        self.random_configuration_chooser = ChooserProb(prob=0.25, rng=rng)
 
     def run(self):
         while self.iteration_id < self.max_iterations:
