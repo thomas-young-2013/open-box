@@ -90,7 +90,7 @@ class BayesianOptimization(BaseFacade):
         self._random_search = RandomSearch(
             self.acquisition_function, self.config_space, rng
         )
-        self.random_configuration_chooser = ChooserProb(prob=0.5, rng=rng)
+        self.random_configuration_chooser = ChooserProb(prob=0.3, rng=rng)
 
     def run(self):
         while self.iteration_id < self.max_iterations:
