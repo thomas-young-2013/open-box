@@ -25,6 +25,10 @@ class BaseFacade(object, metaclass=abc.ABCMeta):
         self.logger = None
         self.history_container = HistoryContainer(task_id)
         self.config_space = config_space
+        self.scale_perc = 5
+        self.perc = None
+        self.min_y = None
+        self.max_y = None
 
     @abc.abstractmethod
     def run(self):
@@ -101,8 +105,12 @@ class BayesianOptimization(BaseFacade):
         if len(self.configurations) == 0:
             X = np.array([])
         else:
-            X = convert_configurations_to_array(self.configurations)
-        Y = np.array(self.perfs, dtype=np.float64)
+            failed_configs = list() if self.max_y is None else self.failed_configurations.copy()
+            X = convert_configurations_to_array(self.configurations + failed_configs)
+
+        failed_perfs = list() if self.max_y is None else [self.max_y] * len(self.failed_configurations)
+        Y = np.array(self.perfs + failed_perfs, dtype=np.float64)
+
         config = self.choose_next(X, Y)
 
         trial_state = SUCCESS
@@ -127,6 +135,10 @@ class BayesianOptimization(BaseFacade):
                 self.configurations.append(config)
                 self.perfs.append(perf)
                 self.history_container.add(config, perf)
+
+                self.perc = np.percentile(self.perfs, self.scale_perc)
+                self.min_y = np.min(self.perfs)
+                self.max_y = np.max(self.perfs)
             else:
                 self.failed_configurations.append(config)
         else:
