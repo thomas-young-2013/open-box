@@ -66,7 +66,8 @@ def wrapper_func(*args, **kwargs):
 
 
 def time_limit(func, time, *args, **kwargs):
-    freeze_support()
+    if _platform == 'Windows':
+        freeze_support()
     parent_conn, child_conn = Pipe(False)
 
     func = dill.dumps(func)
@@ -120,6 +121,10 @@ def test_func(*args, **kwargs):
 
 
 if __name__ == "__main__":
+    # change the value of a:
+    #     (1) a = (3)
+    #     (2) a = (6)
+
     a = (3)
     b = dict()
     res = time_limit(test_func, 5, a, b)
