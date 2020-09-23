@@ -59,11 +59,11 @@ def ps_time_limit(func, args, kwargs, time):
         # def on_terminate(proc):
         #     print("process {} terminated with exit code {}".format(proc, proc.returncode))
         procs = psutil.Process().children()
-        print(p1.pid)
-        print(os.getpid())
-        print(procs)
+        # print(p1.pid)
+        # print(os.getpid(), psutil.Process().pid)
+        # print(procs)
         procs = [p for p in procs if p.pid == p1.pid]
-        print(procs)
+        # print(procs)
         gone, alive = psutil.wait_procs(procs, timeout=time)
         result = list(result_container)
 
