@@ -122,13 +122,14 @@ def ps_time_limit(func, args, kwargs, time):
 
 def test_func(*args, **kwargs):
     import numpy as np
-    # change mat_n: {100, 10}
-    mat_n = 100
+    # change mat_n: {10000, 1000, 100, 10}
+    mat_n = 1000
     m = np.random.random((mat_n, mat_n))
     from sklearn.decomposition import KernelPCA
 
-    pca = KernelPCA()
-    pca.fit_transform(m)
+    for _ in range(1000):
+        pca = KernelPCA()
+        pca.fit_transform(m)
     return m * m
 
 

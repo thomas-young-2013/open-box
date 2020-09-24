@@ -1,4 +1,5 @@
 cython
+psutil
 pyrfr>=0.5.0
 setuptools
 numpy>=1.7.1
