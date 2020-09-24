@@ -17,6 +17,7 @@ class TimeoutException(Exception):
 
 def get_platform():
     platforms = {
+        'linux': 'Linux',
         'linux1': 'Linux',
         'linux2': 'Linux',
         'darwin': 'OSX',
@@ -113,11 +114,22 @@ def ps_time_limit(func, args, kwargs, time):
     return Returns(status=True, results=result)
 
 
+# def test_func(*args, **kwargs):
+#     import time
+#     n = args[0]
+#     time.sleep(n)
+#     return n * n
+
 def test_func(*args, **kwargs):
-    import time
-    n = args[0]
-    time.sleep(n)
-    return n * n
+    import numpy as np
+    # change mat_n: {100, 10}
+    mat_n = 100
+    m = np.random.random((mat_n, mat_n))
+    from sklearn.decomposition import KernelPCA
+
+    pca = KernelPCA()
+    pca.fit_transform(m)
+    return m * m
 
 
 if __name__ == "__main__":
