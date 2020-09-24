@@ -1,3 +1,4 @@
+dill
 cython
 psutil
 pyrfr>=0.5.0

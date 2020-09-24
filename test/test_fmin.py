@@ -22,6 +22,8 @@ def branin(x):
     s = 10.
     t = 1. / (8.*np.pi)
     ret = a*(x2-b*x1**2+c*x1-r)**2+s*(1-t)*np.cos(x1)+s
+    import time
+    time.sleep(5)
     return ret
 
 
@@ -30,7 +32,7 @@ x1 = UniformFloatHyperparameter("x1", -5, 10, default_value=0)
 x2 = UniformFloatHyperparameter("x2", 0, 15, default_value=0)
 cs.add_hyperparameters([x1, x2])
 
-bo = BayesianOptimization(branin, cs, max_runs=30, time_limit_per_trial=30, logging_dir='logs')
+bo = BayesianOptimization(branin, cs, max_runs=50, time_limit_per_trial=3, logging_dir='logs')
 bo.run()
 inc_value = bo.get_incumbent()
 print(bo.get_history().data)

@@ -2,7 +2,6 @@ import os
 import sys
 import abc
 import traceback
-import logging
 import numpy as np
 from litebo.utils.history_container import HistoryContainer
 from litebo.acquisition_function.acquisition import EI
@@ -54,7 +53,7 @@ class BayesianOptimization(BaseFacade):
     def __init__(self, objective_function, config_space,
                  time_limit_per_trial=180,
                  max_runs=200,
-                 logging_dir='./logs',
+                 logging_dir='logs',
                  initial_configurations=None,
                  initial_runs=3,
                  task_id=None,
@@ -119,13 +118,21 @@ class BayesianOptimization(BaseFacade):
         if config not in (self.configurations + self.failed_configurations):
             # Evaluate this configuration.
             try:
-                with time_limit(self.time_limit_per_trial):
-                    perf = self.objective_function(config)
+                args, kwargs = (config,), dict()
+                timeout_status, _result = time_limit(self.objective_function, self.time_limit_per_trial,
+                                                     args=args, kwargs=kwargs)
+                if timeout_status:
+                    raise TimeoutException('Timeout: time limit for this evaluation is %.1fs' % self.time_limit_per_trial)
+                else:
+                    perf = _result
             except Exception as e:
-                traceback.print_exc(file=sys.stdout)
+                if isinstance(e, TimeoutException):
+                    trial_state = TIMEOUT
+                else:
+                    traceback.print_exc(file=sys.stdout)
+                    trial_state = FAILDED
                 perf = MAXINT
                 trial_info = str(e)
-                trial_state = FAILDED if not isinstance(e, TimeoutException) else TIMEOUT
                 self.logger.error(trial_info)
 
             if trial_state == SUCCESS and perf < MAXINT:
