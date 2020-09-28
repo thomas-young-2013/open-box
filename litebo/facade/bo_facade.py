@@ -51,6 +51,7 @@ class BaseFacade(object, metaclass=abc.ABCMeta):
 
 class BayesianOptimization(BaseFacade):
     def __init__(self, objective_function, config_space,
+                 sample_strategy='bo',
                  time_limit_per_trial=180,
                  max_runs=200,
                  logging_dir='logs',
@@ -71,6 +72,7 @@ class BayesianOptimization(BaseFacade):
         self.sls_n_steps_plateau_walk = 10
         self.time_limit_per_trial = time_limit_per_trial
         self.default_obj_value = MAXINT
+        self.sample_strategy = sample_strategy
 
         self.configurations = list()
         self.failed_configurations = list()
@@ -170,20 +172,38 @@ class BayesianOptimization(BaseFacade):
             else:
                 return self._random_search.maximize(runhistory=self.history_container, num_points=1)[0]
 
-        if self.random_configuration_chooser.check(self.iteration_id):
-            return self.config_space.sample_configuration()
+        if self.sample_strategy == 'random':
+            return self.sample_config()
+        elif self.sample_strategy == 'bo':
+            if self.random_configuration_chooser.check(self.iteration_id):
+                return self.sample_config()
+            else:
+                self.model.train(X, Y)
+
+                incumbent_value = self.history_container.get_incumbents()[0][1]
+
+                self.acquisition_function.update(model=self.model, eta=incumbent_value,
+                                                 num_data=len(self.history_container.data))
+
+                challengers = self.optimizer.maximize(
+                    runhistory=self.history_container,
+                    num_points=5000,
+                    random_configuration_chooser=self.random_configuration_chooser
+                )
+
+                return challengers.challengers[0]
         else:
-            self.model.train(X, Y)
+            raise ValueError('Invalid sampling strategy - %s.' % self.sample_strategy)
 
-            incumbent_value = self.history_container.get_incumbents()[0][1]
-
-            self.acquisition_function.update(model=self.model, eta=incumbent_value,
-                                             num_data=len(self.history_container.data))
-
-            challengers = self.optimizer.maximize(
-                runhistory=self.history_container,
-                num_points=5000,
-                random_configuration_chooser=self.random_configuration_chooser
-            )
-
-            return challengers.challengers[0]
+    def sample_config(self):
+        config = None
+        _sample_cnt, _sample_limit = 0, 10000
+        while True:
+            _sample_cnt += 1
+            config = self.config_space.sample_configuration()
+            if config not in (self.configurations + self.failed_configurations):
+                break
+            if _sample_cnt >= _sample_limit:
+                config = self.config_space.sample_configuration()
+                break
+        return config
