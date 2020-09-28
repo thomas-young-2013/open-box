@@ -28,7 +28,7 @@ def get_author():
 
 
 setup(
-    name="litebo",
+    name="lite-bo",
     author=get_author(),
     version=get_version(),
     python_requires=">=3.5.2",
