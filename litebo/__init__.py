@@ -2,8 +2,8 @@ import os
 import sys
 from litebo.utils import dependencies
 
-__version__ = '0.5.8'
-__author__ = 'ThomasYoung'
+__version__ = '0.5.9'
+__author__ = 'Yang Li'
 
 __MANDATORY_PACKAGES__ = """
 cython
