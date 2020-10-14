@@ -78,10 +78,14 @@ class BatchBayesianOptimization(BaseFacade):
         Y = np.array(self.perfs + failed_perfs, dtype=np.float64)
 
         config_list = self.choose_next(X, Y)
+        trial_state_list = list()
+        trial_info_list = list()
+        perf_list = list()
 
-        for config in config_list:
-            trial_state = SUCCESS
-            trial_info = None
+        for i, config in enumerate(config_list):
+            trial_state_list.append(SUCCESS)
+            trial_info_list.append(None)
+            perf_list.append(None)
 
             if config not in (self.configurations + self.failed_configurations):
                 # Evaluate this configuration.
@@ -90,26 +94,27 @@ class BatchBayesianOptimization(BaseFacade):
                     timeout_status, _result = time_limit(self.objective_function, self.time_limit_per_trial,
                                                          args=args, kwargs=kwargs)
                     if timeout_status:
-                        raise TimeoutException('Timeout: time limit for this evaluation is %.1fs' % self.time_limit_per_trial)
+                        raise TimeoutException(
+                            'Timeout: time limit for this evaluation is %.1fs' % self.time_limit_per_trial)
                     else:
-                        perf = _result
+                        perf_list[i] = _result
                 except Exception as e:
                     if isinstance(e, TimeoutException):
-                        trial_state = TIMEOUT
+                        trial_state_list[i] = TIMEOUT
                     else:
                         traceback.print_exc(file=sys.stdout)
-                        trial_state = FAILDED
-                    perf = MAXINT
-                    trial_info = str(e)
-                    self.logger.error(trial_info)
+                        trial_state_list[i] = FAILDED
+                    perf_list[i] = MAXINT
+                    trial_info_list[i] = str(e)
+                    self.logger.error(trial_info_list[i])
 
-                if trial_state == SUCCESS and perf < MAXINT:
+                if trial_state_list[i] == SUCCESS and perf_list[i] < MAXINT:
                     if len(self.configurations) == 0:
-                        self.default_obj_value = perf
+                        self.default_obj_value = perf_list[i]
 
                     self.configurations.append(config)
-                    self.perfs.append(perf)
-                    self.history_container.add(config, perf)
+                    self.perfs.append(perf_list[i])
+                    self.history_container.add(config, perf_list[i])
 
                     self.perc = np.percentile(self.perfs, self.scale_perc)
                     self.min_y = np.min(self.perfs)
@@ -120,18 +125,62 @@ class BatchBayesianOptimization(BaseFacade):
                 self.logger.debug('This configuration has been evaluated! Skip it.')
                 if config in self.configurations:
                     config_idx = self.configurations.index(config)
-                    trial_state, perf = SUCCESS, self.perfs[config_idx]
+                    trial_state_list[i], perf_list[i] = SUCCESS, self.perfs[config_idx]
                 else:
-                    trial_state, perf = FAILDED, MAXINT
+                    trial_state_list[i], perf_list[i] = FAILDED, MAXINT
 
-        self.iteration_id += 1
-        self.logger.info(
-            'Iteration-%d, objective improvement: %.4f' % (self.iteration_id, max(0, self.default_obj_value - perf)))
-        return config_list, trial_state, perf, trial_info
+            self.iteration_id += 1
+            self.logger.info(
+                'Iteration-%d, objective improvement: %.4f' % (
+                    self.iteration_id, max(0, self.default_obj_value - perf_list[i])))
+        return config_list, trial_state_list, perf_list, trial_info_list
 
     def choose_next(self, X: np.ndarray, Y: np.ndarray):
         # Select a batch of configs to evaluate next.
-        return list()
+        _config_num = X.shape[0]
+        batch_configs_list = list()
+        batch_configs_cnt = self.batch_size  # numbers of samples which have not been determined yet
+
+        while _config_num < self.init_num and batch_configs_cnt:
+            default_config = self.config_space.get_default_configuration()
+            if default_config not in (self.configurations + self.failed_configurations):
+                batch_configs_list.append(default_config)
+            else:
+                batch_configs_list.append(
+                    self._random_search.maximize(runhistory=self.history_container, num_points=1)[0])
+            batch_configs_cnt -= 1
+            _config_num += 1
+
+        if batch_configs_cnt == 0:
+            return batch_configs_list
+
+        while batch_configs_cnt:
+            if self.sample_strategy == 'random':
+                batch_configs_list.append(self.sample_config())
+            elif self.sample_strategy == 'bo':
+                if self.random_configuration_chooser.check(self.iteration_id):  # 以一定的概率回到随机采样上来
+                    batch_configs_list.append(self.sample_config())
+                else:
+                    self.model.train(X, Y)
+
+                    incumbent_value = self.history_container.get_incumbents()[0][1]
+
+                    self.acquisition_function.update(model=self.model, eta=incumbent_value,
+                                                     num_data=len(self.history_container.data))
+
+                    challengers = self.optimizer.maximize(
+                        runhistory=self.history_container,
+                        num_points=5000,
+                        random_configuration_chooser=self.random_configuration_chooser
+                    )
+
+                    batch_configs_list.append(challengers.challengers[0])
+            else:
+                raise ValueError('Invalid sampling strategy - %s.' % self.sample_strategy)
+
+            batch_configs_cnt-=1
+
+        return batch_configs_list
 
     def sample_config(self):
         config = None

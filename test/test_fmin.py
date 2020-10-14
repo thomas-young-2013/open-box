@@ -8,6 +8,7 @@ from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
 from ConfigSpace.conditions import InCondition
 sys.path.append(os.getcwd())
 from litebo.facade.bo_facade import BayesianOptimization
+from litebo.facade.batch_bo import BatchBayesianOptimization
 from litebo.config_space import ConfigurationSpace
 
 
@@ -41,4 +42,11 @@ bo = BayesianOptimization(branin, cs, max_runs=50, time_limit_per_trial=3, sampl
 bo.run()
 inc_value = bo.get_incumbent()
 print('RANDOM', '='*30)
+print(inc_value)
+
+# Evaluate batch BO.
+bo = BatchBayesianOptimization(branin, cs, max_runs=50, time_limit_per_trial=3, logging_dir='logs')
+bo.run()
+inc_value = bo.get_incumbent()
+print('BATCH BO', '='*30)
 print(inc_value)
