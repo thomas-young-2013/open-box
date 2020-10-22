@@ -2,6 +2,7 @@ import os
 import abc
 import numpy as np
 
+from litebo.core.build_bo import build_acq_func, build_optimizer, build_surrogate
 from litebo.utils.util_funcs import get_rng
 from litebo.utils.history_container import HistoryContainer
 from litebo.utils.logging_utils import setup_logger, get_logger
@@ -44,6 +45,9 @@ class Advisor(object, metaclass=abc.ABCMeta):
         # Init the basic ingredients in Bayesian optimization.
         self.surrogate_type = surrogate_type
         self.init_num = initial_trials
+        self.config_space = config_space
+        self.config_space.seed(rng.randint(MAXINT))
+
         if initial_configurations is not None and len(initial_configurations) > 0:
             self.initial_configurations = initial_configurations
             self.init_num = len(initial_configurations)
@@ -51,21 +55,26 @@ class Advisor(object, metaclass=abc.ABCMeta):
             self.initial_configurations = self.create_initial_design()
             self.init_num = len(self.initial_configurations)
         self.history_container = HistoryContainer(task_id)
-        self.config_space = config_space
-        self.config_space.seed(rng.randint(MAXINT))
+
         self.surrogate_model = None
         self.acquisition_function = None
         self.optimizer = None
         self.setup_bo_basics()
 
+    def setup_bo_basics(self):
+        self.surrogate_model = build_surrogate(func_str='prf', config_space=self.config_space, rng=self.rng)
+
+        self.acquisition_function = build_acq_func(func_str='ei', model=self.surrogate_model)
+
+        self.optimizer = build_optimizer(func_str='local_random',
+                                         acq_func=self.acquisition_function,
+                                         config_space=self.config_space,
+                                         rng=self.rng)
+
     def _get_logger(self, name):
         logger_name = 'lite-bo-%s' % name
         setup_logger(os.path.join(self.output_dir, '%s.log' % str(logger_name)))
         return get_logger(logger_name)
-
-    def setup_bo_basics(self):
-        # Create BO surrogates, Acquisition functions, and corresponding Acq Optimizers.
-        pass
 
     def create_initial_design(self, init_strategy='random'):
         default_config = self.config_space.get_default_configuration()
@@ -99,8 +108,9 @@ class Advisor(object, metaclass=abc.ABCMeta):
             self.acquisition_function.update(model=self.surrogate_model,
                                              eta=incumbent_value,
                                              num_data=num_config_evaluated)
-            config = self.optimizer.maximize()
-            return config
+            challengers = self.optimizer.maximize(runhistory=self.history_container,
+                                                  num_points=5000)
+            return challengers.challengers[0]
         else:
             raise ValueError('Unknown optimization strategy: %s.' % self.optimization_strategy)
 

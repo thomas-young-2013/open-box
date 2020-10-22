@@ -8,7 +8,7 @@ import numpy as np
 from litebo.acquisition_function.acquisition import AbstractAcquisitionFunction
 from litebo.config_space import get_one_exchange_neighbourhood, \
     Configuration, ConfigurationSpace
-from litebo.optimizer.random_configuration_chooser import ChooserNoCoolDown
+from litebo.optimizer.random_configuration_chooser import ChooserNoCoolDown, ChooserProb
 from litebo.utils.constants import MAXINT
 from litebo.utils.history_container import HistoryContainer
 
@@ -45,7 +45,6 @@ class AcquisitionFunctionMaximizer(object, metaclass=abc.ABCMeta):
             self.rng = np.random.RandomState(seed=1)
         else:
             self.rng = rng
-
 
     def maximize(
             self,
@@ -133,7 +132,6 @@ class AcquisitionFunctionMaximizer(object, metaclass=abc.ABCMeta):
 
 
 class LocalSearch(AcquisitionFunctionMaximizer):
-
     """Implementation of litebo's local search.
 
     Parameters
@@ -374,6 +372,7 @@ class InterleavedLocalAndRandomSearch(AcquisitionFunctionMaximizer):
         [Local Search] number of local search iterations
 
     """
+
     def __init__(
             self,
             acquisition_function: AbstractAcquisitionFunction,
@@ -381,8 +380,8 @@ class InterleavedLocalAndRandomSearch(AcquisitionFunctionMaximizer):
             rng: Union[bool, np.random.RandomState] = None,
             max_steps: Optional[int] = None,
             n_steps_plateau_walk: int = 10,
-            n_sls_iterations: int = 10
-
+            n_sls_iterations: int = 10,
+            rand_prob=0.25
     ):
         super().__init__(acquisition_function, config_space, rng)
         self.random_search = RandomSearch(
@@ -398,6 +397,7 @@ class InterleavedLocalAndRandomSearch(AcquisitionFunctionMaximizer):
             n_steps_plateau_walk=n_steps_plateau_walk
         )
         self.n_sls_iterations = n_sls_iterations
+        self.random_chooser = ChooserProb(prob=rand_prob, rng=rng)
 
         # =======================================================================
         # self.local_search = DiffOpt(
@@ -411,7 +411,7 @@ class InterleavedLocalAndRandomSearch(AcquisitionFunctionMaximizer):
             self,
             runhistory: HistoryContainer,
             num_points: int,
-            random_configuration_chooser,
+            random_configuration_chooser=None,
             **kwargs
     ) -> Iterable[Configuration]:
         """Maximize acquisition function using ``_maximize``.
@@ -467,8 +467,8 @@ class InterleavedLocalAndRandomSearch(AcquisitionFunctionMaximizer):
 
         challengers = ChallengerList(next_configs_by_acq_value,
                                      self.config_space,
-                                     random_configuration_chooser)
-        random_configuration_chooser.next_smbo_iteration()
+                                     self.random_chooser)
+        self.random_chooser.next_smbo_iteration()
         return challengers
 
     def _maximize(
