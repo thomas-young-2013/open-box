@@ -1,7 +1,8 @@
 import sys
 import traceback
+import copy
 import numpy as np
-from litebo.acquisition_function.acquisition import EI
+from litebo.acquisition_function.acquisition import EI, LPEI
 from litebo.model.rf_with_instances import RandomForestWithInstances
 from litebo.optimizer.ei_optimization import InterleavedLocalAndRandomSearch, RandomSearch
 from litebo.optimizer.random_configuration_chooser import ChooserProb
@@ -19,7 +20,7 @@ class BatchBayesianOptimization(BaseFacade):
                  max_runs=200,
                  logging_dir='logs',
                  initial_configurations=None,
-                 initial_runs=3,
+                 initial_batch=1,
                  batch_size=3,
                  task_id=None,
                  rng=None):
@@ -29,7 +30,7 @@ class BatchBayesianOptimization(BaseFacade):
             run_id, rng = get_rng()
 
         self.batch_size = batch_size
-        self.init_num = initial_runs
+        self.init_batch = initial_batch
         self.max_iterations = max_runs
         self.iteration_id = 0
         self.sls_max_steps = None
@@ -49,7 +50,10 @@ class BatchBayesianOptimization(BaseFacade):
         types, bounds = get_types(config_space)
         # TODO: what is the feature array.
         self.model = RandomForestWithInstances(types=types, bounds=bounds, seed=rng.randint(MAXINT))
-        self.acquisition_function = EI(self.model)
+        if self.sample_strategy == 'local_penalization':
+            self.acquisition_function = LPEI(self.model)
+        else:
+            self.acquisition_function = EI(self.model)
         self.optimizer = InterleavedLocalAndRandomSearch(
             acquisition_function=self.acquisition_function,
             config_space=self.config_space,
@@ -129,56 +133,74 @@ class BatchBayesianOptimization(BaseFacade):
                 else:
                     trial_state_list[i], perf_list[i] = FAILDED, MAXINT
 
-            self.iteration_id += 1
-            self.logger.info(
-                'Iteration-%d, objective improvement: %.4f' % (
-                    self.iteration_id, max(0, self.default_obj_value - perf_list[i])))
+        self.iteration_id += 1
+        self.logger.info(
+            'Iteration-%d, objective improvement: %.4f' % (
+                self.iteration_id, max(0, self.default_obj_value - min(perf_list))))
         return config_list, trial_state_list, perf_list, trial_info_list
 
     def choose_next(self, X: np.ndarray, Y: np.ndarray):
         # Select a batch of configs to evaluate next.
         _config_num = X.shape[0]
         batch_configs_list = list()
-        batch_configs_cnt = self.batch_size  # numbers of samples which have not been determined yet
 
-        while _config_num < self.init_num and batch_configs_cnt:
-            default_config = self.config_space.get_default_configuration()
-            if default_config not in (self.configurations + self.failed_configurations):
-                batch_configs_list.append(default_config)
-            else:
-                batch_configs_list.append(
-                    self._random_search.maximize(runhistory=self.history_container, num_points=1)[0])
-            batch_configs_cnt -= 1
-            _config_num += 1
-
-        if batch_configs_cnt == 0:
+        if _config_num < self.init_batch * self.batch_size or self.sample_strategy == 'random':
+            for i in range(self.batch_size):
+                batch_configs_list.append(self.sample_config())
             return batch_configs_list
 
-        while batch_configs_cnt:
-            if self.sample_strategy == 'random':
-                batch_configs_list.append(self.sample_config())
-            elif self.sample_strategy == 'bo':
-                if self.random_configuration_chooser.check(self.iteration_id):  # 以一定的概率回到随机采样上来
-                    batch_configs_list.append(self.sample_config())
-                else:
-                    self.model.train(X, Y)
+        if self.sample_strategy == 'median_imputation':
+            estimated_y = np.mean(Y)
+            batch_history_container = copy.deepcopy(self.history_container)
+            for i in range(self.batch_size):
+                self.model.train(X, Y)
 
-                    incumbent_value = self.history_container.get_incumbents()[0][1]
+                incumbent_value = batch_history_container.get_incumbents()[0][1]
 
-                    self.acquisition_function.update(model=self.model, eta=incumbent_value,
-                                                     num_data=len(self.history_container.data))
+                self.acquisition_function.update(model=self.model, eta=incumbent_value,
+                                                 num_data=len(batch_history_container.data))
 
-                    challengers = self.optimizer.maximize(
-                        runhistory=self.history_container,
-                        num_points=5000,
-                        random_configuration_chooser=self.random_configuration_chooser
-                    )
+                challengers = self.optimizer.maximize(
+                    runhistory=batch_history_container,
+                    num_points=5000,
+                    random_configuration_chooser=self.random_configuration_chooser
+                )
 
-                    batch_configs_list.append(challengers.challengers[0])
-            else:
-                raise ValueError('Invalid sampling strategy - %s.' % self.sample_strategy)
+                is_repeated_config = True
+                repeated_time = 0
+                curr_batch_config = None
+                while is_repeated_config:
+                    try:
+                        curr_batch_config = challengers.challengers[repeated_time]
+                        batch_history_container.add(curr_batch_config, estimated_y)
+                    except ValueError:
+                        is_repeated_config = True
+                        repeated_time += 1
+                    else:
+                        is_repeated_config = False
 
-            batch_configs_cnt-=1
+                batch_configs_list.append(curr_batch_config)
+                X = np.append(X, curr_batch_config.get_array().reshape(1, -1), axis=0)
+                Y = np.append(Y, estimated_y)
+                estimated_y = np.mean(Y)
+
+        elif self.sample_strategy == 'local_penalization':
+            self.model.train(X, Y)
+            incumbent_value = self.history_container.get_incumbents()[0][1]
+            # L = self.estimate_L(X)
+            for i in range(self.batch_size):
+                self.acquisition_function.update(model=self.model, eta=incumbent_value,
+                                                 num_data=len(self.history_container.data),
+                                                 batch_configs=batch_configs_list)
+
+                challengers = self.optimizer.maximize(
+                    runhistory=self.history_container,
+                    num_points=5000,
+                    random_configuration_chooser=self.random_configuration_chooser
+                )
+                batch_configs_list.append(challengers.challengers[0])
+        else:
+            raise ValueError('Invalid sampling strategy - %s.' % self.sample_strategy)
 
         return batch_configs_list
 
@@ -194,3 +216,31 @@ class BatchBayesianOptimization(BaseFacade):
                 config = self.config_space.sample_configuration()
                 break
         return config
+
+    # def estimate_L(self, X):  # X: N*D
+    #     """
+    #         Estimate the Lipschitz constant of f by taking maximum norm of the gradient of f.
+    #         Calculate numerical gradient = f(x+h) - f(x-h) / 2h , where h is very small
+    #     """
+    #     eps = 1e-3
+    #     for i in range(10000):
+    #         X = np.vstack((X, self.sample_config().get_array()))
+    #
+    #     # print("=" * 20, "X", X)
+    #     dX = np.zeros_like(X)
+    #     for j in range(X.shape[1]):
+    #         h = np.zeros_like(X)
+    #         h[:, j] = eps
+    #         # print("=" * 20, "X+h", X + h)
+    #         f_pos, _ = self.model.predict_marginalized_over_instances(X + h)
+    #         f_neg, _, = self.model.predict_marginalized_over_instances(X - h)
+    #         # print("=" * 20, "f_pos", dX)
+    #         # print("=" * 20, "f_neg", dX)
+    #         f_pos = f_pos.reshape(-1)
+    #         f_neg = f_neg.reshape(-1)
+    #         dX[:, j] = (f_pos - f_neg) / (2 * eps)
+    #     # print("="*20,"dX",dX)
+    #
+    #     norm_dX = np.linalg.norm(dX, axis=1)  # shape=(N,)
+    #
+    #     return np.max(norm_dX)

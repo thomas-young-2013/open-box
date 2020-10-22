@@ -31,22 +31,29 @@ x1 = UniformFloatHyperparameter("x1", -5, 10, default_value=0)
 x2 = UniformFloatHyperparameter("x2", 0, 15, default_value=0)
 cs.add_hyperparameters([x1, x2])
 
-bo = BayesianOptimization(branin, cs, max_runs=50, time_limit_per_trial=3, logging_dir='logs')
+bo = BayesianOptimization(branin, cs, max_runs=90, time_limit_per_trial=3, logging_dir='logs')
 bo.run()
 inc_value = bo.get_incumbent()
 print('BO', '='*30)
 print(inc_value)
 
 # Evaluate the random search.
-bo = BayesianOptimization(branin, cs, max_runs=50, time_limit_per_trial=3, sample_strategy='random', logging_dir='logs')
+bo = BayesianOptimization(branin, cs, max_runs=90, time_limit_per_trial=3, sample_strategy='random', logging_dir='logs')
 bo.run()
 inc_value = bo.get_incumbent()
 print('RANDOM', '='*30)
 print(inc_value)
 
 # Evaluate batch BO.
-bo = BatchBayesianOptimization(branin, cs, max_runs=50, time_limit_per_trial=3, logging_dir='logs')
+bo = BatchBayesianOptimization(branin, cs, max_runs=30, batch_size=3,time_limit_per_trial=3, sample_strategy='median_imputation',logging_dir='logs')
 bo.run()
 inc_value = bo.get_incumbent()
-print('BATCH BO', '='*30)
+print('MEDIAN IMPUTATION BATCH BO', '='*30)
+print(inc_value)
+
+# Evaluate batch BO.
+bo = BatchBayesianOptimization(branin, cs, max_runs=30, batch_size=3,time_limit_per_trial=3, sample_strategy='local_penalization',logging_dir='logs')
+bo.run()
+inc_value = bo.get_incumbent()
+print('LOCAL PENALIZATION BATCH BO', '='*30)
 print(inc_value)

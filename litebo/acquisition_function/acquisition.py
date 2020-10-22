@@ -5,6 +5,7 @@ from typing import List
 
 import numpy as np
 from scipy.stats import norm
+import math
 
 from litebo.config_space import Configuration
 from litebo.config_space.util import convert_configurations_to_array
@@ -336,6 +337,70 @@ class LogEI(AbstractAcquisitionFunction):
                 "Expected Improvement is smaller than 0 for at least one sample.")
 
         return log_ei.reshape((-1, 1))
+
+
+class LPEI(EI):
+    def __init__(self,
+                 model: AbstractModel,
+                 batch_configs=None,
+                 par: float = 0.0,
+                 estimate_L:float=10.0,
+                 **kwargs):
+        r"""This is EI with local penalizer, BBO_LP. Computes for a given x the expected improvement as
+        acquisition value.
+        :math:`EI(X) := \frac{\mathbb{E}\left[ \max\{0, f(\mathbf{X^+}) - f_{t+1}(\mathbf{X}) - \xi\right] \} ]} {np.log(r(x))}`,
+        with :math:`f(X^+)` as the incumbent and :math:`r(x)` as runtime.
+
+        Parameters
+        ----------
+        model : AbstractEPM
+            A model that implements at least
+                 - predict_marginalized_over_instances(X) returning a tuples of
+                   predicted cost and running time
+        par : float, default=0.0
+            Controls the balance between exploration and exploitation of the
+            acquisition function.
+        """
+        super(LPEI, self).__init__(model, par=par)
+        self.estimate_L = estimate_L
+        if batch_configs is None:
+            batch_configs = []
+        self.batch_configs = batch_configs
+        self.long_name = 'Expected Improvement with Local Penalizer'
+
+    def _compute(self, X: np.ndarray, **kwargs):
+        """Computes the PenalizedEI value.
+
+        Parameters
+        ----------
+        X: np.ndarray(N, D), The input point where the acquisition function
+            should be evaluate. The dimensionality of X is (N, D), with N as
+            the number of points to evaluate at and D is the number of
+            dimensions of one X.
+
+        Returns
+        -------
+        np.ndarray(N,1)
+            Expected Improvement per Second of X in log space
+        """
+        f = super()._compute(X)  # N*1
+        f = np.log(np.log1p(np.exp(f)))  # apply g(z), soft-plus transformation
+        for config in self.batch_configs:
+            m, v = self.model.predict(config.get_array().reshape(1, -1))
+            mu = m[0][0]
+            var = v[0][0]
+            sigma = math.sqrt(var)
+            local_penalizer = np.apply_along_axis(self._local_penalizer, 1, X, config.get_array(),
+                                                   mu, sigma, self.eta).reshape(-1, 1)
+            f += local_penalizer
+        return f
+
+    def _local_penalizer(self, x, x_j, mu, sigma, Min):
+        L = 5
+        # L = self.estimate_L
+        r_j = (mu - Min) / L
+        s_j = sigma / L
+        return norm.logcdf((np.linalg.norm(x - x_j) - r_j) / s_j)
 
 
 class PI(AbstractAcquisitionFunction):
