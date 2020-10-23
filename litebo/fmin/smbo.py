@@ -41,25 +41,35 @@ class SMBO(object):
 
         trial_state, trial_info = SUCCESS, None
 
-        try:
-            args, kwargs = (config,), dict()
-            timeout_status, _result = time_limit(self.objective_function,
-                                                 self.time_limit_per_trial,
-                                                 args=args, kwargs=kwargs)
-            if timeout_status:
-                raise TimeoutException('Timeout: time limit for this evaluation is %.1fs' % self.time_limit_per_trial)
+        if config not in (self.config_advisor.configurations + self.config_advisor.failed_configurations):
+            try:
+                args, kwargs = (config,), dict()
+                timeout_status, _result = time_limit(self.objective_function,
+                                                     self.time_limit_per_trial,
+                                                     args=args, kwargs=kwargs)
+                if timeout_status:
+                    raise TimeoutException(
+                        'Timeout: time limit for this evaluation is %.1fs' % self.time_limit_per_trial)
+                else:
+                    perf = _result
+            except Exception as e:
+                if isinstance(e, TimeoutException):
+                    trial_state = TIMEOUT
+                else:
+                    traceback.print_exc(file=sys.stdout)
+                    trial_state = FAILDED
+                perf = MAXINT
+                trial_info = str(e)
+
+            observation = [config, perf, trial_state]
+            self.config_advisor.update_observation(observation)
+        else:
+            print('This configuration has been evaluated! Skip it.')
+            if config in self.config_advisor.configurations:
+                config_idx = self.config_advisor.configurations.index(config)
+                trial_state, perf = SUCCESS, self.config_advisor.perfs[config_idx]
             else:
-                perf = _result
-        except Exception as e:
-            if isinstance(e, TimeoutException):
-                trial_state = TIMEOUT
-            else:
-                traceback.print_exc(file=sys.stdout)
-                trial_state = FAILDED
-            perf = MAXINT
-            trial_info = str(e)
-        observation = [config, perf, trial_state]
-        self.config_advisor.update_observation(observation)
+                trial_state, perf = FAILDED, MAXINT
 
         self.iteration_id += 1
         print('In the %d-th iteration, the objective value: %.4f' % (self.iteration_id, perf))
