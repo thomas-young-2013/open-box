@@ -5,8 +5,8 @@ import numpy as np
 from scipy import optimize
 
 from ConfigSpace import ConfigurationSpace
-from litebo.model.base_gp import BaseGP
-from litebo.model.gp_base_prior import Prior
+from litebo.surrogate.base.base_gp import BaseGP
+from litebo.surrogate.base.gp_base_prior import Prior
 from litebo.utils.constants import VERY_SMALL_NUMBER
 
 from skopt.learning.gaussian_process.kernels import Kernel
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 class GaussianProcess(BaseGP):
     """
-    Gaussian process model.
+    Gaussian process surrogate.
 
     The GP hyperparameterŝ are obtained by optimizing the marginal log likelihood.
 

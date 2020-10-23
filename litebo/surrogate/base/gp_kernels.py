@@ -8,7 +8,7 @@ import scipy.optimize
 import scipy.spatial.distance
 import scipy.special
 
-from litebo.model.gp_base_prior import Prior
+from litebo.surrogate.base.gp_base_prior import Prior
 import skopt.learning.gaussian_process.kernels as kernels
 
 

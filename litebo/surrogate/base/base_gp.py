@@ -4,8 +4,8 @@ from ConfigSpace import ConfigurationSpace
 import numpy as np
 import sklearn.gaussian_process.kernels
 
-from litebo.model.base_model import AbstractModel
-import litebo.model.gp_base_prior
+from litebo.surrogate.base.base_model import AbstractModel
+import litebo.surrogate.base.gp_base_prior
 
 if TYPE_CHECKING:
     from skopt.learning.gaussian_process.kernels import Kernel
@@ -97,7 +97,7 @@ class BaseGP(AbstractModel):
             self,
             add_bound_priors: bool = True,
             add_soft_bounds: bool = False,
-    ) -> List[List[litebo.model.gp_base_prior.Prior]]:
+    ) -> List[List[litebo.surrogate.base.gp_base_prior.Prior]]:
         # Obtain a list of all priors for each tunable hyperparameter of the kernel
         all_priors = []
         to_visit = []
@@ -123,12 +123,12 @@ class BaseGP(AbstractModel):
                     if add_bound_priors:
                         if add_soft_bounds:
                             priors_for_hp.append(
-                                litebo.model.gp_base_prior.SoftTopHatPrior(
+                                litebo.surrogate.base.gp_base_prior.SoftTopHatPrior(
                                     lower_bound=bounds[i][0], upper_bound=bounds[i][1], rng=self.rng, exponent=2,
                                 ))
                         else:
                             priors_for_hp.append(
-                                litebo.model.gp_base_prior.TophatPrior(
+                                litebo.surrogate.base.gp_base_prior.TophatPrior(
                                     lower_bound=bounds[i][0], upper_bound=bounds[i][1], rng=self.rng,
                                 ))
                     all_priors.append(priors_for_hp)

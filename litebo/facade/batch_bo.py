@@ -3,7 +3,7 @@ import traceback
 import copy
 import numpy as np
 from litebo.acquisition_function.acquisition import EI, LPEI
-from litebo.model.rf_with_instances import RandomForestWithInstances
+from litebo.surrogate.base.rf_with_instances import RandomForestWithInstances
 from litebo.acq_maximizer.ei_optimization import InterleavedLocalAndRandomSearch, RandomSearch
 from litebo.acq_maximizer.random_configuration_chooser import ChooserProb
 from litebo.utils.util_funcs import get_types, get_rng
@@ -232,8 +232,8 @@ class BatchBayesianOptimization(BaseFacade):
     #         h = np.zeros_like(X)
     #         h[:, j] = eps
     #         # print("=" * 20, "X+h", X + h)
-    #         f_pos, _ = self.model.predict_marginalized_over_instances(X + h)
-    #         f_neg, _, = self.model.predict_marginalized_over_instances(X - h)
+    #         f_pos, _ = self.surrogate.predict_marginalized_over_instances(X + h)
+    #         f_neg, _, = self.surrogate.predict_marginalized_over_instances(X - h)
     #         # print("=" * 20, "f_pos", dX)
     #         # print("=" * 20, "f_neg", dX)
     #         f_pos = f_pos.reshape(-1)

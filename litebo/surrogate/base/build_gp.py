@@ -1,13 +1,13 @@
 import numpy as np
-from litebo.model.gp import GaussianProcess
-from litebo.model.gp_mcmc import GaussianProcessMCMC
-from litebo.model.gp_base_prior import HorseshoePrior, LognormalPrior
-from litebo.model.gp_kernels import ConstantKernel, Matern, HammingKernel, WhiteKernel
+from litebo.surrogate.base.gp import GaussianProcess
+from litebo.surrogate.base.gp_mcmc import GaussianProcessMCMC
+from litebo.surrogate.base.gp_base_prior import HorseshoePrior, LognormalPrior
+from litebo.surrogate.base.gp_kernels import ConstantKernel, Matern, HammingKernel, WhiteKernel
 
 
 def create_gp_model(model_type, config_space, types, bounds, rng):
     """
-        Construct the Gaussian process model that is capable of dealing with categorical hyperparameters.
+        Construct the Gaussian process surrogate that is capable of dealing with categorical hyperparameters.
     """
     cov_amp = ConstantKernel(
         2.0,
@@ -77,5 +77,5 @@ def create_gp_model(model_type, config_space, types, bounds, rng):
             seed=rng.randint(low=0, high=10000),
         )
     else:
-        raise ValueError("Invalid model str %s!" % model_type)
+        raise ValueError("Invalid surrogate str %s!" % model_type)
     return model

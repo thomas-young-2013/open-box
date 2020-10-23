@@ -1,7 +1,7 @@
 from litebo.acquisition_function.acquisition import *
 from litebo.acq_maximizer.ei_optimization import InterleavedLocalAndRandomSearch
-from litebo.model.rf_with_instances import RandomForestWithInstances
-from litebo.model.build_gp import create_gp_model
+from litebo.surrogate.base.rf_with_instances import RandomForestWithInstances
+from litebo.surrogate.base.build_gp import create_gp_model
 from litebo.utils.util_funcs import get_types
 from litebo.utils.constants import MAXINT
 

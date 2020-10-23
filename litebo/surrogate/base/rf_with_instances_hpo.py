@@ -13,7 +13,7 @@ from pyrfr import regression
 from sklearn.model_selection import KFold
 import scipy.stats.distributions as scst
 
-from litebo.model.rf_with_instances import RandomForestWithInstances
+from litebo.surrogate.base.rf_with_instances import RandomForestWithInstances
 from litebo.utils.constants import N_TREES
 
 

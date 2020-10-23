@@ -9,7 +9,7 @@ import math
 
 from litebo.config_space import Configuration
 from litebo.config_space.util import convert_configurations_to_array
-from litebo.model.base_model import AbstractModel
+from litebo.surrogate.base.base_model import AbstractModel
 
 
 class AbstractAcquisitionFunction(object, metaclass=abc.ABCMeta):
@@ -39,7 +39,7 @@ class AbstractAcquisitionFunction(object, metaclass=abc.ABCMeta):
     def update(self, **kwargs):
         """Update the acquisition functions values.
 
-        This method will be called if the model is updated. E.g.
+        This method will be called if the surrogate is updated. E.g.
         entropy search uses it to update its approximation of P(x=x_min),
         EI uses it to update the current optimizer.
 
@@ -116,7 +116,7 @@ class EI(AbstractAcquisitionFunction):
         Parameters
         ----------
         model : AbstractEPM
-            A model that implements at least
+            A surrogate that implements at least
                  - predict_marginalized_over_instances(X)
         par : float, default=0.0
             Controls the balance between exploration and exploitation of the
@@ -191,7 +191,7 @@ class EIPS(EI):
         Parameters
         ----------
         model : AbstractEPM
-            A model that implements at least
+            A surrogate that implements at least
                  - predict_marginalized_over_instances(X) returning a tuples of
                    predicted cost and running time
         par : float, default=0.0
@@ -227,7 +227,7 @@ class EIPS(EI):
 
         m_cost = m[:, 0]
         v_cost = v[:, 0]
-        # The model already predicts log(runtime)
+        # The surrogate already predicts log(runtime)
         m_runtime = m[:, 1]
         s = np.sqrt(v_cost)
 
@@ -275,7 +275,7 @@ class LogEI(AbstractAcquisitionFunction):
         Parameters
         ----------
         model : AbstractEPM
-            A model that implements at least
+            A surrogate that implements at least
                  - predict_marginalized_over_instances(X)
         par : float, default=0.0
             Controls the balance between exploration and exploitation of the
@@ -354,7 +354,7 @@ class LPEI(EI):
         Parameters
         ----------
         model : AbstractEPM
-            A model that implements at least
+            A surrogate that implements at least
                  - predict_marginalized_over_instances(X) returning a tuples of
                    predicted cost and running time
         par : float, default=0.0
@@ -418,7 +418,7 @@ class PI(AbstractAcquisitionFunction):
         Parameters
         ----------
         model : AbstractEPM
-            A model that implements at least
+            A surrogate that implements at least
                  - predict_marginalized_over_instances(X)
         par : float, default=0.0
             Controls the balance between exploration and exploitation of the
@@ -469,7 +469,7 @@ class LCB(AbstractAcquisitionFunction):
         Parameters
         ----------
         model : AbstractEPM
-            A model that implements at least
+            A surrogate that implements at least
                  - predict_marginalized_over_instances(X)
         par : float, default=0.0
             Controls the balance between exploration and exploitation of the

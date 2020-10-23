@@ -4,7 +4,7 @@ import typing
 import numpy as np
 from pyrfr import regression
 
-from litebo.model.base_model import  AbstractModel
+from litebo.surrogate.base.base_model import  AbstractModel
 from litebo.utils.constants import N_TREES
 
 

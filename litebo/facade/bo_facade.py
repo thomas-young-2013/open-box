@@ -5,7 +5,7 @@ import traceback
 import numpy as np
 from litebo.utils.history_container import HistoryContainer
 from litebo.acquisition_function.acquisition import EI
-from litebo.model.rf_with_instances import RandomForestWithInstances
+from litebo.surrogate.base.rf_with_instances import RandomForestWithInstances
 from litebo.acq_maximizer.ei_optimization import InterleavedLocalAndRandomSearch, RandomSearch
 from litebo.acq_maximizer.random_configuration_chooser import ChooserProb
 from litebo.utils.util_funcs import get_types, get_rng

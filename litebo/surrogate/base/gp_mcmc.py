@@ -7,9 +7,9 @@ import emcee
 import numpy as np
 
 from ConfigSpace import ConfigurationSpace
-from litebo.model.base_gp import BaseGP
-from litebo.model.gp import GaussianProcess
-from litebo.model.gp_base_prior import Prior
+from litebo.surrogate.base.base_gp import BaseGP
+from litebo.surrogate.base.gp import GaussianProcess
+from litebo.surrogate.base.gp_base_prior import Prior
 
 from skopt.learning.gaussian_process.kernels import Kernel
 from skopt.learning.gaussian_process import GaussianProcessRegressor
@@ -36,7 +36,7 @@ class GaussianProcessMCMC(BaseGP):
             seed: int = 42
     ):
         """
-        Gaussian process model.
+        Gaussian process surrogate.
 
         The GP hyperparameters are integrated out by MCMC. If you use this class
         make sure that you also use an integrated acquisition function to
@@ -408,7 +408,7 @@ class GaussianProcessMCMC(BaseGP):
             raise Exception('Model has to be trained first!')
 
         if cov_return_type != 'diagonal_cov':
-            raise ValueError("'cov_return_type' can only take 'diagonal_cov' for this model")
+            raise ValueError("'cov_return_type' can only take 'diagonal_cov' for this surrogate")
 
         X_test = self._impute_inactive(X_test)
 
