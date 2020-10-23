@@ -8,7 +8,7 @@ import numpy as np
 from litebo.acquisition_function.acquisition import AbstractAcquisitionFunction
 from litebo.config_space import get_one_exchange_neighbourhood, \
     Configuration, ConfigurationSpace
-from litebo.optimizer.random_configuration_chooser import ChooserNoCoolDown, ChooserProb
+from litebo.acq_maximizer.random_configuration_chooser import ChooserNoCoolDown, ChooserProb
 from litebo.utils.constants import MAXINT
 from litebo.utils.history_container import HistoryContainer
 
@@ -349,7 +349,7 @@ class RandomSearch(AcquisitionFunctionMaximizer):
 class InterleavedLocalAndRandomSearch(AcquisitionFunctionMaximizer):
     """Implements litebo's default acquisition function optimization.
 
-    This optimizer performs local search from the previous best points
+    This acq_maximizer performs local search from the previous best points
     according, to the acquisition function, uses the acquisition function to
     sort randomly sampled configurations and interleaves unsorted, randomly
     sampled configurations in between.
@@ -422,7 +422,7 @@ class InterleavedLocalAndRandomSearch(AcquisitionFunctionMaximizer):
             runhistory object
         num_points: int
             number of points to be sampled
-        random_configuration_chooser: ~litebo.optimizer.random_configuration_chooser.RandomConfigurationChooser
+        random_configuration_chooser: ~litebo.acq_maximizer.random_configuration_chooser.RandomConfigurationChooser
             part of the returned ChallengerList such
             that we can interleave random configurations
             by a scheme defined by the random_configuration_chooser;

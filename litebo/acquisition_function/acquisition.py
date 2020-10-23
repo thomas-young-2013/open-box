@@ -41,7 +41,7 @@ class AbstractAcquisitionFunction(object, metaclass=abc.ABCMeta):
 
         This method will be called if the model is updated. E.g.
         entropy search uses it to update its approximation of P(x=x_min),
-        EI uses it to update the current fmin.
+        EI uses it to update the current optimizer.
 
         The default implementation takes all keyword arguments and sets the
         respective attributes for the acquisition function object.
@@ -464,7 +464,7 @@ class LCB(AbstractAcquisitionFunction):
 
         :math:`LCB(X) = \mu(\mathbf{X}) - \sqrt(\beta_t)\sigma(\mathbf{X})`
 
-        Returns -LCB(X) as the acquisition_function optimizer maximizes the acquisition value.
+        Returns -LCB(X) as the acquisition_function acq_maximizer maximizes the acquisition value.
 
         Parameters
         ----------

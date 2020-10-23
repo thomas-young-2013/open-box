@@ -6,8 +6,8 @@ import numpy as np
 from litebo.utils.history_container import HistoryContainer
 from litebo.acquisition_function.acquisition import EI
 from litebo.model.rf_with_instances import RandomForestWithInstances
-from litebo.optimizer.ei_optimization import InterleavedLocalAndRandomSearch, RandomSearch
-from litebo.optimizer.random_configuration_chooser import ChooserProb
+from litebo.acq_maximizer.ei_optimization import InterleavedLocalAndRandomSearch, RandomSearch
+from litebo.acq_maximizer.random_configuration_chooser import ChooserProb
 from litebo.utils.util_funcs import get_types, get_rng
 from litebo.config_space.util import convert_configurations_to_array
 from litebo.utils.constants import MAXINT, SUCCESS, FAILDED, TIMEOUT

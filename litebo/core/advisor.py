@@ -2,7 +2,7 @@ import os
 import abc
 import numpy as np
 
-from litebo.core.build_bo import build_acq_func, build_optimizer, build_surrogate
+from litebo.core.base import build_acq_func, build_optimizer, build_surrogate
 from litebo.utils.util_funcs import get_rng
 from litebo.utils.history_container import HistoryContainer
 from litebo.utils.logging_utils import setup_logger, get_logger

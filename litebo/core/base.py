@@ -1,5 +1,5 @@
 from litebo.acquisition_function.acquisition import *
-from litebo.optimizer.ei_optimization import InterleavedLocalAndRandomSearch
+from litebo.acq_maximizer.ei_optimization import InterleavedLocalAndRandomSearch
 from litebo.model.rf_with_instances import RandomForestWithInstances
 from litebo.model.build_gp import create_gp_model
 from litebo.utils.util_funcs import get_types
@@ -31,7 +31,7 @@ def build_optimizer(func_str='local_random', acq_func=None, config_space=None, r
     if func_str == 'local_random':
         optimizer = InterleavedLocalAndRandomSearch
     else:
-        raise ValueError('Invalid string %s for optimizer!' % func_str)
+        raise ValueError('Invalid string %s for acq_maximizer!' % func_str)
 
     return optimizer(acquisition_function=acq_func,
                      config_space=config_space,

@@ -2,12 +2,9 @@ import os
 import sys
 import numpy as np
 
-# Import ConfigSpace and different types of parameters
-from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
-    UniformFloatHyperparameter, UniformIntegerHyperparameter
-from ConfigSpace.conditions import InCondition
+from ConfigSpace.hyperparameters import UniformFloatHyperparameter
 sys.path.append(os.getcwd())
-from litebo.fmin.smbo import SMBO
+from litebo.optimizer.smbo import SMBO
 from litebo.config_space import ConfigurationSpace
 
 
