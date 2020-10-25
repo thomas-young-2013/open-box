@@ -1,6 +1,4 @@
-import sys
-import traceback
-
+import time
 from litebo.utils.constants import MAXINT, SUCCESS, FAILDED, TIMEOUT
 from litebo.core.computation.parallel_process import ParallelEvaluation
 from litebo.utils.limit import time_limit, TimeoutException
@@ -45,6 +43,7 @@ class pSMBO(object):
         # print('Add observation [%s, %.f]' % (str(result[0]), result[1]))
         _observation = [_config, _perf, SUCCESS]
         self.config_advisor.update_observation(_observation)
+        time.sleep(0.5)
 
     def async_run(self):
         with ParallelEvaluation(wrapper, n_worker=4) as proc:
