@@ -18,7 +18,7 @@ def wrapper(param):
         if timeout_status:
             raise TimeoutException('Timeout: time limit for this evaluation is %.1fs' % time_limit_per_trial)
         else:
-            result = _result
+            result = _result if _result is not None else MAXINT
     except Exception as e:
         if isinstance(e, TimeoutException):
             trial_state = TIMEOUT
