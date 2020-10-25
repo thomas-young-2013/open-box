@@ -18,6 +18,8 @@ def build_acq_func(func_str='ei', model=None):
         acq_func = PI
     elif func_str == 'lcb':
         acq_func = LCB
+    elif func_str == 'lpei':
+        acq_func = LPEI
     else:
         raise ValueError('Invalid string %s for acquisition function!' % func_str)
 

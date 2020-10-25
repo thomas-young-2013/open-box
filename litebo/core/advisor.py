@@ -56,12 +56,12 @@ class Advisor(object, metaclass=abc.ABCMeta):
         self.optimizer = None
         self.setup_bo_basics()
 
-    def setup_bo_basics(self):
-        self.surrogate_model = build_surrogate(func_str='prf', config_space=self.config_space, rng=self.rng)
+    def setup_bo_basics(self, surrogate_type='prf', acq_type='ei', acq_optimizer_type='local_random'):
+        self.surrogate_model = build_surrogate(func_str=surrogate_type, config_space=self.config_space, rng=self.rng)
 
-        self.acquisition_function = build_acq_func(func_str='ei', model=self.surrogate_model)
+        self.acquisition_function = build_acq_func(func_str=acq_type, model=self.surrogate_model)
 
-        self.optimizer = build_optimizer(func_str='local_random',
+        self.optimizer = build_optimizer(func_str=acq_optimizer_type,
                                          acq_func=self.acquisition_function,
                                          config_space=self.config_space,
                                          rng=self.rng)

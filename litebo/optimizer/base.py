@@ -30,11 +30,9 @@ class BOBase(object, metaclass=abc.ABCMeta):
         self.logger = self._get_logger(self.task_id)
         self.rng = np.random.RandomState(random_state)
 
-    @abc.abstractmethod
     def run(self):
         raise NotImplementedError()
 
-    @abc.abstractmethod
     def iterate(self):
         raise NotImplementedError()
 

@@ -127,6 +127,7 @@ class BayesianOptimization(BaseFacade):
                     raise TimeoutException('Timeout: time limit for this evaluation is %.1fs' % self.time_limit_per_trial)
                 else:
                     perf = _result
+                perf = MAXINT if _result is None else perf
             except Exception as e:
                 if isinstance(e, TimeoutException):
                     trial_state = TIMEOUT
