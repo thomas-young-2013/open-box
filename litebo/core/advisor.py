@@ -1,11 +1,9 @@
-import os
 import abc
 import numpy as np
 
 from litebo.core.base import build_acq_func, build_optimizer, build_surrogate
 from litebo.utils.util_funcs import get_rng
 from litebo.utils.history_container import HistoryContainer
-from litebo.utils.logging_utils import setup_logger, get_logger
 from litebo.config_space.util import convert_configurations_to_array
 from litebo.utils.constants import MAXINT, SUCCESS, FAILDED, TIMEOUT
 
@@ -24,9 +22,6 @@ class Advisor(object, metaclass=abc.ABCMeta):
         # Init logging module.
         # Random seed generator.
         self.output_dir = output_dir
-        if not os.path.exists(self.output_dir):
-            os.makedirs(self.output_dir)
-        self.logger = self._get_logger(self.__class__.__name__)
         if rng is None:
             run_id, rng = get_rng()
         self.rng = rng
@@ -71,11 +66,6 @@ class Advisor(object, metaclass=abc.ABCMeta):
                                          config_space=self.config_space,
                                          rng=self.rng)
 
-    def _get_logger(self, name):
-        logger_name = 'lite-bo-%s' % name
-        setup_logger(os.path.join(self.output_dir, '%s.log' % str(logger_name)))
-        return get_logger(logger_name)
-
     def create_initial_design(self, init_strategy='random'):
         default_config = self.config_space.get_default_configuration()
         if init_strategy == 'random':
@@ -101,7 +91,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
             return self.initial_configurations[num_config_evaluated]
 
         if self.optimization_strategy == 'random':
-            return self.sample_random_configs(1)
+            return self.sample_random_configs(1)[0]
         elif self.optimization_strategy == 'bo':
             self.surrogate_model.train(X, Y)
             incumbent_value = self.history_container.get_incumbents()[0][1]

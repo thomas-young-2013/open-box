@@ -29,13 +29,13 @@ cs.add_hyperparameters([x1, x2])
 
 bo = SMBO(branin, cs, max_runs=50, time_limit_per_trial=3, logging_dir='logs',)
 bo.run()
-# inc_value = bo.get_incumbent()
+inc_value = bo.get_incumbent()
 print('BO', '='*30)
-# print(inc_value)
+print(inc_value)
 
-# # Evaluate the random search.
-# bo = BayesianOptimization(branin, cs, max_runs=50, time_limit_per_trial=3, sample_strategy='random', logging_dir='logs')
-# bo.run()
-# inc_value = bo.get_incumbent()
-# print('RANDOM', '='*30)
-# print(inc_value)
+# Evaluate the random search.
+bo = SMBO(branin, cs, max_runs=50, time_limit_per_trial=3, sample_strategy='random', logging_dir='logs')
+bo.run()
+inc_value = bo.get_incumbent()
+print('RANDOM', '='*30)
+print(inc_value)

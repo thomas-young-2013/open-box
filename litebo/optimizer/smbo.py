@@ -1,13 +1,13 @@
 import sys
 import traceback
 
+from litebo.optimizer.base import BOBase
 from litebo.utils.constants import MAXINT, SUCCESS, FAILDED, TIMEOUT
 from litebo.utils.limit import time_limit, TimeoutException
-from litebo.utils.logging_utils import setup_logger, get_logger
 from litebo.core.advisor import Advisor
 
 
-class SMBO(object):
+class SMBO(BOBase):
     def __init__(self, objective_function, config_space,
                  sample_strategy='bo',
                  time_limit_per_trial=180,
@@ -16,21 +16,17 @@ class SMBO(object):
                  initial_configurations=None,
                  initial_runs=3,
                  task_id=None,
-                 rng=None):
+                 random_state=1):
 
+        super().__init__(objective_function, config_space, task_id=task_id, output_dir=logging_dir,
+                         random_state=random_state, initial_runs=initial_runs, max_runs=max_runs,
+                         sample_strategy=sample_strategy, time_limit_per_trial=time_limit_per_trial)
         self.config_advisor = Advisor(config_space, initial_trials=initial_runs,
                                       initial_configurations=initial_configurations,
                                       optimization_strategy=sample_strategy,
                                       task_id=task_id,
                                       output_dir=logging_dir,
-                                      rng=rng)
-
-        self.init_num = initial_runs
-        self.max_iterations = max_runs
-        self.iteration_id = 0
-        self.sample_strategy = sample_strategy
-        self.objective_function = objective_function
-        self.time_limit_per_trial = time_limit_per_trial
+                                      rng=self.rng)
 
     def run(self):
         while self.iteration_id < self.max_iterations:
@@ -64,7 +60,7 @@ class SMBO(object):
             observation = [config, perf, trial_state]
             self.config_advisor.update_observation(observation)
         else:
-            print('This configuration has been evaluated! Skip it.')
+            self.logger.info('This configuration has been evaluated! Skip it.')
             if config in self.config_advisor.configurations:
                 config_idx = self.config_advisor.configurations.index(config)
                 trial_state, perf = SUCCESS, self.config_advisor.perfs[config_idx]
@@ -72,5 +68,5 @@ class SMBO(object):
                 trial_state, perf = FAILDED, MAXINT
 
         self.iteration_id += 1
-        print('In the %d-th iteration, the objective value: %.4f' % (self.iteration_id, perf))
+        self.logger.info('In the %d-th iteration, the objective value: %.4f' % (self.iteration_id, perf))
         return config, trial_state, perf, trial_info
