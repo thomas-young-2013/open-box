@@ -1,4 +1,6 @@
+import sys
 import time
+import traceback
 from litebo.utils.constants import MAXINT, SUCCESS, FAILDED, TIMEOUT
 from litebo.core.computation.parallel_process import ParallelEvaluation
 from litebo.utils.limit import time_limit, TimeoutException
@@ -8,7 +10,24 @@ from litebo.core.advisor import Advisor
 
 def wrapper(param):
     objective_function, config = param
-    result = objective_function(config)
+    time_limit_per_trial = 5
+    try:
+        args, kwargs = (config,), dict()
+        timeout_status, _result = time_limit(objective_function, time_limit_per_trial,
+                                             args=args, kwargs=kwargs)
+        if timeout_status:
+            raise TimeoutException('Timeout: time limit for this evaluation is %.1fs' % time_limit_per_trial)
+        else:
+            result = _result
+    except Exception as e:
+        if isinstance(e, TimeoutException):
+            trial_state = TIMEOUT
+        else:
+            traceback.print_exc(file=sys.stdout)
+            trial_state = FAILDED
+        result = MAXINT
+
+    # result = objective_function(config)
     return [config, result]
 
 
@@ -60,7 +79,7 @@ class pSMBO(object):
                 self.iteration_id += 1
 
     def run(self):
-        with ParallelEvaluation(self.objective_function, n_worker=4) as proc:
+        with ParallelEvaluation(wrapper, n_worker=4) as proc:
             while self.iteration_id < self.max_iterations:
                 config = self.config_advisor.get_suggestion()
                 configs = [config, config, config, config]

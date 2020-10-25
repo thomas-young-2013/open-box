@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 import numpy as np
 
 from ConfigSpace.hyperparameters import UniformFloatHyperparameter
@@ -9,6 +10,8 @@ from litebo.config_space import ConfigurationSpace
 
 
 def branin(x):
+    # time_cost = np.random.randint(6)
+    # time.sleep(time_cost)
     xs = x.get_dictionary()
     x1 = xs['x1']
     x2 = xs['x2']
