@@ -1,11 +1,12 @@
 import abc
 import numpy as np
 
-from litebo.core.base import build_acq_func, build_optimizer, build_surrogate
 from litebo.utils.util_funcs import get_rng
+from solnml.utils.logging_utils import get_logger
 from litebo.utils.history_container import HistoryContainer
-from litebo.config_space.util import convert_configurations_to_array
 from litebo.utils.constants import MAXINT, SUCCESS, FAILDED, TIMEOUT
+from litebo.config_space.util import convert_configurations_to_array
+from litebo.core.base import build_acq_func, build_optimizer, build_surrogate
 
 
 class Advisor(object, metaclass=abc.ABCMeta):
@@ -25,6 +26,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
         if rng is None:
             run_id, rng = get_rng()
         self.rng = rng
+        self.logger = get_logger(self.__class__.__name__)
 
         # Basic components in Advisor.
         self.optimization_strategy = optimization_strategy
@@ -136,3 +138,6 @@ class Advisor(object, metaclass=abc.ABCMeta):
                 configs.append(config)
                 sample_cnt = 0
         return configs
+
+    def get_suggestions(self):
+        raise NotImplementedError

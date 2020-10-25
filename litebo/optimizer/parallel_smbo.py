@@ -11,9 +11,7 @@ from litebo.optimizer.base import BOBase
 
 
 def wrapper(param):
-    print('worker proc', psutil.Process().pid)
-    objective_function, config = param
-    time_limit_per_trial = 5
+    objective_function, config, time_limit_per_trial = param
     try:
         args, kwargs = (config,), dict()
         timeout_status, _result = time_limit(objective_function, time_limit_per_trial,
@@ -71,39 +69,42 @@ class pSMBO(BOBase):
         self.batch_size = batch_size
 
     def callback(self, result):
-        print('in Callback', psutil.Process().pid)
-        print('callback', result)
         _config, _perf = result[0], result[1]
-        # print('Add observation [%s, %.f]' % (str(result[0]), result[1]))
         _observation = [_config, _perf, SUCCESS]
+        # Report the result, and remove the config from the running queue.
         self.config_advisor.update_observation(_observation)
+        # Parent process: collect the result and increment id.
         self.iteration_id += 1
-        print('in proc-%d' % psutil.Process().pid, self.iteration_id)
 
     def async_run(self):
-        # print('main proc', psutil.Process().pid)
-
         with ParallelEvaluation(wrapper, n_worker=self.batch_size) as proc:
             while self.iteration_id < self.max_iterations:
-                cnt = 0
-                while self.iteration_id < self.max_iterations:
-                    _config = self.config_advisor.get_suggestion()
-                    _param = [self.objective_function, _config]
-                    proc.process_pool.apply_async(wrapper, (_param,), callback=self.callback)
-                print('current iteration id', self.iteration_id)
-                print('in Main-proc-%d' % psutil.Process().pid, self.iteration_id)
+                _config = self.config_advisor.get_suggestion()
+                _param = [self.objective_function, _config, self.time_limit_per_trial]
+                # Submit a job to worker.
+                proc.process_pool.apply_async(wrapper, (_param,), callback=self.callback)
+                while len(self.config_advisor.running_configs) >= self.batch_size:
+                    # Wait for workers.
+                    time.sleep(0.3)
+
+    def sync_run(self):
+        with ParallelEvaluation(wrapper, n_worker=self.batch_size) as proc:
+            batch_num = (self.max_iterations + self.batch_size - 1) // self.batch_size
+            batch_id = 0
+            while batch_id < batch_num:
+                configs = self.config_advisor.get_suggestions()
+                params = [(self.objective_function, config, self.time_limit_per_trial) for config in configs]
+                # Wait all workers to complete their corresponding jobs.
+                results = proc.parallel_execute(params)
+                # Report their results.
+                for idx, (_config, _result) in enumerate(zip(configs, results)):
+                    _observation = [_config, _result, SUCCESS]
+                    self.config_advisor.update_observation(_observation)
+                    print('In the %d-th batch [%d], result is' % (batch_id, idx), _result)
+                batch_id += 1
 
     def run(self):
         if self.parallel_strategy == 'async':
             self.async_run()
         else:
-            with ParallelEvaluation(wrapper, n_worker=4) as proc:
-                while self.iteration_id < self.max_iterations:
-                    configs = self.config_advisor.get_suggestions()
-                    params = [(self.objective_function, config) for config in configs]
-                    results = proc.parallel_execute(params)
-                    for idx, (_config, _result) in enumerate(zip(configs, results)):
-                        _observation = [_config, _result, SUCCESS]
-                        self.config_advisor.update_observation(_observation)
-                        print('In iteration %d-%d' % (self.iteration_id, idx), _result)
-                    self.iteration_id += 1
+            self.sync_run()
