@@ -47,7 +47,7 @@ class SMBO(BOBase):
                     raise TimeoutException(
                         'Timeout: time limit for this evaluation is %.1fs' % self.time_limit_per_trial)
                 else:
-                    perf = _result
+                    perf = _result if _result is not None else MAXINT
             except Exception as e:
                 if isinstance(e, TimeoutException):
                     trial_state = TIMEOUT
