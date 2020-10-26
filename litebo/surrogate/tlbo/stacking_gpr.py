@@ -12,43 +12,18 @@ class SGPR(BaseTLSurrogate):
         self.method_id = 'sgpr'
 
         self.alpha = 0.95
-        self.configs_set = None
-        self.cached_prior_mu = None
-        self.cached_prior_sigma = None
-        self.cached_stacking_mu = None
-        self.cached_stacking_sigma = None
-        self.prior_size = 0
+
+        self.base_regressors = list()
+        self.num_configs = list()
+        self.final_regressor = None
+        self.final_num = 0
+
         self.iteration_id = 0
         self.index_mapper = dict()
         self.get_regressor()
 
     def get_regressor(self):
-        # Collect the configs set.
-        configs_list = list()
-
-        for idx, hpo_evaluation_data in enumerate(self.source_hpo_data):
-            for _config, _ in list(hpo_evaluation_data.items())[:self.num_src_hpo_trial]:
-                if _config not in configs_list:
-                    configs_list.append(_config)
-        for _config in self.target_hp_configs:
-            if _config not in configs_list:
-                configs_list.append(_config)
-        configs_list = [list(item) for item in convert_configurations_to_array(configs_list)]
-
-        # Initialize mu and sigma vector.
-        num_configs = len(configs_list)
-        self.configs_set = configs_list
-        for _idx, _config in enumerate(configs_list):
-            self.index_mapper[str(_config)] = _idx
-
-        self.cached_prior_mu = np.zeros(num_configs)
-        self.cached_prior_sigma = np.ones(num_configs)
-        self.cached_stacking_mu = np.zeros(num_configs)
-        self.cached_stacking_sigma = np.ones(num_configs)
-        self.configs_X = np.array(self.configs_set)
-
         # Train transfer learning regressor.
-        self.prior_size = 0
         for idx, hpo_evaluation_data in enumerate(self.source_hpo_data):
             print('Build the %d-th residual GPs.' % idx)
             _X, _y = list(), list()
@@ -58,62 +33,57 @@ class SGPR(BaseTLSurrogate):
             X = convert_configurations_to_array(_X)
             y = np.array(_y, dtype=np.float64)
             self.train_regressor(X, y)
-            self.prior_size = len(y)
 
     def train_regressor(self, X, y, is_top=False):
         model = build_surrogate(self.surrogate_type, self.config_space,
                                 np.random.RandomState(self.random_seed))
-        model.train(X, y)
-
-        # Get prior mu and sigma for configs in X.
-        idxs = list()
-        for item in X:
-            # index = self.configs_set.index(list(item))
-            index = self.index_mapper[str(list(item))]
-            idxs.append(index)
-        prior_mu, prior_sigma = self.cached_prior_mu[idxs], self.cached_prior_sigma[idxs]
-        prior_mu = np.array(prior_mu)
-
-        # Training residual GP.
-        model.train(X, y - prior_mu)
-
-        # Update the prior surrogate: mu and sigma.
-        top_size = len(y)
-        beta = self.alpha * top_size / (self.alpha * top_size + self.prior_size)
-
-        mu_top, sigma_top = model.predict(self.configs_X)
-        mu_top, sigma_top = mu_top.flatten(), sigma_top.flatten()
-
         if is_top:
-            self.cached_stacking_mu = self.cached_prior_mu + mu_top
-            self.cached_stacking_sigma = np.power(sigma_top, beta) * \
-                                         np.power(self.cached_prior_sigma, 1 - beta)
+            self.final_num = len(X)
         else:
-            self.cached_prior_mu += mu_top.flatten()
-            self.cached_prior_sigma = np.power(sigma_top, beta) * \
-                                      np.power(self.cached_prior_sigma, 1 - beta)
+            self.num_configs.append(len(X))
+
+        if len(self.base_regressors) == 0 or is_top:
+            model.train(X, y)
+        else:
+            stacked_mu, stacked_sigma = self.calculate_stacked_results(X)
+            model.train(X, y - stacked_mu)
+
+        if not is_top:
+            self.base_regressors.append(model)
+        else:
+            self.final_regressor = model
 
     def train(self, X: np.ndarray, y: np.array):
-        # Decide whether to rebuild the transfer learning regressor.
-        retrain = False
-        for item in X:
-            item = list(item)
-            if item not in self.configs_set:
-                retrain = True
-                break
-        if retrain:
-            self.get_regressor()
-
         # Train the final regressor.
         self.train_regressor(X, y, is_top=True)
         self.iteration_id += 1
 
-    def predict(self, X: np.array):
-        index_list = list()
-        for x in X:
-            # index = self.configs_set.index(list(x))
-            index = self.index_mapper[str(list(x))]
-            index_list.append(index)
+    def calculate_stacked_results(self, X: np.ndarray, include_top=False):
+        stacked_mu, stacked_sigma = np.zeros(len(X)), np.ones(len(X))
+        for i, model in enumerate(self.base_regressors):
+            mu, sigma = model.predict(X)
+            mu, sigma = mu.flatten(), sigma.flatten()
 
-        mu_list, var_list = self.cached_stacking_mu[index_list], self.cached_stacking_sigma[index_list]
-        return np.array(mu_list).reshape(-1, 1), np.array(var_list).reshape(-1, 1)
+            prior_size = 0 if i == 0 else self.num_configs[i - 1]
+            cur_size = self.num_configs[i]
+            beta = self.alpha * cur_size / (self.alpha * cur_size + prior_size)
+
+            stacked_mu += mu
+            stacked_sigma = np.power(sigma, beta) * np.power(stacked_sigma, 1 - beta)
+
+        if include_top:
+            mu, sigma = self.final_regressor.predict(X)
+            mu, sigma = mu.flatten(), sigma.flatten()
+
+            prior_size = self.num_configs[-1]
+            cur_size = self.final_num
+            beta = self.alpha * cur_size / (self.alpha * cur_size + prior_size)
+
+            stacked_mu += mu
+            stacked_sigma = np.power(sigma, beta) * np.power(stacked_sigma, 1 - beta)
+
+        return stacked_mu, stacked_sigma
+
+    def predict(self, X: np.array):
+        mu, sigma = self.calculate_stacked_results(X, include_top=True)
+        return np.array(mu).reshape(-1, 1), np.array(sigma).reshape(-1, 1)

@@ -47,7 +47,7 @@ def build_surrogate(func_str='prf', config_space=None, rng=None, history_hpo_dat
     seed = rng.randint(MAXINT)
     if func_str == 'prf':
         return RandomForestWithInstances(types=types, bounds=bounds, seed=seed)
-    elif 'gp' in func_str:
+    elif func_str.startswith('gp'):
         return create_gp_model(model_type=func_str,
                                config_space=config_space,
                                types=types,
@@ -55,9 +55,17 @@ def build_surrogate(func_str='prf', config_space=None, rng=None, history_hpo_dat
                                rng=rng)
     elif func_str.startswith('tlbo'):
         print('the current surrogate is', func_str)
-        from litebo.surrogate.tlbo.rgpe import RGPE
-        inner_surrogate_type = func_str[5:]
-        return RGPE(config_space, history_hpo_data, seed,
-                    surrogate_type=inner_surrogate_type, num_src_hpo_trial=-1)
+        if 'rgpe' in func_str:
+            from litebo.surrogate.tlbo.rgpe import RGPE
+            inner_surrogate_type = func_str.split('_')[-1]
+            return RGPE(config_space, history_hpo_data, seed,
+                        surrogate_type=inner_surrogate_type, num_src_hpo_trial=-1)
+        elif 'sgpr' in func_str:
+            from litebo.surrogate.tlbo.stacking_gpr import SGPR
+            inner_surrogate_type = func_str.split('_')[-1]
+            return SGPR(config_space, history_hpo_data, seed,
+                        surrogate_type=inner_surrogate_type, num_src_hpo_trial=-1)
+        else:
+            raise ValueError('Invalid string %s for tlbo surrogate!' % func_str)
     else:
         raise ValueError('Invalid string %s for surrogate!' % func_str)
