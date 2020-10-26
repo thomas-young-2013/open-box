@@ -5,7 +5,7 @@ from litebo.surrogate.tlbo.base import BaseTLSurrogate
 class RGPE(BaseTLSurrogate):
     def __init__(self, config_space, source_hpo_data, target_hp_configs, seed,
                  surrogate_type='rf', num_src_hpo_trial=50, only_source=False):
-        super().__init__(config_space, source_hpo_data, seed, target_hp_configs,
+        super().__init__(config_space, source_hpo_data, seed,
                          surrogate_type=surrogate_type, num_src_hpo_trial=num_src_hpo_trial)
         self.method_id = 'rgpe'
         self.only_source = only_source
