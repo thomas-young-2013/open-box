@@ -23,15 +23,16 @@ class BaseTLSurrogate(object):
         self.method_id = None
         self.config_space = config_space
         self.random_seed = seed
-        # The number of source problems.
-        self.K = len(source_hpo_data)
         self.num_src_hpo_trial = num_src_hpo_trial
         self.source_hpo_data = source_hpo_data
         self.source_surrogates = None
         self.target_surrogate = None
         self.history_dataset_features = history_dataset_features
-        if history_dataset_features is not None:
-            assert len(history_dataset_features) == self.K
+        # The number of source problems.
+        if source_hpo_data is not None:
+            self.K = len(source_hpo_data)
+            if history_dataset_features is not None:
+                assert len(history_dataset_features) == self.K
         self.surrogate_type = surrogate_type
 
         self.types, self.bounds = get_types(config_space)
@@ -56,6 +57,10 @@ class BaseTLSurrogate(object):
         pass
 
     def build_source_surrogates(self, normalize):
+        if self.source_hpo_data is None:
+            self.logger.warning('No history BO data provided, resort to naive BO optimizer without TL.')
+            return
+
         self.logger.info('Start to train base surrogates.')
         start_time = time.time()
         self.source_surrogates = list()

@@ -13,6 +13,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
     def __init__(self, config_space,
                  initial_trials=3,
                  initial_configurations=None,
+                 history_bo_data=None,
                  optimization_strategy='bo',
                  surrogate_type='prf',
                  output_dir='logs',
@@ -40,6 +41,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
         self.max_y = None
 
         # Init the basic ingredients in Bayesian optimization.
+        self.history_bo_data = history_bo_data
         self.surrogate_type = surrogate_type
         self.init_num = initial_trials
         self.config_space = config_space
@@ -58,8 +60,11 @@ class Advisor(object, metaclass=abc.ABCMeta):
         self.optimizer = None
         self.setup_bo_basics()
 
-    def setup_bo_basics(self, surrogate_type='prf', acq_type='ei', acq_optimizer_type='local_random'):
-        self.surrogate_model = build_surrogate(func_str=surrogate_type, config_space=self.config_space, rng=self.rng)
+    def setup_bo_basics(self, acq_type='ei', acq_optimizer_type='local_random'):
+        self.surrogate_model = build_surrogate(func_str=self.surrogate_type,
+                                               config_space=self.config_space,
+                                               rng=self.rng,
+                                               history_hpo_data=self.history_bo_data)
 
         self.acquisition_function = build_acq_func(func_str=acq_type, model=self.surrogate_model)
 
@@ -102,7 +107,17 @@ class Advisor(object, metaclass=abc.ABCMeta):
                                              num_data=num_config_evaluated)
             challengers = self.optimizer.maximize(runhistory=self.history_container,
                                                   num_points=5000)
-            return challengers.challengers[0]
+            is_repeated_config = True
+            repeated_time = 0
+            cur_config = None
+            while is_repeated_config:
+                cur_config = challengers.challengers[repeated_time]
+                if cur_config in (self.configurations + self.failed_configurations):
+                    is_repeated_config = True
+                    repeated_time += 1
+                else:
+                    is_repeated_config = False
+            return cur_config
         else:
             raise ValueError('Unknown optimization strategy: %s.' % self.optimization_strategy)
 

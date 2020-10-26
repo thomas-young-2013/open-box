@@ -40,18 +40,24 @@ def build_optimizer(func_str='local_random', acq_func=None, config_space=None, r
                      rng=rng)
 
 
-def build_surrogate(func_str='prf', config_space=None, rng=None):
+def build_surrogate(func_str='prf', config_space=None, rng=None, history_hpo_data=None):
     assert config_space is not None
     func_str = func_str.lower()
-
     types, bounds = get_types(config_space)
+    seed = rng.randint(MAXINT)
     if func_str == 'prf':
-        return RandomForestWithInstances(types=types, bounds=bounds, seed=rng.randint(MAXINT))
+        return RandomForestWithInstances(types=types, bounds=bounds, seed=seed)
     elif 'gp' in func_str:
         return create_gp_model(model_type=func_str,
                                config_space=config_space,
                                types=types,
                                bounds=bounds,
                                rng=rng)
+    elif func_str.startswith('tlbo'):
+        print('the current surrogate is', func_str)
+        from litebo.surrogate.tlbo.rgpe import RGPE
+        inner_surrogate_type = func_str[5:]
+        return RGPE(config_space, history_hpo_data, seed,
+                    surrogate_type=inner_surrogate_type, num_src_hpo_trial=-1)
     else:
         raise ValueError('Invalid string %s for surrogate!' % func_str)

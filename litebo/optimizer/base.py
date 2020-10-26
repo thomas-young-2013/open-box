@@ -2,13 +2,17 @@ import os
 import abc
 import time
 import numpy as np
+from typing import List
+from collections import OrderedDict
 from litebo.utils.logging_utils import setup_logger, get_logger
 
 
 class BOBase(object, metaclass=abc.ABCMeta):
     def __init__(self, objective_function, config_space, task_id=None, output_dir='logs/',
                  random_state=1, initial_runs=3, max_runs=50,
-                 sample_strategy='bo', time_limit_per_trial=600):
+                 sample_strategy='bo', surrogate_type='prf',
+                 history_bo_data: List[OrderedDict] = None,
+                 time_limit_per_trial=600):
         self.output_dir = output_dir
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
@@ -19,6 +23,8 @@ class BOBase(object, metaclass=abc.ABCMeta):
         self.max_iterations = max_runs
         self.iteration_id = 0
         self.sample_strategy = sample_strategy
+        self.history_bo_data = history_bo_data
+        self.surrogate_type = surrogate_type
         self.time_limit_per_trial = time_limit_per_trial
         self.config_advisor = None
 

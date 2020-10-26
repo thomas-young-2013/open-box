@@ -3,34 +3,38 @@ from litebo.surrogate.tlbo.base import BaseTLSurrogate
 
 
 class RGPE(BaseTLSurrogate):
-    def __init__(self, config_space, source_hpo_data, target_hp_configs, seed,
+    def __init__(self, config_space, source_hpo_data, seed,
                  surrogate_type='rf', num_src_hpo_trial=50, only_source=False):
         super().__init__(config_space, source_hpo_data, seed,
                          surrogate_type=surrogate_type, num_src_hpo_trial=num_src_hpo_trial)
         self.method_id = 'rgpe'
         self.only_source = only_source
         self.build_source_surrogates(normalize='standardize')
-        # Weights for base surrogates and the target surrogate.
-        self.w = [1. / self.K] * self.K + [0.]
+
         self.scale = True
         # self.num_sample = 100
         self.num_sample = 50
 
-        # Preventing weight dilution.
-        self.ignored_flag = [False] * self.K
+        if source_hpo_data is not None:
+            # Weights for base surrogates and the target surrogate.
+            self.w = [1. / self.K] * self.K + [0.]
+            # Preventing weight dilution.
+            self.ignored_flag = [False] * self.K
         self.hist_ws = list()
         self.iteration_id = 0
 
     def train(self, X: np.ndarray, y: np.array):
+        # Build the target surrogate.
+        self.target_surrogate = self.build_single_surrogate(X, y, normalize='standardize')
+        if self.source_hpo_data is None:
+            return
+
         # Train the target surrogate and update the weight w.
         mu_list, var_list = list(), list()
         for id in range(self.K):
             mu, var = self.source_surrogates[id].predict(X)
             mu_list.append(mu)
             var_list.append(var)
-
-        # Build the target surrogate.
-        self.target_surrogate = self.build_single_surrogate(X, y, normalize='standardize')
 
         # Pretrain the leave-one-out surrogates.
         k_fold_num = 5
@@ -126,20 +130,23 @@ class RGPE(BaseTLSurrogate):
             else:
                 self.w[:-1] = np.array(self.w[:-1])/np.sum(self.w[:-1])
 
-        print('=' * 20)
+        self.logger.info('=' * 20)
         w = self.w.copy()
         for id in range(self.K):
             if self.ignored_flag[id]:
                 w[id] = 0.
         weight_str = ','.join([('%.2f' % item) for item in w])
-        print('In iter-%d' % self.iteration_id)
+        self.logger.info('In iter-%d' % self.iteration_id)
         self.target_weight.append(w[-1])
-        print(weight_str)
+        self.logger.info(weight_str)
         self.hist_ws.append(w)
         self.iteration_id += 1
 
     def predict(self, X: np.array):
         mu, var = self.target_surrogate.predict(X)
+        if self.source_hpo_data is None:
+            return mu, var
+
         # Target surrogate predictions with weight.
         mu *= self.w[-1]
         var *= (self.w[-1] * self.w[-1])

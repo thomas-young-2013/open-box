@@ -1,6 +1,7 @@
 import sys
 import traceback
-
+from typing import List
+from collections import OrderedDict
 from litebo.optimizer.base import BOBase
 from litebo.utils.constants import MAXINT, SUCCESS, FAILDED, TIMEOUT
 from litebo.utils.limit import time_limit, TimeoutException
@@ -8,10 +9,12 @@ from litebo.core.advisor import Advisor
 
 
 class SMBO(BOBase):
-    def __init__(self, objective_function, config_space,
-                 sample_strategy='bo',
-                 time_limit_per_trial=180,
+    def __init__(self, objective_function: callable, config_space,
+                 sample_strategy: str = 'bo',
                  max_runs=200,
+                 time_limit_per_trial=180,
+                 surrogate_type='prf',
+                 history_bo_data: List[OrderedDict] = None,
                  logging_dir='logs',
                  initial_configurations=None,
                  initial_runs=3,
@@ -20,10 +23,13 @@ class SMBO(BOBase):
 
         super().__init__(objective_function, config_space, task_id=task_id, output_dir=logging_dir,
                          random_state=random_state, initial_runs=initial_runs, max_runs=max_runs,
-                         sample_strategy=sample_strategy, time_limit_per_trial=time_limit_per_trial)
+                         sample_strategy=sample_strategy, time_limit_per_trial=time_limit_per_trial,
+                         history_bo_data=history_bo_data)
         self.config_advisor = Advisor(config_space, initial_trials=initial_runs,
                                       initial_configurations=initial_configurations,
                                       optimization_strategy=sample_strategy,
+                                      surrogate_type=surrogate_type,
+                                      history_bo_data=history_bo_data,
                                       task_id=task_id,
                                       output_dir=logging_dir,
                                       rng=self.rng)

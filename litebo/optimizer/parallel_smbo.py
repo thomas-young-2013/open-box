@@ -1,7 +1,9 @@
-import psutil
 import sys
 import time
 import traceback
+from typing import List
+from collections import OrderedDict
+
 from litebo.utils.constants import MAXINT, SUCCESS, FAILDED, TIMEOUT
 from litebo.core.computation.parallel_process import ParallelEvaluation
 from litebo.utils.limit import time_limit, TimeoutException
@@ -39,13 +41,15 @@ class pSMBO(BOBase):
                  max_runs=200,
                  logging_dir='logs',
                  initial_configurations=None,
+                 history_bo_data: List[OrderedDict] = None,
                  initial_runs=3,
                  task_id=None,
                  random_state=1):
 
         super().__init__(objective_function, config_space, task_id=task_id, output_dir=logging_dir,
                          random_state=random_state, initial_runs=initial_runs, max_runs=max_runs,
-                         sample_strategy=sample_strategy, time_limit_per_trial=time_limit_per_trial)
+                         sample_strategy=sample_strategy, time_limit_per_trial=time_limit_per_trial,
+                         history_bo_data=history_bo_data)
         if parallel_strategy == 'sync':
             self.config_advisor = SyncBatchAdvisor(config_space,
                                                    initial_trials=initial_runs,
