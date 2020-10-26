@@ -51,6 +51,7 @@ class pSMBO(BOBase):
                                                    initial_trials=initial_runs,
                                                    initial_configurations=initial_configurations,
                                                    optimization_strategy=sample_strategy,
+                                                   batch_size=batch_size,
                                                    task_id=task_id,
                                                    output_dir=logging_dir,
                                                    rng=self.rng)
@@ -98,9 +99,10 @@ class pSMBO(BOBase):
                 results = proc.parallel_execute(params)
                 # Report their results.
                 for idx, (_config, _result) in enumerate(zip(configs, results)):
-                    _observation = [_config, _result, SUCCESS]
+                    _perf = _result[-1]
+                    _observation = [_config, _perf, SUCCESS]
                     self.config_advisor.update_observation(_observation)
-                    print('In the %d-th batch [%d], result is' % (batch_id, idx), _result)
+                    self.logger.info('In the %d-th batch [%d], result is: %.3f' % (batch_id, idx, _perf))
                 batch_id += 1
 
     def run(self):

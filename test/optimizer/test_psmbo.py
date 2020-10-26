@@ -35,7 +35,7 @@ cs.add_hyperparameters([x1, x2])
 bo = pSMBO(branin, cs, max_runs=50, batch_size=3,
            time_limit_per_trial=time_limit,
            logging_dir='logs',
-           parallel_strategy='async')
+           parallel_strategy='sync')
 bo.run()
 inc_value = bo.get_incumbent()
 print('BO', '='*30)

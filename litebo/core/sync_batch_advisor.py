@@ -115,7 +115,8 @@ class SyncBatchAdvisor(Advisor):
 
     def update_observation(self, observation):
         config, perf, trial_state = observation
-        perf = perf[-1]
+        if not isinstance(perf, float):
+            perf = perf[-1]
         if trial_state == SUCCESS and perf < MAXINT:
             if len(self.configurations) == 0:
                 self.default_obj_value = perf
