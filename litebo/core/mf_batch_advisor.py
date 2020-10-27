@@ -112,20 +112,5 @@ class MFBatchAdvisor(Advisor):
             raise ValueError('Invalid sampling strategy - %s.' % self.batch_strategy)
         return batch_configs_list
 
-    def update_observation(self, observation):
-        config, perf, trial_state = observation
-        if not isinstance(perf, float):
-            perf = perf[-1]
-        if trial_state == SUCCESS and perf < MAXINT:
-            if len(self.configurations) == 0:
-                self.default_obj_value = perf
-
-            self.configurations.append(config)
-            self.perfs.append(perf)
-            self.history_container.add(config, perf)
-
-            self.perc = np.percentile(self.perfs, self.scale_perc)
-            self.min_y = np.min(self.perfs)
-            self.max_y = np.max(self.perfs)
-        else:
-            self.failed_configurations.append(config)
+    def update_mf_observations(self, mf_observations):
+        self.surrogate_model.update(mf_observations)
