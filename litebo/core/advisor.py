@@ -93,7 +93,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
         failed_perfs = list() if self.max_y is None else [self.max_y] * num_failed_trial
         Y = np.array(self.perfs + failed_perfs, dtype=np.float64)
 
-        num_config_evaluated = len(self.perfs)
+        num_config_evaluated = len(self.perfs + self.failed_configurations)
         if num_config_evaluated < self.init_num:
             return self.initial_configurations[num_config_evaluated]
 
@@ -113,7 +113,6 @@ class Advisor(object, metaclass=abc.ABCMeta):
             while is_repeated_config:
                 cur_config = challengers.challengers[repeated_time]
                 if cur_config in (self.configurations + self.failed_configurations):
-                    is_repeated_config = True
                     repeated_time += 1
                 else:
                     is_repeated_config = False
@@ -123,7 +122,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
 
     def update_observation(self, observation):
         config, perf, trial_state = observation
-
+        print(observation)
         if trial_state == SUCCESS and perf < MAXINT:
             if len(self.configurations) == 0:
                 self.default_obj_value = perf
