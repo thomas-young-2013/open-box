@@ -114,3 +114,7 @@ class MFBatchAdvisor(Advisor):
 
     def update_mf_observations(self, mf_observations):
         self.surrogate_model.update_mf_trials(mf_observations)
+        for hpo_evaluation_data in mf_observations[-1:]:
+            for _config, _config_perf in hpo_evaluation_data.items():
+                self.configurations.append(_config)
+                self.perfs.append(_config_perf)
