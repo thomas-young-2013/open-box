@@ -23,7 +23,7 @@ class MFGPE(BaseTLSurrogate):
         self.hist_ws = list()
         self.iteration_id = 0
 
-    def update_trials(self, mf_hpo_data: List):
+    def update_mf_trials(self, mf_hpo_data: List):
         self.source_hpo_data = mf_hpo_data
         # Refit the base surrogates.
         self.build_source_surrogates(normalize='standardize')

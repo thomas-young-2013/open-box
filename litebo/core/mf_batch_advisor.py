@@ -113,4 +113,4 @@ class MFBatchAdvisor(Advisor):
         return batch_configs_list
 
     def update_mf_observations(self, mf_observations):
-        self.surrogate_model.update(mf_observations)
+        self.surrogate_model.update_mf_trials(mf_observations)

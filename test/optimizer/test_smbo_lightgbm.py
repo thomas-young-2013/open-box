@@ -113,7 +113,7 @@ cs = get_cs()
 _x, _y = load_data()
 eval = partial(eval_func, x=_x, y=_y)
 
-bo = SMBO(eval, cs, max_runs=50, time_limit_per_trial=60, logging_dir='logs')
+bo = SMBO(eval, cs, max_runs=50, time_limit_per_trial=3, logging_dir='logs')
 bo.run()
 inc_value = bo.get_incumbent()
 print('BO', '='*30)
