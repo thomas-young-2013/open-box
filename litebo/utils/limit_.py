@@ -43,7 +43,7 @@ def wrapper(*args, **kwargs):
     _func = dill.loads(_func)
     result = (False, None)
 
-    if _platform in ['Linux', 'OSX']:
+    if _platform in ['Linux']:
         import signal
 
         def handler(signum, frame):
@@ -63,9 +63,9 @@ def wrapper(*args, **kwargs):
         signal.signal(signal.SIGALRM, handler)
         signal.alarm(_time_limit)
     try:
-        print('start to call the function.')
+        # print('start to call the function.')
         result = (True, _func(*args, **kwargs))
-        print('calling ends.')
+        # print('calling ends.')
     except TimeoutException:
         result = (False, TimeoutException)
     except MemoryError:
@@ -83,6 +83,14 @@ def wrapper(*args, **kwargs):
             p = psutil.Process()
             for child in p.children(recursive=True):
                 child.kill()
+
+
+def clean_processes(proc):
+    if psutil.pid_exists(proc.pid):
+        p = psutil.Process(proc.pid)
+        p.terminate()
+        for child in p.children(recursive=True):
+            child.kill()
 
 
 def limit_function(func, wall_clock_time, mem_usage_limit, *args, **kwargs):
@@ -110,27 +118,29 @@ def limit_function(func, wall_clock_time, mem_usage_limit, *args, **kwargs):
     p = Process(target=wrapper, args=tuple(args), kwargs=kwargs)
     p.start()
     # Special case on windows.
-    if _platform in ['Windows']:
+    if _platform in ['Windows', 'OSX']:
         p_id = p.pid
         exceed_mem_limit = False
         start_time = time.time()
         while time.time() <= start_time + wall_clock_time:
             if not psutil.pid_exists(p_id):
                 break
-            # rss_used = psutil.Process(p_id).memory_info().rss / 1024 / 1024
+            rss_used = psutil.Process(p_id).memory_info().rss / 1024 / 1024
+            vms_used = psutil.Process(p_id).memory_info().vms / 1024 / 1024
+            # print(psutil.Process(p_id).memory_info())
             # print('mem[rss]_used', rss_used)
-            mem_used = psutil.Process(p_id).memory_info().vms / 1024 / 1024
-            # print('mem[vms]_used', mem_used)
-            if mem_used > mem_usage_limit:
+            # print('mem[vms]_used', vms_used)
+            threshold = rss_used if _platform == 'OSX' else vms_used
+            if threshold > mem_usage_limit:
                 exceed_mem_limit = True
                 break
             time.sleep(1.)
 
         if exceed_mem_limit:
-            p.terminate()
+            clean_processes(p)
             return Returns(status=False, result=OutOfMemoryLimitException)
         if p.is_alive():
-            p.terminate()
+            clean_processes(p)
             return Returns(status=False, result=TimeoutException)
         result = parent_conn.recv()
         parent_conn.close()
@@ -138,7 +148,7 @@ def limit_function(func, wall_clock_time, mem_usage_limit, *args, **kwargs):
     else:
         p.join(wall_clock_time)
         if p.is_alive():
-            p.terminate()
+            clean_processes(p)
             return Returns(status=False, result=TimeoutException)
         result = parent_conn.recv()
         parent_conn.close()

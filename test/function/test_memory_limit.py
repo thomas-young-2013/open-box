@@ -24,5 +24,5 @@ def test_func(*args, **kwargs):
 if __name__ == "__main__":
     a = (3,)
     b = dict()
-    res = limit_function(test_func, 20, 85, a, b)
+    res = limit_function(test_func, 10, 90, a, b)
     print(res)
