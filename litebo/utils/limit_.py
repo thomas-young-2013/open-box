@@ -32,7 +32,7 @@ def get_platform():
 
 
 _platform = get_platform()
-if _platform not in ['win32']:
+if _platform not in ['Windows']:
     import resource
 Returns = namedtuple('return_values', ['status', 'result'])
 
@@ -115,7 +115,12 @@ def limit_function(func, wall_clock_time, mem_usage_limit, *args, **kwargs):
         exceed_mem_limit = False
         start_time = time.time()
         while time.time() <= start_time + wall_clock_time:
+            if not psutil.pid_exists(p_id):
+                break
+            # rss_used = psutil.Process(p_id).memory_info().rss / 1024 / 1024
+            # print('mem[rss]_used', rss_used)
             mem_used = psutil.Process(p_id).memory_info().vms / 1024 / 1024
+            # print('mem[vms]_used', mem_used)
             if mem_used > mem_usage_limit:
                 exceed_mem_limit = True
                 break
