@@ -53,6 +53,11 @@ def build_surrogate(func_str='prf', config_space=None, rng=None, history_hpo_dat
                                types=types,
                                bounds=bounds,
                                rng=rng)
+    elif func_str.startswith('mfgpe'):
+        from litebo.surrogate.tlbo.mfgpe import MFGPE
+        inner_surrogate_type = func_str.split('_')[-1]
+        return MFGPE(config_space, history_hpo_data, seed,
+                     surrogate_type=inner_surrogate_type, num_src_hpo_trial=-1)
     elif func_str.startswith('tlbo'):
         print('the current surrogate is', func_str)
         if 'rgpe' in func_str:

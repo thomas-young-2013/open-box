@@ -6,9 +6,8 @@ from litebo.utils.constants import MAXINT, SUCCESS, FAILDED, TIMEOUT
 from litebo.core.advisor import Advisor
 
 
-class SyncBatchAdvisor(Advisor):
+class MFBatchAdvisor(Advisor):
     def __init__(self, config_space,
-                 batch_size=4,
                  initial_trials=3,
                  initial_configurations=None,
                  optimization_strategy='bo',
@@ -19,7 +18,6 @@ class SyncBatchAdvisor(Advisor):
                  task_id=None,
                  rng=None):
 
-        self.batch_size = batch_size
         self.batch_strategy = batch_strategy
         super().__init__(config_space,
                          initial_trials=initial_trials,
@@ -37,18 +35,18 @@ class SyncBatchAdvisor(Advisor):
             acq_type = 'lpei'
         else:
             raise ValueError('Unsupported batch strategy - %s.' % batch_strategy)
-        super(SyncBatchAdvisor, self).setup_bo_basics(acq_type=acq_type)
+        super(MFBatchAdvisor, self).setup_bo_basics(acq_type=acq_type)
 
     def create_initial_design(self, init_strategy='random'):
         default_config = self.config_space.get_default_configuration()
         if init_strategy == 'random':
-            num_random_config = self.init_num * self.batch_size - 1
+            num_random_config = self.init_num - 1
             initial_configs = [default_config] + self.sample_random_configs(num_random_config)
             return initial_configs
         else:
             raise ValueError('Unknown initial design strategy: %s.' % init_strategy)
 
-    def get_suggestions(self):
+    def get_suggestions(self, n_suggestions):
         if len(self.configurations) == 0:
             X = np.array([])
         else:
@@ -62,13 +60,13 @@ class SyncBatchAdvisor(Advisor):
         num_config_evaluated = len(self.perfs)
         batch_configs_list = list()
 
-        if num_config_evaluated < self.init_num * self.batch_size or self.optimization_strategy == 'random':
-            return self.sample_random_configs(self.batch_size)
+        if num_config_evaluated < self.init_num or self.optimization_strategy == 'random':
+            return self.sample_random_configs(n_suggestions)
 
         if self.batch_strategy == 'median_imputation':
             estimated_y = np.median(Y)
             batch_history_container = copy.deepcopy(self.history_container)
-            for i in range(self.batch_size):
+            for i in range(n_suggestions):
                 self.surrogate_model.train(X, Y)
                 incumbent_value = batch_history_container.get_incumbents()[0][1]
                 self.acquisition_function.update(model=self.surrogate_model, eta=incumbent_value,
@@ -100,7 +98,7 @@ class SyncBatchAdvisor(Advisor):
             self.surrogate_model.train(X, Y)
             incumbent_value = self.history_container.get_incumbents()[0][1]
             # L = self.estimate_L(X)
-            for i in range(self.batch_size):
+            for i in range(n_suggestions):
                 self.acquisition_function.update(model=self.surrogate_model, eta=incumbent_value,
                                                  num_data=len(self.history_container.data),
                                                  batch_configs=batch_configs_list)
