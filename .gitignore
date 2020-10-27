@@ -10,6 +10,9 @@ dist
 # IDEs
 .idea
 
+# MACOSX
+.DS_Store
+
 
 # Other
 .tox
