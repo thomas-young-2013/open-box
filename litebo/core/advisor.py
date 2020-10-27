@@ -11,8 +11,9 @@ from litebo.core.base import build_acq_func, build_optimizer, build_surrogate
 
 class Advisor(object, metaclass=abc.ABCMeta):
     def __init__(self, config_space,
-                 initial_trials=3,
+                 initial_trials=10,
                  initial_configurations=None,
+                 init_strategy='random_explore_first',
                  history_bo_data=None,
                  optimization_strategy='bo',
                  surrogate_type='prf',
@@ -23,6 +24,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
         # Create output (logging) directory.
         # Init logging module.
         # Random seed generator.
+        self.init_strategy = init_strategy
         self.output_dir = output_dir
         if rng is None:
             run_id, rng = get_rng()
@@ -51,7 +53,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
             self.initial_configurations = initial_configurations
             self.init_num = len(initial_configurations)
         else:
-            self.initial_configurations = self.create_initial_design()
+            self.initial_configurations = self.create_initial_design(self.init_strategy)
             self.init_num = len(self.initial_configurations)
         self.history_container = HistoryContainer(task_id)
 
@@ -79,8 +81,34 @@ class Advisor(object, metaclass=abc.ABCMeta):
             num_random_config = self.init_num - 1
             initial_configs = [default_config] + self.sample_random_configs(num_random_config)
             return initial_configs
+        elif init_strategy == 'random_explore_first':
+            num_random_config = self.init_num - 1
+            initial_configs=[default_config]
+            candidate_configs=self.sample_random_configs(100)
+
+            for i in range(num_random_config):
+                furthest_config=None
+                furthest_distance=0
+
+                for src_config in candidate_configs:
+                    nearest_distance=MAXINT
+
+                    for dst_config in initial_configs:
+                        dis=np.linalg.norm(src_config.get_array()-dst_config.get_array())
+                        if dis<nearest_distance:
+                            nearest_distance=dis
+
+                    if nearest_distance>furthest_distance:
+                        furthest_distance=nearest_distance
+                        furthest_config=src_config
+
+                candidate_configs.remove(furthest_config)
+                initial_configs.append(furthest_config)
+
+            return initial_configs
         else:
             raise ValueError('Unknown initial design strategy: %s.' % init_strategy)
+
 
     def get_suggestion(self):
         if len(self.configurations) == 0:

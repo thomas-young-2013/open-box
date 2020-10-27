@@ -41,8 +41,9 @@ class pSMBO(BOBase):
                  max_runs=200,
                  logging_dir='logs',
                  initial_configurations=None,
+                 init_strategy='random_explore_first',
                  history_bo_data: List[OrderedDict] = None,
-                 initial_runs=3,
+                 initial_runs=10,
                  task_id=None,
                  random_state=1):
 
@@ -54,6 +55,7 @@ class pSMBO(BOBase):
             self.config_advisor = SyncBatchAdvisor(config_space,
                                                    initial_trials=initial_runs,
                                                    initial_configurations=initial_configurations,
+                                                   init_strategy=init_strategy,
                                                    optimization_strategy=sample_strategy,
                                                    batch_size=batch_size,
                                                    task_id=task_id,
@@ -63,6 +65,7 @@ class pSMBO(BOBase):
             self.config_advisor = AsyncBatchAdvisor(config_space,
                                                     initial_trials=initial_runs,
                                                     initial_configurations=initial_configurations,
+                                                    init_strategy=init_strategy,
                                                     optimization_strategy=sample_strategy,
                                                     task_id=task_id,
                                                     output_dir=logging_dir,

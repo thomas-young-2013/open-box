@@ -9,8 +9,9 @@ from litebo.core.advisor import Advisor
 class SyncBatchAdvisor(Advisor):
     def __init__(self, config_space,
                  batch_size=4,
-                 initial_trials=3,
+                 initial_trials=10,
                  initial_configurations=None,
+                 init_strategy='random_explore_first',
                  optimization_strategy='bo',
                  batch_strategy='median_imputation',
                  history_bo_data=None,
@@ -24,6 +25,7 @@ class SyncBatchAdvisor(Advisor):
         super().__init__(config_space,
                          initial_trials=initial_trials,
                          initial_configurations=initial_configurations,
+                         init_strategy=init_strategy,
                          optimization_strategy=optimization_strategy,
                          history_bo_data=history_bo_data,
                          surrogate_type=surrogate_type,
@@ -39,14 +41,14 @@ class SyncBatchAdvisor(Advisor):
             raise ValueError('Unsupported batch strategy - %s.' % batch_strategy)
         super(SyncBatchAdvisor, self).setup_bo_basics(acq_type=acq_type)
 
-    def create_initial_design(self, init_strategy='random'):
-        default_config = self.config_space.get_default_configuration()
-        if init_strategy == 'random':
-            num_random_config = self.init_num * self.batch_size - 1
-            initial_configs = [default_config] + self.sample_random_configs(num_random_config)
-            return initial_configs
-        else:
-            raise ValueError('Unknown initial design strategy: %s.' % init_strategy)
+    # def create_initial_design(self, init_strategy='random'):
+    #     default_config = self.config_space.get_default_configuration()
+    #     if init_strategy == 'random':
+    #         num_random_config = self.init_num - 1
+    #         initial_configs = [default_config] + self.sample_random_configs(num_random_config)
+    #         return initial_configs
+    #     else:
+    #         raise ValueError('Unknown initial design strategy: %s.' % init_strategy)
 
     def get_suggestions(self):
         if len(self.configurations) == 0:
@@ -62,7 +64,10 @@ class SyncBatchAdvisor(Advisor):
         num_config_evaluated = len(self.perfs)
         batch_configs_list = list()
 
-        if num_config_evaluated < self.init_num * self.batch_size or self.optimization_strategy == 'random':
+        if num_config_evaluated < self.init_num:
+            return self.sample_random_configs(self.init_num)
+
+        if self.optimization_strategy == 'random':
             return self.sample_random_configs(self.batch_size)
 
         if self.batch_strategy == 'median_imputation':
