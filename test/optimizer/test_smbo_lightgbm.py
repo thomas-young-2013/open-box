@@ -17,7 +17,7 @@ from litebo.optimizer.smbo import SMBO
 
 
 def load_data():
-    data_path = './data/spambase.csv'
+    data_path = 'test/optimizer/data/spambase.csv'
 
     label_col = -1
     header = None
