@@ -14,6 +14,7 @@ from sklearn.metrics import balanced_accuracy_score
 
 sys.path.append(os.getcwd())
 from litebo.optimizer.smbo import SMBO
+from litebo.optimizer.parallel_smbo import pSMBO
 
 
 def load_data():
@@ -113,15 +114,23 @@ cs = get_cs()
 _x, _y = load_data()
 eval = partial(eval_func, x=_x, y=_y)
 
-bo = SMBO(eval, cs, max_runs=50, time_limit_per_trial=3, logging_dir='logs')
+print('=' * 10, 'SMBO')
+bo = SMBO(eval, cs, max_runs=50, time_limit_per_trial=60, logging_dir='logs')
 bo.run()
 inc_value = bo.get_incumbent()
 print('BO', '='*30)
 print(inc_value)
 
-# Evaluate the random search.
-bo = SMBO(eval, cs, max_runs=50, time_limit_per_trial=60, sample_strategy='random', logging_dir='logs')
+print('=' * 10, 'Sync Parallel SMBO')
+bo = pSMBO(eval, cs, max_runs=50, time_limit_per_trial=60, logging_dir='logs', parallel_strategy='sync', batch_size=4)
 bo.run()
 inc_value = bo.get_incumbent()
-print('RANDOM', '='*30)
+print('BO', '='*30)
+print(inc_value)
+
+print('=' * 10, 'Sync Parallel SMBO')
+bo = pSMBO(eval, cs, max_runs=50, time_limit_per_trial=60, logging_dir='logs', parallel_strategy='async', batch_size=4)
+bo.run()
+inc_value = bo.get_incumbent()
+print('BO', '='*30)
 print(inc_value)

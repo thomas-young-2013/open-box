@@ -122,7 +122,6 @@ class Advisor(object, metaclass=abc.ABCMeta):
 
     def update_observation(self, observation):
         config, perf, trial_state = observation
-        print(observation)
         if trial_state == SUCCESS and perf < MAXINT:
             if len(self.configurations) == 0:
                 self.default_obj_value = perf
