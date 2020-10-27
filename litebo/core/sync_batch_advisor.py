@@ -41,15 +41,6 @@ class SyncBatchAdvisor(Advisor):
             raise ValueError('Unsupported batch strategy - %s.' % batch_strategy)
         super(SyncBatchAdvisor, self).setup_bo_basics(acq_type=acq_type)
 
-    # def create_initial_design(self, init_strategy='random'):
-    #     default_config = self.config_space.get_default_configuration()
-    #     if init_strategy == 'random':
-    #         num_random_config = self.init_num - 1
-    #         initial_configs = [default_config] + self.sample_random_configs(num_random_config)
-    #         return initial_configs
-    #     else:
-    #         raise ValueError('Unknown initial design strategy: %s.' % init_strategy)
-
     def get_suggestions(self):
         if len(self.configurations) == 0:
             X = np.array([])

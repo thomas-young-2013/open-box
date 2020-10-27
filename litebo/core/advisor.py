@@ -83,32 +83,32 @@ class Advisor(object, metaclass=abc.ABCMeta):
             return initial_configs
         elif init_strategy == 'random_explore_first':
             num_random_config = self.init_num - 1
-            initial_configs=[default_config]
-            candidate_configs=self.sample_random_configs(100)
-
-            for i in range(num_random_config):
-                furthest_config=None
-                furthest_distance=0
-
-                for src_config in candidate_configs:
-                    nearest_distance=MAXINT
-
-                    for dst_config in initial_configs:
-                        dis=np.linalg.norm(src_config.get_array()-dst_config.get_array())
-                        if dis<nearest_distance:
-                            nearest_distance=dis
-
-                    if nearest_distance>furthest_distance:
-                        furthest_distance=nearest_distance
-                        furthest_config=src_config
-
-                candidate_configs.remove(furthest_config)
-                initial_configs.append(furthest_config)
-
-            return initial_configs
+            candidate_configs = self.sample_random_configs(100)
+            return self.max_min_distance(default_config,candidate_configs,num_random_config)
         else:
             raise ValueError('Unknown initial design strategy: %s.' % init_strategy)
 
+    def max_min_distance(self,default_config,src_configs,num):
+        min_dis=list()
+        initial_configs=list()
+
+        for config in src_configs:
+            dis=np.linalg.norm(config.get_array()-default_config.get_array())
+            min_dis.append(dis)
+        min_dis=np.array(min_dis)
+
+        for i in range(num):
+            furthest_config=src_configs[np.argmax(min_dis)]
+            initial_configs.append(furthest_config)
+            min_dis[np.argmax(min_dis)]=-1
+
+            for j in range(len(src_configs)):
+                if src_configs[j] in initial_configs:
+                    continue
+                updated_dis=np.linalg.norm(src_configs[j].get_array()-furthest_config.get_array())
+                min_dis[j]=min(updated_dis,min_dis[j])
+
+        return initial_configs
 
     def get_suggestion(self):
         if len(self.configurations) == 0:
