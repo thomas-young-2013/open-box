@@ -2,6 +2,7 @@ import os
 import sys
 import numpy as np
 import pandas as pd
+import argparse
 
 from functools import partial
 from ConfigSpace.configuration_space import ConfigurationSpace
@@ -16,13 +17,46 @@ sys.path.append(os.getcwd())
 from litebo.optimizer.smbo import SMBO
 from litebo.optimizer.parallel_smbo import pSMBO
 
+parser = argparse.ArgumentParser()
+parser.add_argument('--datasets', type=str)
+parser.add_argument('--n', type=int, default=50)
 
-def load_data():
-    data_path = 'test/optimizer/data/spambase.csv'
+args = parser.parse_args()
+dataset_str = args.datasets
+run_count = args.n
 
-    label_col = -1
-    header = None
-    sep = ','
+dataset_list = dataset_str.split(',')
+data_dir = './test/optimizer/data/'
+
+
+def check_datasets(datasets, data_dir):
+    for _dataset in datasets:
+        try:
+            _ = load_data(_dataset, data_dir)
+        except Exception as e:
+            raise ValueError('Dataset - %s does not exist!' % _dataset)
+
+
+def load_data(dataset, data_dir):
+    data_path = os.path.join(data_dir, "%s.csv" % dataset)
+
+    # Load train data.
+    if dataset in ['higgs', 'amazon_employee', 'spectf', 'usps', 'vehicle_sensIT', 'codrna']:
+        label_col = 0
+    elif dataset in ['rmftsa_sleepdata(1)']:
+        label_col = 1
+    else:
+        label_col = -1
+
+    if dataset in ['spambase', 'messidor_features']:
+        header = None
+    else:
+        header = 'infer'
+
+    if dataset in ['winequality_white', 'winequality_red']:
+        sep = ';'
+    else:
+        sep = ','
 
     na_values = ["n/a", "na", "--", "-", "?"]
     keep_default_na = True
@@ -110,27 +144,32 @@ class LightGBM:
         return self.estimator.predict(X)
 
 
+check_datasets(dataset_list, data_dir)
 cs = get_cs()
-_x, _y = load_data()
-eval = partial(eval_func, x=_x, y=_y)
 
-print('=' * 10, 'SMBO')
-bo = SMBO(eval, cs, max_runs=50, time_limit_per_trial=60, logging_dir='logs')
-bo.run()
-inc_value = bo.get_incumbent()
-print('BO', '='*30)
-print(inc_value)
+for dataset in dataset_list:
+    _x, _y = load_data(dataset, data_dir)
+    eval = partial(eval_func, x=_x, y=_y)
 
-print('=' * 10, 'Sync Parallel SMBO')
-bo = pSMBO(eval, cs, max_runs=50, time_limit_per_trial=60, logging_dir='logs', parallel_strategy='sync', batch_size=4)
-bo.run()
-inc_value = bo.get_incumbent()
-print('BO', '='*30)
-print(inc_value)
+    print('=' * 10, 'SMBO')
+    bo = SMBO(eval, cs, max_runs=run_count, time_limit_per_trial=60, logging_dir='logs')
+    bo.run()
+    inc_value = bo.get_incumbent()
+    print('SMBO', '='*30)
+    print(inc_value)
 
-print('=' * 10, 'Sync Parallel SMBO')
-bo = pSMBO(eval, cs, max_runs=50, time_limit_per_trial=60, logging_dir='logs', parallel_strategy='async', batch_size=4)
-bo.run()
-inc_value = bo.get_incumbent()
-print('BO', '='*30)
-print(inc_value)
+    print('=' * 10, 'Sync Parallel SMBO')
+    bo = pSMBO(eval, cs, max_runs=run_count, time_limit_per_trial=60, logging_dir='logs',
+               parallel_strategy='sync', batch_size=4)
+    bo.run()
+    inc_value = bo.get_incumbent()
+    print('Sync Parallel SMBO', '='*30)
+    print(inc_value)
+
+    print('=' * 10, 'Async Parallel SMBO')
+    bo = pSMBO(eval, cs, max_runs=run_count, time_limit_per_trial=60, logging_dir='logs',
+               parallel_strategy='async', batch_size=4)
+    bo.run()
+    inc_value = bo.get_incumbent()
+    print('Async Parallel SMBO', '='*30)
+    print(inc_value)
