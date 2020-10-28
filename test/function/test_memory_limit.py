@@ -14,7 +14,7 @@ def test_func(*args, **kwargs):
     m = np.random.random((mat_n, mat_n))
     from sklearn.decomposition import KernelPCA
 
-    for _ in range(100):
+    for _ in range(1000):
         pca = KernelPCA()
         pca.fit_transform(m)
 
@@ -24,5 +24,5 @@ def test_func(*args, **kwargs):
 if __name__ == "__main__":
     a = (3,)
     b = dict()
-    res = limit_function(test_func, 20, 90, a, b)
+    res = limit_function(test_func, 20, 200, a, b)
     print(res)

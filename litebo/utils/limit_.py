@@ -165,7 +165,7 @@ def limit_function(func, wall_clock_time, mem_usage_limit, *args, **kwargs):
 
 """
 ==============
-for ubuntu,
+for UBUNTU,
 pmem(rss=18956288, vms=105123840, shared=2846720, text=2797568, lib=0, data=16629760, dirty=0)
 mem[rss]_used 17.67578125
 mem[vms]_used 100.25390625
@@ -177,5 +177,17 @@ mem[vms]_used 732.20703125
 (True, 12)
 
 ==============
+for MACOSX,
+pmem(rss=1470464, vms=4380520448, pfaults=449, pageins=0)
+mem[rss]_used 1.2265625
+mem[vms]_used 4177.58984375
+matrix size in megabytes 8.00006103515625
+matrix size in megabytes 80.00006103515625
+pmem(rss=151318528, vms=4864417792, pfaults=39045, pageins=0)
+mem[rss]_used 144.30859375
+mem[vms]_used 4639.0703125
+pmem(rss=66502656, vms=4872224768, pfaults=41080, pageins=0)
+mem[rss]_used 63.421875
+mem[vms]_used 4646.515625
 
 """
