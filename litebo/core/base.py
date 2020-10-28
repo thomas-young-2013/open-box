@@ -55,7 +55,7 @@ def build_surrogate(func_str='prf', config_space=None, rng=None, history_hpo_dat
                                rng=rng)
     elif func_str.startswith('mfgpe'):
         from litebo.surrogate.tlbo.mfgpe import MFGPE
-        inner_surrogate_type = func_str.split('_')[-1]
+        inner_surrogate_type = 'prf'
         return MFGPE(config_space, history_hpo_data, seed,
                      surrogate_type=inner_surrogate_type, num_src_hpo_trial=-1)
     elif func_str.startswith('tlbo'):
@@ -70,6 +70,11 @@ def build_surrogate(func_str='prf', config_space=None, rng=None, history_hpo_dat
             inner_surrogate_type = func_str.split('_')[-1]
             return SGPR(config_space, history_hpo_data, seed,
                         surrogate_type=inner_surrogate_type, num_src_hpo_trial=-1)
+        elif 'topov3' in func_str:
+            from litebo.surrogate.tlbo.topo_variant3 import TOPO_V3
+            inner_surrogate_type = func_str.split('_')[-1]
+            return TOPO_V3(config_space, history_hpo_data, seed,
+                           surrogate_type=inner_surrogate_type, num_src_hpo_trial=-1)
         else:
             raise ValueError('Invalid string %s for tlbo surrogate!' % func_str)
     else:

@@ -74,8 +74,9 @@ class BaseTLSurrogate(object):
                 _y.append(_config_perf)
             X = convert_configurations_to_array(_X)
             y = np.array(_y, dtype=np.float64)
-            X = X[:self.num_src_hpo_trial]
-            y = y[:self.num_src_hpo_trial]
+            if self.num_src_hpo_trial != -1:
+                X = X[:self.num_src_hpo_trial]
+                y = y[:self.num_src_hpo_trial]
 
             if normalize == 'standardize':
                 if (y == y[0]).all():
@@ -107,7 +108,6 @@ class BaseTLSurrogate(object):
             y, _, _ = zero_one_normalization(y)
         else:
             pass
-
         model.train(X, y)
         return model
 
