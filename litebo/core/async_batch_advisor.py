@@ -8,8 +8,9 @@ from litebo.core.advisor import Advisor
 class AsyncBatchAdvisor(Advisor):
     def __init__(self, config_space,
                  batch_size=4,
-                 initial_trials=3,
+                 initial_trials=10,
                  initial_configurations=None,
+                 init_strategy='random_explore_first',
                  optimization_strategy='bo',
                  batch_strategy='median_imputation',
                  history_bo_data=None,
@@ -21,9 +22,11 @@ class AsyncBatchAdvisor(Advisor):
         self.batch_size = batch_size
         self.batch_strategy = batch_strategy
         self.running_configs = list()
+        self.bo_start_n = 3
         super().__init__(config_space,
                          initial_trials=initial_trials,
                          initial_configurations=initial_configurations,
+                         init_strategy=init_strategy,
                          optimization_strategy=optimization_strategy,
                          history_bo_data=history_bo_data,
                          surrogate_type=surrogate_type,
@@ -38,15 +41,6 @@ class AsyncBatchAdvisor(Advisor):
         else:
             raise ValueError('Unsupported batch strategy - %s.' % batch_strategy)
         super(AsyncBatchAdvisor, self).setup_bo_basics(acq_type=acq_type)
-
-    def create_initial_design(self, init_strategy='random'):
-        default_config = self.config_space.get_default_configuration()
-        if init_strategy == 'random':
-            num_random_config = self.init_num * self.batch_size - 1
-            initial_configs = [default_config] + self.sample_random_configs(num_random_config)
-            return initial_configs
-        else:
-            raise ValueError('Unknown initial design strategy: %s.' % init_strategy)
 
     def get_suggestion(self):
         self.logger.info('#Call get_suggestion: %d.' % len(self.running_configs))
@@ -63,9 +57,8 @@ class AsyncBatchAdvisor(Advisor):
         all_considered_configs = self.configurations + self.failed_configurations + self.running_configs
 
         num_config_evaluated = len(all_considered_configs)
-        bo_start_n = 3
         if (num_config_evaluated < self.init_num) or \
-                len(self.history_container.data) <= bo_start_n or \
+                len(self.history_container.data) <= self.bo_start_n or \
                 self.optimization_strategy == 'random':
             if num_config_evaluated >= len(self.initial_configurations):
                 _config = self.sample_random_configs(1)[0]
