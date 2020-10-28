@@ -92,7 +92,7 @@ class MFBatchAdvisor(Advisor):
                         is_repeated_config = False
 
                 batch_configs_list.append(curr_batch_config)
-                X = np.append(X, curr_batch_config.get_array().reshape(1, -1), axis=0)
+                X = np.append(X, convert_configurations_to_array([curr_batch_config]), axis=0)
                 Y = np.append(Y, estimated_y)
 
         elif self.batch_strategy == 'local_penalization':
