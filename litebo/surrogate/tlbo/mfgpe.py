@@ -14,7 +14,7 @@ class MFGPE(BaseTLSurrogate):
                          surrogate_type=surrogate_type, num_src_hpo_trial=num_src_hpo_trial)
         self.method_id = 'mfgpe'
         self.only_source = only_source
-        self.build_source_surrogates(normalize='standardize')
+        self.build_source_surrogates(normalize=_scale_method)
 
         self.scale = True
 
@@ -26,12 +26,12 @@ class MFGPE(BaseTLSurrogate):
 
     def update_mf_trials(self, mf_hpo_data: List[OrderedDict]):
         if self.K == 0:
-            self.K = len(mf_hpo_data)
+            self.K = len(mf_hpo_data) - 1  # K is the number of low-fidelity groups
             self.w = [1. / self.K] * self.K + [0.]
             self.snapshot_w = self.w
         self.source_hpo_data = mf_hpo_data
         # Refit the base surrogates.
-        self.build_source_surrogates(normalize='standardize')
+        self.build_source_surrogates(normalize=_scale_method)
 
     def predict_target_surrogate_cv(self, X, y):
         k_fold_num = 5
@@ -56,41 +56,36 @@ class MFGPE(BaseTLSurrogate):
         if snapshot_weight:
             self.w = self.snapshot_w
         sample_num = y.shape[0]
-        # Build the target surrogate.
-        if sample_num >= 3:
-            self.target_surrogate = self.build_single_surrogate(X, y, normalize='standardize')
-        if self.source_hpo_data is None:
-            return
 
-        # Train the target surrogate and update the weight w.
+        if self.source_hpo_data is None:
+            raise ValueError('Source HPO data is None!')
+
+        # Get the predictions of low-fidelity surrogates
         mu_list, var_list = list(), list()
         for id in range(self.K):
             mu, var = self.source_surrogates[id].predict(X)
             mu_list.append(mu.flatten())
             var_list.append(var.flatten())
 
+        # Evaluate the generalization of the high-fidelity surrogate via CV
         if sample_num >= 5:
             _mu, _var = self.predict_target_surrogate_cv(X, y)
-        else:
-            _mu, _var = np.zeros(sample_num), np.zeros(sample_num)
-        mu_list.append(_mu)
-        var_list.append(_var)
+            mu_list.append(_mu)
+            var_list.append(_var)
+            self.w = self.get_w_ranking_pairs(mu_list, var_list, y)
 
-        w = self.get_w_ranking_pairs(mu_list, var_list, y)
-
-        self.w = w
         if snapshot_weight:
             self.snapshot_w = self.w
-            weight_str = ','.join([('%.2f' % item) for item in w])
+            weight_str = ','.join([('%.2f' % item) for item in self.snapshot_w])
             self.logger.info('In iter-%d' % self.iteration_id)
-            self.target_weight.append(w[-1])
+            self.target_weight.append(self.snapshot_w[-1])
             self.logger.info('Weight: ' + str(weight_str))
             self.iteration_id += 1
-            self.hist_ws.append(w)
+            self.hist_ws.append(self.snapshot_w)
 
     def get_w_ranking_pairs(self, mu_list, var_list, y_true):
         preserving_order_p, preserving_order_nums = list(), list()
-        for i in range(self.K):
+        for i in range(self.K + 1):
             y_pred = mu_list[i]
             preorder_num, pair_num = self.calculate_preserving_order_num(y_pred, y_true)
             preserving_order_p.append(preorder_num / pair_num)
@@ -102,20 +97,10 @@ class MFGPE(BaseTLSurrogate):
 
     def predict(self, X: np.array):
         sample_num = X.shape[0]
-        if self.target_surrogate is None:
-            mu, var = np.zeros((sample_num, 1)), np.zeros((sample_num, 1))
-        else:
-            mu, var = self.target_surrogate.predict(X)
-
-        if self.source_hpo_data is None:
-            return mu, var
-
-        # Target surrogate predictions with weight.
-        mu *= self.w[-1]
-        var *= (self.w[-1] * self.w[-1])
+        mu, var = np.zeros((sample_num, 1)), np.zeros((sample_num, 1))
 
         # Base surrogate predictions with corresponding weights.
-        for i in range(0, self.K):
+        for i in range(self.K + 1):
             mu_t, var_t = self.source_surrogates[i].predict(X)
             mu += self.w[i] * mu_t
             var += self.w[i] * self.w[i] * var_t
