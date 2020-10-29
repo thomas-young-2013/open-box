@@ -1,7 +1,7 @@
 import numpy as np
 
 from litebo.config_space.util import convert_configurations_to_array
-from litebo.utils.constants import MAXINT, SUCCESS, FAILDED, TIMEOUT
+from litebo.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
 from litebo.core.advisor import Advisor
 
 
