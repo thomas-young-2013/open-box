@@ -12,9 +12,10 @@ class BraninWorker(Worker):
         self.sleep_interval = sleep_interval
 
     def compute(self, config, budget, **kwargs):
-        xs = config.get_dictionary()
-        x1 = xs['x1']
-        x2 = xs['x2']
+        import time
+        time.sleep(1)
+        x1 = config['x1']
+        x2 = config['x2']
         a = 1.
         b = 5.1 / (4. * np.pi ** 2)
         c = 5. / np.pi
@@ -22,7 +23,7 @@ class BraninWorker(Worker):
         s = 10.
         t = 1. / (8. * np.pi)
         ret = a * (x2 - b * x1 ** 2 + c * x1 - r) ** 2 + s * (1 - t) * np.cos(x1) + s
-        return {'loss': float(ret), 'info': budget}
+        return {'objective_value': float(ret), 'info': budget, 'config': config}
 
     @staticmethod
     def get_configspace():
