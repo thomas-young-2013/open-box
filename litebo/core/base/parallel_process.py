@@ -1,4 +1,4 @@
-from litebo.core.computation.nondaemonic_processpool import ProcessPool
+from litebo.core.base.nondaemonic_processpool import ProcessPool
 
 
 class ParallelEvaluation(object):

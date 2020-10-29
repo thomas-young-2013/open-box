@@ -111,20 +111,25 @@ def limit_function(func, wall_clock_time, mem_usage_limit, *args, **kwargs):
              On Windows this is an alias for pagefile field and it matches “Mem Usage” “VM Size” column of taskmgr.exe.
     """
 
-    if _platform == 'Windows':
-        freeze_support()
-    parent_conn, child_conn = Pipe(False)
+    _debug_mode = False
+    if 'debug' in kwargs:
+        _debug_mode = kwargs['debug']
 
     # Deal with special case in Bayesian optimization.
     if len(args) == 0 and 'args' in kwargs:
         args = kwargs['args']
         kwargs = kwargs['kwargs']
 
+    if _platform == 'Windows':
+        freeze_support()
+
+    parent_conn, child_conn = Pipe(False)
     func = dill.dumps(func)
     args = [func] + [child_conn] + [wall_clock_time] + [mem_usage_limit] + list(args)
 
     p = Process(target=wrapper, args=tuple(args), kwargs=kwargs)
     p.start()
+
     # Special case on windows.
     if _platform in ['Windows', 'OSX', 'Linux']:
         p_id = p.pid
@@ -135,14 +140,15 @@ def limit_function(func, wall_clock_time, mem_usage_limit, *args, **kwargs):
                 break
             rss_used = psutil.Process(p_id).memory_info().rss / 1024 / 1024
             vms_used = psutil.Process(p_id).memory_info().vms / 1024 / 1024
-            # print(psutil.Process(p_id).memory_info())
-            # print('mem[rss]_used', rss_used)
-            # print('mem[vms]_used', vms_used)
-            threshold = rss_used if _platform in ['OSX', 'Linux'] else vms_used
+            if _debug_mode:
+                print(psutil.Process(p_id).memory_info())
+                print('mem[rss]_used', rss_used)
+                print('mem[vms]_used', vms_used)
+            threshold = rss_used if _platform in ['OSX', 'Linux', 'Windows'] else vms_used
             if threshold > mem_usage_limit:
                 exceed_mem_limit = True
                 break
-            time.sleep(.5)
+            time.sleep(1.)
 
         if exceed_mem_limit:
             clean_processes(p)
@@ -189,5 +195,20 @@ mem[vms]_used 4639.0703125
 pmem(rss=66502656, vms=4872224768, pfaults=41080, pageins=0)
 mem[rss]_used 63.421875
 mem[vms]_used 4646.515625
+
+===============
+for WINDOWS,
+pmem(rss=2719744, vms=1413120, num_page_faults=712, peak_wset=2723840, wset=2719744, peak_paged_pool=36040, paged_pool=36008, peak_nonpaged_pool=5160, nonpaged_pool=5160, pagefile=1413120, peak_pagefile=1413120, private=1413120)
+mem[rss]_used 2.578125
+mem[vms]_used 1.34765625
+matrix size in megabytes 8.00006103515625
+matrix size in megabytes 80.00006103515625
+pmem(rss=61349888, vms=51875840, num_page_faults=40509, peak_wset=128303104, wset=61349888, peak_paged_pool=548648, paged_pool=548648, peak_nonpaged_pool=46080, nonpaged_pool=46080, pagefile=51875840, peak_pagefile=121303040, private=51875840)
+mem[rss]_used 58.5078125
+mem[vms]_used 49.47265625
+pmem(rss=72642560, vms=93351936, num_page_faults=43329, peak_wset=128303104, wset=72642560, peak_paged_pool=582760, paged_pool=582760, peak_nonpaged_pool=54512, nonpaged_pool=54512, pagefile=93351936, peak_pagefile=121303040, private=93351936)
+mem[rss]_used 69.27734375
+mem[vms]_used 89.02734375
+
 
 """

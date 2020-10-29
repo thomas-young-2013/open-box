@@ -4,15 +4,16 @@ import numpy as np
 from litebo.utils.util_funcs import get_rng
 from litebo.utils.logging_utils import get_logger
 from litebo.utils.history_container import HistoryContainer
-from litebo.utils.constants import MAXINT, SUCCESS, FAILDED, TIMEOUT
+from litebo.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
 from litebo.config_space.util import convert_configurations_to_array
 from litebo.core.base import build_acq_func, build_optimizer, build_surrogate
 
 
 class Advisor(object, metaclass=abc.ABCMeta):
     def __init__(self, config_space,
-                 initial_trials=3,
+                 initial_trials=10,
                  initial_configurations=None,
+                 init_strategy='random_explore_first',
                  history_bo_data=None,
                  optimization_strategy='bo',
                  surrogate_type='prf',
@@ -23,6 +24,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
         # Create output (logging) directory.
         # Init logging module.
         # Random seed generator.
+        self.init_strategy = init_strategy
         self.output_dir = output_dir
         if rng is None:
             run_id, rng = get_rng()
@@ -51,7 +53,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
             self.initial_configurations = initial_configurations
             self.init_num = len(initial_configurations)
         else:
-            self.initial_configurations = self.create_initial_design()
+            self.initial_configurations = self.create_initial_design(self.init_strategy)
             self.init_num = len(self.initial_configurations)
         self.history_container = HistoryContainer(task_id)
 
@@ -79,8 +81,34 @@ class Advisor(object, metaclass=abc.ABCMeta):
             num_random_config = self.init_num - 1
             initial_configs = [default_config] + self.sample_random_configs(num_random_config)
             return initial_configs
+        elif init_strategy == 'random_explore_first':
+            num_random_config = self.init_num - 1
+            candidate_configs = self.sample_random_configs(100)
+            return self.max_min_distance(default_config,candidate_configs,num_random_config)
         else:
             raise ValueError('Unknown initial design strategy: %s.' % init_strategy)
+
+    def max_min_distance(self,default_config,src_configs,num):
+        min_dis=list()
+        initial_configs=list()
+
+        for config in src_configs:
+            dis=np.linalg.norm(config.get_array()-default_config.get_array())
+            min_dis.append(dis)
+        min_dis=np.array(min_dis)
+
+        for i in range(num):
+            furthest_config=src_configs[np.argmax(min_dis)]
+            initial_configs.append(furthest_config)
+            min_dis[np.argmax(min_dis)]=-1
+
+            for j in range(len(src_configs)):
+                if src_configs[j] in initial_configs:
+                    continue
+                updated_dis=np.linalg.norm(src_configs[j].get_array()-furthest_config.get_array())
+                min_dis[j]=min(updated_dis,min_dis[j])
+
+        return initial_configs
 
     def get_suggestion(self):
         if len(self.configurations) == 0:
