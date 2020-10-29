@@ -3,7 +3,7 @@ import traceback
 from typing import List
 from collections import OrderedDict
 from litebo.optimizer.base import BOBase
-from litebo.utils.constants import MAXINT, SUCCESS, FAILDED, TIMEOUT
+from litebo.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
 from litebo.utils.limit import time_limit, TimeoutException
 from litebo.core.advisor import Advisor
 
@@ -59,7 +59,7 @@ class SMBO(BOBase):
                     trial_state = TIMEOUT
                 else:
                     traceback.print_exc(file=sys.stdout)
-                    trial_state = FAILDED
+                    trial_state = FAILED
                 perf = MAXINT
                 trial_info = str(e)
 
@@ -71,7 +71,7 @@ class SMBO(BOBase):
                 config_idx = self.config_advisor.configurations.index(config)
                 trial_state, perf = SUCCESS, self.config_advisor.perfs[config_idx]
             else:
-                trial_state, perf = FAILDED, MAXINT
+                trial_state, perf = FAILED, MAXINT
 
         self.iteration_id += 1
         self.logger.info('In the %d-th iteration, the objective value: %.4f' % (self.iteration_id, perf))

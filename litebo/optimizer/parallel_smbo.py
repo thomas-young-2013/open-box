@@ -4,7 +4,7 @@ import traceback
 from typing import List
 from collections import OrderedDict
 
-from litebo.utils.constants import MAXINT, SUCCESS, FAILDED, TIMEOUT
+from litebo.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
 from litebo.core.computation.parallel_process import ParallelEvaluation
 from litebo.utils.limit import time_limit, TimeoutException
 from litebo.core.sync_batch_advisor import SyncBatchAdvisor
@@ -27,7 +27,7 @@ def wrapper(param):
             trial_state = TIMEOUT
         else:
             traceback.print_exc(file=sys.stdout)
-            trial_state = FAILDED
+            trial_state = FAILED
         result = MAXINT
     return [config, result]
 
