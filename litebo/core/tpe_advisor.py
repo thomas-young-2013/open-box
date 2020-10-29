@@ -1,6 +1,5 @@
 import traceback
 import logging
-
 import ConfigSpace
 import ConfigSpace.hyperparameters
 import ConfigSpace.util
@@ -8,19 +7,28 @@ import numpy as np
 import scipy.stats as sps
 import statsmodels.api as sm
 
+from litebo.utils.history_container import HistoryContainer
+from litebo.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
+
 
 class TPE_Advisor:
+    # TODO：Add warm start
     def __init__(self, configspace,
                  min_points_in_model=None,
                  top_n_percent=15,
                  num_samples=64,
-                 random_fraction=1/3,
+                 random_fraction=1 / 3,
                  bandwidth_factor=3,
-                 min_bandwidth=1e-3):
+                 min_bandwidth=1e-3,
+                 task_id=None,
+                 output_dir='logs'):
         self.top_n_percent = top_n_percent
         self.configspace = configspace
         self.bw_factor = bandwidth_factor
         self.min_bandwidth = min_bandwidth
+
+        self.history_container = HistoryContainer(task_id)
+        self.output_dir = output_dir
 
         self.min_points_in_model = min_points_in_model
         if min_points_in_model is None:
@@ -50,8 +58,10 @@ class TPE_Advisor:
         # store precomputed probs for the categorical parameters
         self.cat_probs = []
 
-        self.configs = list()
-        self.losses = list()
+        self.config_array = list()
+        self.configurations = list()
+        self.failed_configurations = list()
+        self.perfs = list()
         self.good_config_rankings = dict()
         self.kde_models = dict()
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -193,50 +203,57 @@ class TPE_Advisor:
         # Minimize perf
         config, perf, trial_state = observation
 
-        self.configs.append(config.get_array())
-        self.losses.append(perf)
+        if trial_state == SUCCESS and perf < MAXINT:
+            self.config_array.append(config.get_array())
+            self.configurations.append(config)
+            self.perfs.append(perf)
+            self.history_container.add(config, perf)
 
-        if len(self.configs) <= self.min_points_in_model - 1:
-            self.logger.debug("Only %i run(s) available, need more than %s -> can't build model!" % (
-                len(self.configs), self.min_points_in_model + 1))
-            return
+            if len(self.config_array) <= self.min_points_in_model - 1:
+                self.logger.debug("Only %i run(s) available, need more than %s -> can't build model!" % (
+                    len(self.config_array), self.min_points_in_model + 1))
+                return
 
-        train_configs = np.array(self.configs)
-        train_losses = np.array(self.losses)
+            train_configs = np.array(self.config_array)
+            train_losses = np.array(self.perfs)
 
-        n_good = max(self.min_points_in_model, (self.top_n_percent * train_configs.shape[0]) // 100)
-        # n_bad = min(max(self.min_points_in_model, ((100-self.top_n_percent)*train_configs.shape[0])//100), 10)
-        n_bad = max(self.min_points_in_model, ((100 - self.top_n_percent) * train_configs.shape[0]) // 100)
+            n_good = max(self.min_points_in_model, (self.top_n_percent * train_configs.shape[0]) // 100)
+            # n_bad = min(max(self.min_points_in_model, ((100-self.top_n_percent)*train_configs.shape[0])//100), 10)
+            n_bad = max(self.min_points_in_model, ((100 - self.top_n_percent) * train_configs.shape[0]) // 100)
 
-        # Refit KDE for the current budget
-        idx = np.argsort(train_losses)
+            # Refit KDE for the current budget
+            idx = np.argsort(train_losses)
 
-        train_data_good = self.impute_conditional_data(train_configs[idx[:n_good]])
-        train_data_bad = self.impute_conditional_data(train_configs[idx[n_good:n_good + n_bad]])
+            train_data_good = self.impute_conditional_data(train_configs[idx[:n_good]])
+            train_data_bad = self.impute_conditional_data(train_configs[idx[n_good:n_good + n_bad]])
 
-        if train_data_good.shape[0] <= train_data_good.shape[1]:
-            return
-        if train_data_bad.shape[0] <= train_data_bad.shape[1]:
-            return
+            if train_data_good.shape[0] <= train_data_good.shape[1]:
+                return
+            if train_data_bad.shape[0] <= train_data_bad.shape[1]:
+                return
 
-        # more expensive crossvalidation method
-        # bw_estimation = 'cv_ls'
+            # more expensive crossvalidation method
+            # bw_estimation = 'cv_ls'
 
-        # quick rule of thumb
-        bw_estimation = 'normal_reference'
+            # quick rule of thumb
+            bw_estimation = 'normal_reference'
 
-        bad_kde = sm.nonparametric.KDEMultivariate(data=train_data_bad, var_type=self.kde_vartypes, bw=bw_estimation)
-        good_kde = sm.nonparametric.KDEMultivariate(data=train_data_good, var_type=self.kde_vartypes, bw=bw_estimation)
+            bad_kde = sm.nonparametric.KDEMultivariate(data=train_data_bad, var_type=self.kde_vartypes,
+                                                       bw=bw_estimation)
+            good_kde = sm.nonparametric.KDEMultivariate(data=train_data_good, var_type=self.kde_vartypes,
+                                                        bw=bw_estimation)
 
-        bad_kde.bw = np.clip(bad_kde.bw, self.min_bandwidth, None)
-        good_kde.bw = np.clip(good_kde.bw, self.min_bandwidth, None)
+            bad_kde.bw = np.clip(bad_kde.bw, self.min_bandwidth, None)
+            good_kde.bw = np.clip(good_kde.bw, self.min_bandwidth, None)
 
-        self.kde_models = {
-            'good': good_kde,
-            'bad': bad_kde
-        }
+            self.kde_models = {
+                'good': good_kde,
+                'bad': bad_kde
+            }
 
-        # update probs for the categorical parameters for later sampling
-        self.logger.debug(
-            'done building a new model based on %i/%i split\nBest loss for this budget:%f\n\n\n\n\n' % (
-                n_good, n_bad, np.min(train_losses)))
+            # update probs for the categorical parameters for later sampling
+            self.logger.debug(
+                'done building a new model based on %i/%i split\nBest loss for this budget:%f\n\n\n\n\n' % (
+                    n_good, n_bad, np.min(train_losses)))
+        else:
+            self.failed_configurations.append(config)
