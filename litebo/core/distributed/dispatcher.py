@@ -9,11 +9,8 @@ import threading
 class Job(object):
 	def __init__(self, id, **kwargs):
 		self.id = id
-		
 		self.kwargs = kwargs
-		
-		self.timestamps = {}
-
+		self.timestamps = dict()
 		self.result = None
 		self.exception = None
 

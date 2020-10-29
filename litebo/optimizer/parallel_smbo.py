@@ -5,7 +5,7 @@ from typing import List
 from collections import OrderedDict
 
 from litebo.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
-from litebo.core.base.parallel_process import ParallelEvaluation
+from litebo.core.computation.parallel_process import ParallelEvaluation
 from litebo.utils.limit import time_limit, TimeoutException
 from litebo.core.sync_batch_advisor import SyncBatchAdvisor
 from litebo.core.async_batch_advisor import AsyncBatchAdvisor

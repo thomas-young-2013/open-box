@@ -4,13 +4,15 @@ import time
 import logging
 import threading
 
-from litebo.core.computation.dispatcher import Dispatcher
+from litebo.core.distributed.dispatcher import Dispatcher
+from litebo.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
 
 
 class Master(object):
-	def __init__(self, run_id, config_generator, working_directory='.', ping_interval=60,
+	def __init__(self, run_id, config_advisor, total_trials,
+				working_directory='.', ping_interval=60,
 				nameserver='127.0.0.1', nameserver_port=None, host=None, shutdown_workers=True, job_queue_sizes=(-1,0),
-				dynamic_queue_size=True, logger=None, result_logger=None, previous_result=None):
+				dynamic_queue_size=True, logger=None, result_logger=None):
 
 		"""The Master class is responsible for the book keeping and to decide what to run next. Optimizers are
                 instantiations of Master, that handle the important steps of deciding what configurations to run on what
@@ -20,21 +22,10 @@ class Master(object):
 		run_id : string
 			A unique identifier of that Hyperband run. Use, for example, the cluster's JobID when running multiple
 			concurrent runs to separate them
-		config_generator: hpbandster.config_generators object
+		config_advisor: hpbandster.config_advisors object
 			An object that can generate new configurations and registers results of executed runs
 		working_directory: string
 			The top level working directory accessible to all compute nodes(shared filesystem).
-		eta : float
-			In each iteration, a complete run of sequential halving is executed. In it,
-			after evaluating each configuration on the same subset size, only a fraction of
-			1/eta of them 'advances' to the next round.
-			Must be greater or equal to 2.
-		min_budget : float
-			The smallest budget to consider. Needs to be positive!
-		max_budget : float
-			the largest budget to consider. Needs to be larger than min_budget!
-			The budgets will be geometrically distributed :math:`\sim \eta^k` for
-			:math:`k\in [0, 1, ... , num\_subsets - 1]`.
 		ping_interval: int
 			number of seconds between pings to discover new nodes. Default is 60 seconds.
 		nameserver: str
@@ -44,7 +35,7 @@ class Master(object):
 		host: str
 			ip (or name that resolves to that) of the network interface to use
 		shutdown_workers: bool
-			flag to control whether the workers are shutdown after the computation is done
+			flag to control whether the workers are shutdown after the distributed is done
 		job_queue_size: tuple of ints
 			min and max size of the job queue. During the run, when the number of jobs in the queue
 			reaches the min value, it will be filled up to the max size. Default: (0,1)
@@ -63,17 +54,19 @@ class Master(object):
 		os.makedirs(self.working_directory, exist_ok=True)
 
 		if logger is None:
-			self.logger = logging.getLogger('litebo-rpc')
+			self.logger = logging.getLogger('Lite-BO[MASTER]')
 		else:
 			self.logger = logger
 
 		self.result_logger = result_logger
 
-		self.config_generator = config_generator
+		self.config_advisor = config_advisor
+		self.total_iterations = total_trials
 		self.time_ref = None
+		self.iteration_id = 0
 
-		self.iterations = []
-		self.jobs = []
+		self.iterations = list()
+		self.jobs = list()
 
 		self.num_running_jobs = 0
 		self.job_queue_sizes = job_queue_sizes
@@ -94,7 +87,7 @@ class Master(object):
 		self.dispatcher_thread.start()
 
 	def shutdown(self, shutdown_workers=False):
-		self.logger.debug('HBMASTER: shutdown initiated, shutdown_workers = %s'%(str(shutdown_workers)))
+		self.logger.debug('Lite-BO[MASTER]: shutdown initiated, shutdown_workers = %s' % (str(shutdown_workers)))
 		self.dispatcher.shutdown(shutdown_workers)
 		self.dispatcher_thread.join()
 
@@ -109,11 +102,11 @@ class Master(object):
 		"""
 		self.logger.debug('wait_for_workers trying to get the condition')
 		with self.thread_cond:
-			while (self.dispatcher.number_of_workers() < min_n_workers):
-				self.logger.debug('HBMASTER: only %i worker(s) available, waiting for at least %i.'%(self.dispatcher.number_of_workers(), min_n_workers))
+			while self.dispatcher.number_of_workers() < min_n_workers:
+				self.logger.debug('Lite-BO[MASTER]: only %i worker(s) available, waiting for at least %i.' % (self.dispatcher.number_of_workers(), min_n_workers))
 				self.thread_cond.wait(1)
 				self.dispatcher.trigger_discover_worker()
-				
+
 		self.logger.debug('Enough workers to start this run!')
 
 	def get_next_iteration(self, iteration, iteration_kwargs):
@@ -136,10 +129,11 @@ class Master(object):
 		
 		raise NotImplementedError('implement get_next_iteration for %s' % type(self).__name__)
 
-	def run(self, n_iterations=1, min_n_workers=1, iteration_kwargs={}):
+	def run(self, min_n_workers=1):
 		"""
-			run n_iterations of SuccessiveHalving
-
+			Parallel implementation in a distributed environment.
+			1. sync batch parallel.
+			2. async paallel.
 		Parameters
 		----------
 		n_iterations: int
@@ -149,8 +143,6 @@ class Master(object):
 		"""
 
 		self.wait_for_workers(min_n_workers)
-		
-		iteration_kwargs.update({'result_logger': self.result_logger})
 
 		if self.time_ref is None:
 			self.time_ref = time.time()
@@ -158,30 +150,18 @@ class Master(object):
 			self.logger.info('Lite-BO[MASTER]: starting run at %s' % str(self.time_ref))
 
 		self.thread_cond.acquire()
+
 		while True:
 			self._queue_wait()
-			
-			next_run = None
-			# find a new run to schedule
-			for i in self.active_iterations():
-				next_run = self.iterations[i].get_next_run()
-				if not next_run is None: break
 
-			if not next_run is None:
-				self.logger.debug('Lite-BO[MASTER]: schedule new run for iteration %i' % i)
-				self._submit_job(*next_run)
-				continue
-			else:
-				if n_iterations > 0:  # we might be able to start the next iteration
-					self.iterations.append(self.get_next_iteration(len(self.iterations), iteration_kwargs))
-					n_iterations -= 1
-					continue
+			_config = self.config_advisor.get_suggestion()
+			_config_id = self.iteration_id
+			self.logger.debug('Lite-BO[MASTER]: schedule new run for iteration %i' % self.iteration_id)
+			self._submit_job(_config_id, _config)
 
-			# at this point there is no imediate run that can be scheduled,
-			# so wait for some job to finish if there are active iterations
-			if self.active_iterations():
-				self.thread_cond.wait()
-			else:
+			self.iteration_id += 1
+
+			if self.iteration_id >= self.total_iterations:
 				break
 
 		self.thread_cond.release()
@@ -205,21 +185,27 @@ class Master(object):
 		this will do some book keeping and call the user defined
 		new_result_callback if one was specified
 		"""
-		self.logger.debug('job_callback for %s started'%str(job.id))
+		self.logger.debug('job_callback for %s started' % str(job.id))
 		with self.thread_cond:
-			self.logger.debug('job_callback for %s got condition'%str(job.id))
+			self.logger.debug('job_callback for %s got condition' % str(job.id))
 			self.num_running_jobs -= 1
 
-			if not self.result_logger is None:
+			if self.result_logger is not None:
 				self.result_logger(job)
-			self.iterations[job.id[0]].register_result(job)
-			self.config_generator.new_result(job)
+
+			result = job.result
+			_config, _perf = result[0], result[1]
+			_trial_state = SUCCESS if job.exception is None else FAILED
+			_observation = [_config, _perf, _trial_state]
+
+			# Report the result, and remove the config from the running queue.
+			self.config_advisor.update_observation(_observation)
 
 			if self.num_running_jobs <= self.job_queue_sizes[0]:
 				self.logger.debug("Lite-BO[MASTER]: Trying to run another job!")
 				self.thread_cond.notify()
 
-		self.logger.debug('job_callback for %s finished'%str(job.id))
+		self.logger.debug('job_callback for %s finished' % str(job.id))
 
 	def _queue_wait(self):
 		"""
@@ -228,10 +214,10 @@ class Master(object):
 		if self.num_running_jobs >= self.job_queue_sizes[1]:
 			while self.num_running_jobs > self.job_queue_sizes[0]:
 				self.logger.debug('Lite-BO[MASTER]: running jobs: %i, queue sizes: %s -> wait' %
-								(self.num_running_jobs, str(self.job_queue_sizes)))
+								  (self.num_running_jobs, str(self.job_queue_sizes)))
 				self.thread_cond.wait()
 
-	def _submit_job(self, config_id, config, budget):
+	def _submit_job(self, config_id, config, budget=1.):
 		"""
 		hidden function to submit a new job to the dispatcher
 
@@ -246,18 +232,6 @@ class Master(object):
 
 		# shouldn't the next line be executed while holding the condition?
 		self.logger.debug("Lite-BO[MASTER]: job %s submitted to dispatcher"%str(config_id))
-
-	def active_iterations(self):
-		"""
-		function to find active (not marked as finished) iterations 
-
-		Returns
-		-------
-			list: all active iteration objects (empty if there are none)
-		"""
-
-		l = list(filter(lambda idx: not self.iterations[idx].is_finished, range(len(self.iterations))))
-		return l
 
 	def __del__(self):
 		pass

@@ -36,7 +36,7 @@ class Worker(object):
 		id: anything with a __str__method
 			if multiple workers are started in the same process, you MUST provide a unique id for each one of them using the `id` argument.
 		timeout: int or float
-			specifies the timeout a worker will wait for a new after finishing a computation before shutting down.
+			specifies the timeout a worker will wait for a new after finishing a distributed before shutting down.
 			Towards the end of a long run with multiple workers, this helps to shutdown idling workers. We recommend
 			a timeout that is roughly half the time it would take for the second largest budget to finish.
 			The default (None) means that the worker will wait indefinitely and never shutdown on its own.
@@ -105,8 +105,8 @@ class Worker(object):
 		"""
 		if background:
 			self.worker_id += str(threading.get_ident())
-			self.thread = threading.Thread(target=self._run, name='worker %s thread'%self.worker_id)
-			self.thread.daemon=True
+			self.thread = threading.Thread(target=self._run, name='worker %s thread' % self.worker_id)
+			self.thread.daemon = True
 			self.thread.start()
 		else:
 			self._run()
@@ -155,7 +155,7 @@ class Worker(object):
 			ns.remove(self.worker_id)
 
 	def compute(self, config_id, config, budget, working_directory):
-		""" The function you have to overload implementing your computation.
+		""" The function you have to overload implementing your distributed.
 		
 		Parameters
 		----------
@@ -184,32 +184,30 @@ class Worker(object):
 	@Pyro4.expose
 	@Pyro4.oneway
 	def start_computation(self, callback, id, *args, **kwargs):
-
 		with self.thread_cond:
 			while self.busy:
 				self.thread_cond.wait()
 			self.busy = True
 		if self.timeout is not None and self.timer is not None:
 			self.timer.cancel()
-		self.logger.info('WORKER: start processing job %s'%str(id))
-		self.logger.debug('WORKER: args: %s'%(str(args)))
-		self.logger.debug('WORKER: kwargs: %s'%(str(kwargs)))
+		self.logger.info('WORKER: start processing job %s' % str(id))
+		self.logger.debug('WORKER: args: %s' % (str(args)))
+		self.logger.debug('WORKER: kwargs: %s' % (str(kwargs)))
 		try:
-			result = {'result': self.compute(*args, config_id=id, **kwargs),
-						'exception' : None}
+			result = {'result': self.compute(*args, config_id=id, **kwargs), 'exception': None}
 		except Exception as e:
 			result = {'result': None,
 						'exception' : traceback.format_exc()}
 		finally:
 			self.logger.debug('WORKER: done with job %s, trying to register it.'%str(id))
 			with self.thread_cond:
-				self.busy =  False
+				self.busy = False
 				callback.register_result(id, result)
 				self.thread_cond.notify()
-		self.logger.info('WORKER: registered result for job %s with dispatcher'%str(id))
-		if not self.timeout is None:
+		self.logger.info('WORKER: registered result for job %s with dispatcher' % str(id))
+		if self.timeout is not None:
 			self.timer = threading.Timer(self.timeout, self.shutdown)
-			self.timer.daemon=True
+			self.timer.daemon = True
 			self.timer.start()
 		return result
 
