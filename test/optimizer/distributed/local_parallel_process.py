@@ -28,7 +28,7 @@ NS.start()
 
 dsmbo = DistributedSMBO(task_id=task_id, config_space=BraninWorker.get_configspace())
 
-dsmbo.run()
+dsmbo.run(min_n_workers=args.n_workers)
 
 # Step 4: Shutdown
 # After the optimizer run, we must shutdown the master and the nameserver.

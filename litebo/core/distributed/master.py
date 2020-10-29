@@ -6,7 +6,6 @@ import threading
 
 from litebo.core.distributed.dispatcher import Dispatcher
 from litebo.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
-from litebo.config_space.util import convert_configurations_to_array
 
 
 class Master(object):
