@@ -97,6 +97,7 @@ class Dispatcher(object):
 
 		self.waiting_jobs = queue.Queue()
 		self.running_jobs = {}
+		self.history_jobs = list()
 		self.idle_workers = set()
 
 		self.thread_lock = threading.Lock()
@@ -252,25 +253,25 @@ class Dispatcher(object):
 			wn = self.idle_workers.pop()
 
 			worker = self.worker_pool[wn]
-			self.logger.debug('DISPATCHER: starting job %s on %s' % (str(job.id), worker.name))
+			self.logger.info('DISPATCHER: starting job %s on %s' % (str(job.id), worker.name))
 		
 			job.time_it('started')
 			worker.runs_job = job.id
-		
+
 			worker.proxy.start_computation(self, job.id, **job.kwargs)
 
 			job.worker_name = wn
 			self.running_jobs[job.id] = job
 
-			self.logger.debug('DISPATCHER: job %s dispatched on %s'%(str(job.id),worker.name))
+			self.logger.info('DISPATCHER: job %s dispatched on %s' % (str(job.id), worker.name))
 
 	def submit_job(self, id, **kwargs):
-		self.logger.debug('DISPATCHER: trying to submit job %s' % str(id))
+		self.logger.info('DISPATCHER: trying to submit job %s' % str(id))
 		with self.runner_cond:
 			job = Job(id, **kwargs)
 			job.time_it('submitted')
 			self.waiting_jobs.put(job)
-			self.logger.debug('DISPATCHER: trying to notify the job_runner thread.')
+			self.logger.info('DISPATCHER: trying to notify the job_runner thread.')
 			self.runner_cond.notify()
 
 	@Pyro4.expose
@@ -291,6 +292,7 @@ class Dispatcher(object):
 			
 			# delete job
 			del self.running_jobs[id]
+			self.history_jobs.append(job)
 
 			# label worker as idle again
 			try:

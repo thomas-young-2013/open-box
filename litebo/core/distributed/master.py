@@ -6,6 +6,7 @@ import threading
 
 from litebo.core.distributed.dispatcher import Dispatcher
 from litebo.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
+from litebo.config_space.util import convert_configurations_to_array
 
 
 class Master(object):
@@ -64,6 +65,7 @@ class Master(object):
 		self.total_iterations = total_trials
 		self.time_ref = None
 		self.iteration_id = 0
+		self.config_history = dict()
 
 		self.iterations = list()
 		self.jobs = list()
@@ -156,7 +158,8 @@ class Master(object):
 
 			_config = self.config_advisor.get_suggestion()
 			_config_id = self.iteration_id
-			self.logger.debug('Lite-BO[MASTER]: schedule new run for iteration %i' % self.iteration_id)
+			self.config_history[_config_id] = _config
+			self.logger.info('Lite-BO[MASTER]: schedule new run for iteration %i' % self.iteration_id)
 			self._submit_job(_config_id, _config)
 
 			self.iteration_id += 1
@@ -185,7 +188,7 @@ class Master(object):
 		this will do some book keeping and call the user defined
 		new_result_callback if one was specified
 		"""
-		self.logger.debug('job_callback for %s started' % str(job.id))
+		self.logger.info('job_callback for %s started' % str(job.id))
 		with self.thread_cond:
 			self.logger.debug('job_callback for %s got condition' % str(job.id))
 			self.num_running_jobs -= 1
@@ -194,7 +197,11 @@ class Master(object):
 				self.result_logger(job)
 
 			result = job.result
-			_config, _perf = result[0], result[1]
+			_config_id = job.id
+			_config = self.config_history[_config_id]
+			config_dict = result['config']
+			assert _config.get_dictionary() == config_dict
+			_perf = result['objective_value']
 			_trial_state = SUCCESS if job.exception is None else FAILED
 			_observation = [_config, _perf, _trial_state]
 
@@ -225,9 +232,10 @@ class Master(object):
 		(hopefully) thread save way
 		"""
 		self.logger.debug('Lite-BO[MASTER]: trying submitting job %s to dispatcher' % str(config_id))
+		self.config_advisor.running_configs.append(config)
 		with self.thread_cond:
-			self.logger.debug('Lite-BO[MASTER]: submitting job %s to dispatcher' % str(config_id))
-			self.dispatcher.submit_job(config_id, config=config, budget=budget, working_directory=self.working_directory)
+			self.logger.info('Lite-BO[MASTER]: submitting job %s to dispatcher' % str(config_id))
+			self.dispatcher.submit_job(config_id, config=config.get_dictionary(), budget=budget, working_directory=self.working_directory)
 			self.num_running_jobs += 1
 
 		# shouldn't the next line be executed while holding the condition?
