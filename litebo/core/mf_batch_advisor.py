@@ -13,7 +13,7 @@ class MFBatchAdvisor(Advisor):
                  optimization_strategy='bo',
                  batch_strategy='median_imputation',
                  history_bo_data=None,
-                 surrogate_type='prf',
+                 surrogate_type='mfgpe',
                  output_dir='logs',
                  task_id=None,
                  rng=None):
@@ -67,7 +67,7 @@ class MFBatchAdvisor(Advisor):
             estimated_y = np.median(Y)
             batch_history_container = copy.deepcopy(self.history_container)
             for i in range(n_suggestions):
-                self.surrogate_model.train(X, Y)
+                self.surrogate_model.train(X, Y, snapshot=(i == 0))
                 incumbent_value = batch_history_container.get_incumbents()[0][1]
                 self.acquisition_function.update(model=self.surrogate_model, eta=incumbent_value,
                                                  num_data=len(batch_history_container.data))
@@ -80,6 +80,7 @@ class MFBatchAdvisor(Advisor):
                 is_repeated_config = True
                 repeated_time = 0
                 curr_batch_config = None
+
                 while is_repeated_config:
                     try:
                         curr_batch_config = challengers.challengers[repeated_time]
@@ -91,7 +92,7 @@ class MFBatchAdvisor(Advisor):
                         is_repeated_config = False
 
                 batch_configs_list.append(curr_batch_config)
-                X = np.append(X, curr_batch_config.get_array().reshape(1, -1), axis=0)
+                X = np.append(X, convert_configurations_to_array([curr_batch_config]), axis=0)
                 Y = np.append(Y, estimated_y)
 
         elif self.batch_strategy == 'local_penalization':
@@ -112,9 +113,12 @@ class MFBatchAdvisor(Advisor):
             raise ValueError('Invalid sampling strategy - %s.' % self.batch_strategy)
         return batch_configs_list
 
+    # TODO: Add state input
     def update_mf_observations(self, mf_observations):
         self.surrogate_model.update_mf_trials(mf_observations)
         for hpo_evaluation_data in mf_observations[-1:]:
             for _config, _config_perf in hpo_evaluation_data.items():
-                self.configurations.append(_config)
-                self.perfs.append(_config_perf)
+                if _config not in self.configurations:
+                    self.configurations.append(_config)
+                    self.perfs.append(_config_perf)
+                    self.history_container.add(_config, _config_perf)

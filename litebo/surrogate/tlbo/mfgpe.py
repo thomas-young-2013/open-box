@@ -1,15 +1,15 @@
 import numpy as np
 from typing import List
+from collections import OrderedDict
 from sklearn.model_selection import KFold
 from litebo.surrogate.tlbo.base import BaseTLSurrogate
-
 
 _scale_method = 'standardize'
 
 
 class MFGPE(BaseTLSurrogate):
     def __init__(self, config_space, source_hpo_data, seed,
-                 surrogate_type='rf', num_src_hpo_trial=50, only_source=False):
+                 surrogate_type='rf', num_src_hpo_trial=-1, only_source=False):
         super().__init__(config_space, source_hpo_data, seed,
                          surrogate_type=surrogate_type, num_src_hpo_trial=num_src_hpo_trial)
         self.method_id = 'mfgpe'
@@ -17,13 +17,18 @@ class MFGPE(BaseTLSurrogate):
         self.build_source_surrogates(normalize='standardize')
 
         self.scale = True
-        if source_hpo_data is not None:
-            # Weights for base surrogates and the target surrogate.
-            self.w = [1. / self.K] * self.K + [0.]
+
+        self.K = 0
+        self.w = None
+        self.snapshot_w = None
         self.hist_ws = list()
         self.iteration_id = 0
 
-    def update_mf_trials(self, mf_hpo_data: List):
+    def update_mf_trials(self, mf_hpo_data: List[OrderedDict]):
+        if self.K == 0:
+            self.K = len(mf_hpo_data)
+            self.w = [1. / self.K] * self.K + [0.]
+            self.snapshot_w = self.w
         self.source_hpo_data = mf_hpo_data
         # Refit the base surrogates.
         self.build_source_surrogates(normalize='standardize')
@@ -37,7 +42,7 @@ class MFGPE(BaseTLSurrogate):
         idxs = list()
         for train_idx, val_idx in kf.split(X):
             idxs.extend(list(val_idx))
-            X_train, X_val, y_train, y_val = X[train_idx,:], X[val_idx,:], y[train_idx], y[val_idx]
+            X_train, X_val, y_train, y_val = X[train_idx, :], X[val_idx, :], y[train_idx], y[val_idx]
             model = self.build_single_surrogate(X_train, y_train, normalize=_scale_method)
             mu, var = model.predict(X_val)
             mu, var = mu.flatten(), var.flatten()
@@ -46,7 +51,10 @@ class MFGPE(BaseTLSurrogate):
         assert (np.array(idxs) == np.arange(X.shape[0])).all()
         return np.asarray(_mu), np.asarray(_var)
 
-    def train(self, X: np.ndarray, y: np.array):
+    def train(self, X: np.ndarray, y: np.array, **kwargs):
+        snapshot_weight = kwargs.get('snapshot', True)
+        if snapshot_weight:
+            self.w = self.snapshot_w
         sample_num = y.shape[0]
         # Build the target surrogate.
         if sample_num >= 3:
@@ -71,12 +79,14 @@ class MFGPE(BaseTLSurrogate):
         w = self.get_w_ranking_pairs(mu_list, var_list, y)
 
         self.w = w
-        weight_str = ','.join([('%.2f' % item) for item in w])
-        self.logger.info('In iter-%d' % self.iteration_id)
-        self.target_weight.append(w[-1])
-        self.logger.info(weight_str)
-        self.hist_ws.append(w)
-        self.iteration_id += 1
+        if snapshot_weight:
+            self.snapshot_w = self.w
+            weight_str = ','.join([('%.2f' % item) for item in w])
+            self.logger.info('In iter-%d' % self.iteration_id)
+            self.target_weight.append(w[-1])
+            self.logger.info('Weight: ' + str(weight_str))
+            self.iteration_id += 1
+            self.hist_ws.append(w)
 
     def get_w_ranking_pairs(self, mu_list, var_list, y_true):
         preserving_order_p, preserving_order_nums = list(), list()
