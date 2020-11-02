@@ -110,12 +110,12 @@ class Worker(object):
 
 		for dn, uri in dispatchers.items():
 			try:
-				self.logger.debug('WORKER: found dispatcher %s'%dn)
+				self.logger.info('WORKER: found dispatcher %s'%dn)
 				with Pyro4.Proxy(uri) as dispatcher_proxy:
 					dispatcher_proxy.trigger_discover_worker()
 
 			except Pyro4.errors.CommunicationError:
-				self.logger.debug('WORKER: Dispatcher did not respond. Waiting for one to initiate contact.')
+				self.logger.info('WORKER: Dispatcher did not respond. Waiting for one to initiate contact.')
 				pass
 			except:
 				raise
