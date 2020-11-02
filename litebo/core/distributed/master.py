@@ -110,7 +110,7 @@ class Master(object):
 		self.logger.debug('wait_for_workers trying to get the condition')
 		with self.thread_cond:
 			while self.dispatcher.number_of_workers() < min_n_workers:
-				self.logger.debug('Lite-BO[MASTER]: only %i worker(s) available, waiting for at least %i.' % (self.dispatcher.number_of_workers(), min_n_workers))
+				self.logger.info('Lite-BO[MASTER]: only %i worker(s) available, waiting for at least %i.' % (self.dispatcher.number_of_workers(), min_n_workers))
 				self.thread_cond.wait(1)
 				self.dispatcher.trigger_discover_worker()
 

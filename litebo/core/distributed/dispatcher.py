@@ -104,7 +104,7 @@ class Dispatcher(object):
 		self.runner_cond = threading.Condition(self.thread_lock)
 		self.discover_cond = threading.Condition(self.thread_lock)
 
-		self.pyro_id = "hpbandster.run_%s.dispatcher" % self.run_id
+		self.pyro_id = "lite-bo.run_%s.dispatcher" % self.run_id
 
 	def run(self):
 		with self.discover_cond:
@@ -172,7 +172,7 @@ class Dispatcher(object):
 			update = False
 		
 			with Pyro4.locateNS(host=self.nameserver, port=self.nameserver_port) as ns:
-				worker_names = ns.list(prefix="hpbandster.run_%s.worker." % self.run_id)
+				worker_names = ns.list(prefix="lite-bo.run_%s.worker." % self.run_id)
 				self.logger.debug("DISPATCHER: Found %i potential workers, %i currently in the pool."%(len(worker_names), len(self.worker_pool)))
 				
 				for wn, uri in worker_names.items():

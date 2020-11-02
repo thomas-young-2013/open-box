@@ -16,7 +16,7 @@ parser.add_argument('--mode', type=str, choices=['worker', 'master'], default='m
 
 args = parser.parse_args()
 host = args.host
-run_id = 'cluster_example'
+run_id = 'cluster'
 
 if args.mode == 'worker':
     time.sleep(5)

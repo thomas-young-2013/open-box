@@ -45,7 +45,7 @@ class Worker(object):
 		self.run_id = run_id
 		self.host = host
 		self.dir = config_directory
-		self.worker_id = "litebo.run_%s.worker.%s.%i"%(self.run_id, socket.gethostname(), os.getpid())
+		self.worker_id = "lite-bo.run_%s.worker.%s.%i" % (self.run_id, socket.gethostname(), os.getpid())
 		if self.dir is None:
 			self.dir = 'conf'
 		config_path = os.path.join(self.dir, 'distrib.config')
@@ -96,8 +96,8 @@ class Worker(object):
 		# initial ping to the dispatcher to register the worker
 		try:
 			with Pyro4.locateNS(host=self.nameserver, port=self.nameserver_port) as ns:
-				self.logger.debug('WORKER: Connected to nameserver %s'%(str(ns)))
-				dispatchers = ns.list(prefix="hpbandster.run_%s.dispatcher"%self.run_id)
+				self.logger.info('WORKER: Connected to nameserver %s' % (str(ns)))
+				dispatchers = ns.list(prefix="lite-bo.run_%s.dispatcher" % self.run_id)
 		except Pyro4.errors.NamingError:
 			if self.thread is None:
 				raise RuntimeError('No nameserver found. Make sure the nameserver is running at that the host (%s) and port (%s) are correct'%(self.nameserver, self.nameserver_port))
