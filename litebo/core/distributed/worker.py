@@ -7,6 +7,7 @@ import socket
 import logging
 import traceback
 import threading
+import configparser
 
 
 class Worker(object):
@@ -18,7 +19,7 @@ class Worker(object):
 	The first allows to perform inital computations, e.g. loading the dataset, when the worker is started, while the
 	latter is repeatedly called during the optimization and evaluates a given configuration yielding the associated loss.
 	"""
-	def __init__(self, run_id, nameserver=None, nameserver_port=None, logger=None, host=None, id=None, timeout=None):
+	def __init__(self, run_id, logger=None, host=None, id=None, timeout=None, config_directory=None):
 		"""
 		
 		Parameters
@@ -43,17 +44,24 @@ class Worker(object):
 		"""
 		self.run_id = run_id
 		self.host = host
-		self.nameserver = nameserver
-		self.nameserver_port = nameserver_port
-		self.worker_id =  "hpbandster.run_%s.worker.%s.%i"%(self.run_id, socket.gethostname(), os.getpid())
-		
+		self.dir = config_directory
+		self.worker_id = "litebo.run_%s.worker.%s.%i"%(self.run_id, socket.gethostname(), os.getpid())
+		if self.dir is None:
+			self.dir = 'conf'
+		config_path = os.path.join(self.dir, 'distrib.config')
+		config = configparser.ConfigParser()
+		config.read(config_path)
+		name_server = dict(config.items('name_server'))
+		self.nameserver = name_server['nameserver']
+		self.nameserver_port = int(name_server['nameserver_port'])
+
 		self.timeout = timeout
 		self.timer = None
 
-		if not id is None:
+		if id is not None:
 			self.worker_id += '.%s' % str(id)
 
-		self.thread=None
+		self.thread = None
 
 		if logger is None:
 			logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(message)s',  datefmt='%H:%M:%S')
@@ -63,33 +71,6 @@ class Worker(object):
 
 		self.busy = False
 		self.thread_cond = threading.Condition(threading.Lock())
-
-	def load_nameserver_credentials(self, working_directory, num_tries=60, interval=1):
-		"""
-		loads the nameserver credentials in cases where master and workers share a filesystem
-
-		Parameters
-		----------
-			working_directory: str
-				the working directory for the HPB run (see master)
-			num_tries: int
-				number of attempts to find the file (default 60)
-			interval: float
-				waiting period between the attempts
-		"""
-		fn = os.path.join(working_directory, 'HPB_run_%s_pyro.pkl'%self.run_id)
-		
-		for i in range(num_tries):
-			try:
-				with open(fn, 'rb') as fh:
-					self.nameserver, self.nameserver_port = pickle.load(fh)
-				return
-			except FileNotFoundError:
-				self.logger.warning('config file %s not found (trail %i/%i)'%(fn, i+1, num_tries))
-				time.sleep(interval)
-			except:
-				raise
-		raise RuntimeError("Could not find the nameserver information, aborting!")
 
 	def run(self, background=False):
 		"""
