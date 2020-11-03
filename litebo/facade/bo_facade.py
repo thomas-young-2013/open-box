@@ -10,7 +10,7 @@ from litebo.acq_maximizer.ei_optimization import InterleavedLocalAndRandomSearch
 from litebo.acq_maximizer.random_configuration_chooser import ChooserProb
 from litebo.utils.util_funcs import get_types, get_rng
 from litebo.config_space.util import convert_configurations_to_array
-from litebo.utils.constants import MAXINT, SUCCESS, FAILDED, TIMEOUT
+from litebo.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
 from litebo.utils.limit import time_limit, TimeoutException
 from litebo.utils.logging_utils import setup_logger, get_logger
 
