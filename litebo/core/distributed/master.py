@@ -58,6 +58,7 @@ class Master(object):
 			self.logger = logging.getLogger('Lite-BO[MASTER]')
 		else:
 			self.logger = logger
+		self.logger.setLevel(logging.DEBUG)
 
 		self.result_logger = result_logger
 
@@ -135,7 +136,7 @@ class Master(object):
 		"""
 			Parallel implementation in a distributed environment.
 			1. sync batch parallel.
-			2. async paallel.
+			2. async parallel.
 		Parameters
 		----------
 		n_iterations: int

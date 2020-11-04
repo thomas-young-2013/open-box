@@ -50,7 +50,7 @@ class Worker(object):
 		self.timeout = timeout
 		self.timer = None
 
-		if not id is None:
+		if id is not None:
 			self.worker_id += '.%s' % str(id)
 
 		self.thread=None
@@ -60,6 +60,8 @@ class Worker(object):
 			self.logger = logging.getLogger(self.worker_id)
 		else:
 			self.logger = logger
+
+		self.logger.setLevel(logging.DEBUG)
 
 		self.busy = False
 		self.thread_cond = threading.Condition(threading.Lock())
@@ -126,6 +128,14 @@ class Worker(object):
 		except:
 			raise
 
+		self.logger.info('WORKER: register self and start listening for jobs')
+
+		self.pyro_daemon = Pyro4.core.Daemon(host=self.host)
+
+		with Pyro4.locateNS(self.nameserver, port=self.nameserver_port) as ns:
+			uri = self.pyro_daemon.register(self, self.worker_id)
+			ns.register(self.worker_id, uri)
+
 		for dn, uri in dispatchers.items():
 			try:
 				self.logger.debug('WORKER: found dispatcher %s'%dn)
@@ -140,14 +150,6 @@ class Worker(object):
 
 		if len(dispatchers) == 0:
 			self.logger.debug('WORKER: No dispatcher found. Waiting for one to initiate contact.')
-
-		self.logger.info('WORKER: start listening for jobs')
-
-		self.pyro_daemon = Pyro4.core.Daemon(host=self.host)
-
-		with Pyro4.locateNS(self.nameserver, port=self.nameserver_port) as ns:
-			uri = self.pyro_daemon.register(self, self.worker_id)
-			ns.register(self.worker_id, uri)
 		
 		self.pyro_daemon.requestLoop()
 

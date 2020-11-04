@@ -64,7 +64,7 @@ class NameServer(object):
 
 		self.host, self.port = self.pyro_ns.locationStr.split(':')
 		self.port = int(self.port)
-		
+		print("NAMESERVER:", "uri:", str(uri), "pyro_ns:", self.pyro_ns, "pyro_ns.nameserver:", self.pyro_ns.nameserver, "pyro_ns.locationStr:", self.pyro_ns.locationStr, "host:", self.host, "port:", self.port, sep='\n')
 		thread = threading.Thread(target=self.pyro_ns.requestLoop, name='Pyro4 nameserver started by HpBandSter')
 		thread.start()
 

@@ -2,15 +2,15 @@ import os
 import sys
 import logging
 import argparse
-sys.path.append(os.getcwd())
+sys.path.insert(0, os.getcwd())
 import litebo.core.distributed.nameserver as hpns
 from litebo.optimizer.distributed_smbo import DistributedSMBO
 from litebo.examples.worker_example import BraninWorker
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 parser = argparse.ArgumentParser(description='Local and Parallel Execution.')
 parser.add_argument('--n_iterations', type=int, help='Number of iterations performed by the optimizer', default=4)
-parser.add_argument('--n_workers', type=int, help='Number of workers to run in parallel.', default=2)
+parser.add_argument('--n_workers', type=int, help='Number of workers to run in parallel.', default=1)
 parser.add_argument('--mode', type=str, choices=['worker', 'master'], default='master')
 args = parser.parse_args()
 

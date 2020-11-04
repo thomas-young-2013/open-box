@@ -93,6 +93,8 @@ class Dispatcher(object):
 		else:
 			self.logger = logger
 
+		self.logger.setLevel(logging.DEBUG)
+
 		self.worker_pool = {}
 
 		self.waiting_jobs = queue.Queue()
@@ -132,7 +134,7 @@ class Dispatcher(object):
 			self.runner_cond.notify_all()
 			self.discover_cond.notify_all()
 
-			with Pyro4.locateNS(self.nameserver, port=self.nameserver_port) as ns:
+			with Pyro4.locateNS(host=self.nameserver, port=self.nameserver_port) as ns:
 				ns.remove(self.pyro_id)
 
 		t1.join()
@@ -168,7 +170,7 @@ class Dispatcher(object):
 		sleep_interval = 1
 		
 		while True:
-			self.logger.debug('DISPATCHER: Starting worker discovery')
+			self.logger.debug('DISPATCHER: Starting worker discovery**************************************************')
 			update = False
 		
 			with Pyro4.locateNS(host=self.nameserver, port=self.nameserver_port) as ns:
@@ -176,7 +178,7 @@ class Dispatcher(object):
 				self.logger.debug("DISPATCHER: Found %i potential workers, %i currently in the pool."%(len(worker_names), len(self.worker_pool)))
 				
 				for wn, uri in worker_names.items():
-					if not wn in self.worker_pool:
+					if wn not in self.worker_pool:
 						w = Worker(wn, uri)
 						if not w.is_alive():
 							self.logger.debug('DISPATCHER: skipping dead worker, %s' % wn)
