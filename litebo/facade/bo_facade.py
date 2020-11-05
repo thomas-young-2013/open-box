@@ -133,7 +133,7 @@ class BayesianOptimization(BaseFacade):
                     trial_state = TIMEOUT
                 else:
                     traceback.print_exc(file=sys.stdout)
-                    trial_state = FAILDED
+                    trial_state = FAILED
                 perf = MAXINT
                 trial_info = str(e)
                 self.logger.error(trial_info)
@@ -157,7 +157,7 @@ class BayesianOptimization(BaseFacade):
                 config_idx = self.configurations.index(config)
                 trial_state, perf = SUCCESS, self.perfs[config_idx]
             else:
-                trial_state, perf = FAILDED, MAXINT
+                trial_state, perf = FAILED, MAXINT
 
         self.iteration_id += 1
         self.logger.info(
