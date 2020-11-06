@@ -162,7 +162,7 @@ if role == 'master':
     parallel = args.parallel
 
     bo = mqSMBO(None, cs, max_runs=run_count, time_limit_per_trial=60, logging_dir='logs',
-                parallel_strategy=parallel, batch_size=batch_size)
+                parallel_strategy=parallel, batch_size=batch_size, ip=ip, port=port)
     bo.run()
     inc_value = bo.get_incumbent()
     print('Message Queue SMBO', '=' * 30)
