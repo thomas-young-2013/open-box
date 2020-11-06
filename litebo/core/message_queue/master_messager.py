@@ -3,7 +3,7 @@ from multiprocessing.managers import BaseManager
 
 
 class MasterMessager(object):
-    def __init__(self, ip="127.0.0.1", port=13579, max_send_len=100, max_rev_len=100):
+    def __init__(self, ip="", port=13579, max_send_len=100, max_rev_len=100):
         self.ip = ip
         self.port = port
         self.max_sendqueue_length = max_send_len

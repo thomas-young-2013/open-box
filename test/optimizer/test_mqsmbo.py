@@ -14,14 +14,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import balanced_accuracy_score
 
 sys.path.insert(0, os.getcwd())
-from litebo.optimizer.smbo import SMBO
-from litebo.optimizer.parallel_smbo import pSMBO
 from litebo.optimizer.message_queue_smbo import mqSMBO
 from litebo.core.message_queue.worker import Worker
-
-
-# dataset_list = dataset_str.split(',')
-data_dir = './test/optimizer/data/'
 
 
 def check_datasets(datasets, data_dir):
@@ -144,7 +138,7 @@ parser.add_argument('--dataset', type=str)
 parser.add_argument('--n', type=int, default=50)
 parser.add_argument('--role', type=str, choices=['master', 'worker'])
 parser.add_argument('--batch_size', type=int, default=4)
-parser.add_argument('--ip', type=str, default="127.0.0.1")
+parser.add_argument('--ip', type=str)
 parser.add_argument('--port', type=int, default=13579)
 parser.add_argument('--parallel', type=str, default="sync")
 
@@ -152,6 +146,8 @@ args = parser.parse_args()
 role = args.role
 ip = args.ip
 port = args.port
+
+data_dir = './test/optimizer/data/'
 
 # check_datasets(dataset_list, data_dir)
 cs = get_cs()

@@ -29,7 +29,7 @@ class mqSMBO(BOBase):
                  initial_runs=10,
                  task_id=None,
                  random_state=1,
-                 ip="127.0.0.1",
+                 ip="",
                  port=13579,):
 
         super().__init__(objective_function, config_space, task_id=task_id, output_dir=logging_dir,
