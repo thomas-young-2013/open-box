@@ -1,12 +1,7 @@
-import sys
 import time
-import traceback
 from typing import List
 from collections import OrderedDict
 
-from litebo.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
-from litebo.core.computation.parallel_process import ParallelEvaluation
-from litebo.utils.limit import time_limit, TimeoutException
 from litebo.core.sync_batch_advisor import SyncBatchAdvisor
 from litebo.core.async_batch_advisor import AsyncBatchAdvisor
 from litebo.optimizer.base import BOBase
@@ -60,7 +55,8 @@ class mqSMBO(BOBase):
 
         self.parallel_strategy = parallel_strategy
         self.batch_size = batch_size
-        self.master_messager = MasterMessager(ip, port)  # todo: limit len
+        max_queue_len = max(100, 3 * batch_size)
+        self.master_messager = MasterMessager(ip, port, max_queue_len, max_queue_len)
 
     def async_run(self):
         config_num = 0
