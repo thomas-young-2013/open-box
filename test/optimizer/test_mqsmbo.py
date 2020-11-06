@@ -146,6 +146,7 @@ parser.add_argument('--role', type=str, choices=['master', 'worker'])
 parser.add_argument('--batch_size', type=int, default=4)
 parser.add_argument('--ip', type=str, default="127.0.0.1")
 parser.add_argument('--port', type=int, default=13579)
+parser.add_argument('--parallel', type=str, default="sync")
 
 args = parser.parse_args()
 role = args.role
@@ -158,9 +159,10 @@ cs = get_cs()
 if role == 'master':
     run_count = args.n
     batch_size = args.batch_size
+    parallel = args.parallel
 
     bo = mqSMBO(None, cs, max_runs=run_count, time_limit_per_trial=60, logging_dir='logs',
-                parallel_strategy='async', batch_size=batch_size)
+                parallel_strategy=parallel, batch_size=batch_size)
     bo.run()
     inc_value = bo.get_incumbent()
     print('Message Queue SMBO', '=' * 30)
