@@ -7,14 +7,14 @@ class MasterMessager(object):
         self.ip = ip
         self.port = port
         self.max_sendqueue_length = max_send_len
-        self.max_revqueue_legth = max_rev_len
+        self.max_revqueue_length = max_rev_len
         self.masterQueue = None
         self.workerQueue = None
         self._init_master()
 
     def _init_master(self):
         _masterQueue = queue.Queue(maxsize=self.max_sendqueue_length)
-        _workerQueue = queue.Queue(maxsize=self.max_revqueue_legth)
+        _workerQueue = queue.Queue(maxsize=self.max_revqueue_length)
         QueueManager.register('get_master_queue', callable=lambda: _masterQueue)
         QueueManager.register('get_worker_queue', callable=lambda: _workerQueue)
         manager = QueueManager(address=(self.ip, self.port), authkey=b'abc')
