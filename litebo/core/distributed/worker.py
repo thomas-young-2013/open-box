@@ -45,8 +45,8 @@ class Worker(object):
 		self.run_id = run_id
 		self.host = host
 		self.dir = config_directory
-		# self.worker_id = "lite-bo.run_%s.worker.%s.%i" % (self.run_id, socket.gethostname(), os.getpid())
-		self.worker_id = "lite-bo.run_%s.worker.%i" % (self.run_id, os.getpid())
+		self.worker_id = "lite-bo.run_%s.worker.%s.%i" % (self.run_id, socket.gethostname(), os.getpid())
+		# self.worker_id = "lite-bo.run_%s.worker.%i" % (self.run_id, os.getpid())
 		if self.dir is None:
 			self.dir = 'conf'
 		config_path = os.path.join(self.dir, 'distrib.config')
