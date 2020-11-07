@@ -104,7 +104,7 @@ class Dispatcher(object):
 		self.runner_cond = threading.Condition(self.thread_lock)
 		self.discover_cond = threading.Condition(self.thread_lock)
 
-		self.pyro_id = "lite-bo.run_%s.dispatcher" % self.run_id
+		self.pyro_id = "litebo.run_%s.dispatcher" % self.run_id
 
 	def run(self):
 		with self.discover_cond:
