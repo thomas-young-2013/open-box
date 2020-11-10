@@ -116,7 +116,7 @@ class AsyncBatchAdvisor(Advisor):
         config, perf, trial_state = observation
         assert config in self.running_configs
         self.running_configs.remove(config)
-        if not isinstance(perf, float):
+        if not isinstance(perf, (int, float)):
             perf = perf[-1]
         if trial_state == SUCCESS and perf < MAXINT:
             if len(self.configurations) == 0:
