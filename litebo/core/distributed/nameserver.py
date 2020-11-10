@@ -41,6 +41,8 @@ class NameServer(object):
 		config.read(config_path)
 		name_server = dict(config.items('name_server'))
 		self.host = name_server['nameserver']
+		if self.host == '127.0.0.1':
+			self.host = 'localhost'
 		self.port = int(name_server['nameserver_port'])
 
 	def start(self):
