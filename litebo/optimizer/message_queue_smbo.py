@@ -75,7 +75,7 @@ class mqSMBO(BOBase):
                 observation = self.master_messager.receive_message()
                 if observation is None:
                     # Wait for workers.
-                    self.logger.info("Master: wait for worker results. sleep 1s.")
+                    # self.logger.info("Master: wait for worker results. sleep 1s.")
                     time.sleep(1)
                     break
                 # Report result.
@@ -102,7 +102,7 @@ class mqSMBO(BOBase):
                 observation = self.master_messager.receive_message()
                 if observation is None:
                     # Wait for workers.
-                    self.logger.info("Master: wait for worker results. sleep 1s.")
+                    # self.logger.info("Master: wait for worker results. sleep 1s.")
                     time.sleep(1)
                     continue
                 # Report result.
