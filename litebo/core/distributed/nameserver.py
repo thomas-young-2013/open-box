@@ -1,17 +1,8 @@
 # This file is adapted from github repo: https://github.com/automl/HpBandSter.
 import os
-import pickle
 import threading
-
+import configparser
 import Pyro4.naming
-
-
-def nic_name_to_host(nic_name):
-	""" helper function to translate the name of a network card into a valid host name"""
-	# from netifaces import ifaddresses, AF_INET
-	# host = ifaddresses(nic_name).setdefault(AF_INET, [{'addr': 'No IP addr'}])[0]['addr']
-	# return host
-	pass
 
 
 class NameServer(object):
@@ -20,7 +11,7 @@ class NameServer(object):
 	can work in parallel and register their results without creating racing conditions. The implementation uses
 	`PYRO4 <https://pythonhosted.org/Pyro4/nameserver.html>`_ as a backend and this class is basically a wrapper.
 	"""
-	def __init__(self, run_id, working_directory=None, host=None, port=0, nic_name=None):
+	def __init__(self, run_id, host=None, port=0, config_directory=None):
 		"""
 		Parameters
 		----------
@@ -33,16 +24,26 @@ class NameServer(object):
 				the hostname to use for the nameserver
 			port: int
 				the port to be used. Default (=0) means a random port
-			nic_name: str
-				name of the network interface to use (only used if host is not given)
 		"""
 		self.run_id = run_id
 		self.host = host
-		self.nic_name = nic_name
 		self.port = port
-		self.dir = working_directory
+		self.dir = config_directory
 		self.conf_fn = None
 		self.pyro_ns = None
+		self.init_config()
+
+	def init_config(self):
+		if self.dir is None:
+			self.dir = 'conf'
+		config_path = os.path.join(self.dir, 'distrib.config')
+		config = configparser.ConfigParser()
+		config.read(config_path)
+		name_server = dict(config.items('name_server'))
+		self.host = name_server['nameserver']
+		if self.host == '127.0.0.1':
+			self.host = 'localhost'
+		self.port = int(name_server['nameserver_port'])
 
 	def start(self):
 		"""	
@@ -53,28 +54,16 @@ class NameServer(object):
 			tuple (str, int):
 				the host name and the used port
 		"""
-	
-		if self.host is None:
-			if self.nic_name is None:
-				self.host = 'localhost'
-			else:
-				self.host = nic_name_to_host(self.nic_name)
 
 		uri, self.pyro_ns, _ = Pyro4.naming.startNS(host=self.host, port=self.port)
 
 		self.host, self.port = self.pyro_ns.locationStr.split(':')
 		self.port = int(self.port)
-		print("NAMESERVER:", "uri:", str(uri), "pyro_ns:", self.pyro_ns, "pyro_ns.nameserver:", self.pyro_ns.nameserver, "pyro_ns.locationStr:", self.pyro_ns.locationStr, "host:", self.host, "port:", self.port, sep='\n')
-		thread = threading.Thread(target=self.pyro_ns.requestLoop, name='Pyro4 nameserver started by HpBandSter')
+		
+		thread = threading.Thread(target=self.pyro_ns.requestLoop, name='Pyro4 nameserver started by Lite-BO')
+
 		thread.start()
 
-		if not self.dir is None:
-			os.makedirs(self.dir, exist_ok=True)
-			self.conf_fn = os.path.join(self.dir, 'HPB_run_%s_pyro.pkl'%self.run_id)
-
-			with open(self.conf_fn, 'wb') as fh:
-				pickle.dump((self.host, self.port), fh)
-		
 		return self.host, self.port
 
 	def shutdown(self):

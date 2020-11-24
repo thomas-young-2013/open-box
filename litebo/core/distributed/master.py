@@ -3,16 +3,15 @@ import os
 import time
 import logging
 import threading
+import configparser
 
 from litebo.core.distributed.dispatcher import Dispatcher
 from litebo.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
-from litebo.config_space.util import convert_configurations_to_array
 
 
 class Master(object):
 	def __init__(self, run_id, config_advisor, total_trials,
-				working_directory='.', ping_interval=60,
-				nameserver='127.0.0.1', nameserver_port=None, host=None, shutdown_workers=True, job_queue_sizes=(-1,0),
+				config_directory=None, ping_interval=60, host=None, job_queue_sizes=(-1,0),
 				dynamic_queue_size=True, logger=None, result_logger=None):
 
 		"""The Master class is responsible for the book keeping and to decide what to run next. Optimizers are
@@ -29,10 +28,6 @@ class Master(object):
 			The top level working directory accessible to all compute nodes(shared filesystem).
 		ping_interval: int
 			number of seconds between pings to discover new nodes. Default is 60 seconds.
-		nameserver: str
-			address of the Pyro4 nameserver
-		nameserver_port: int
-			port of Pyro4 nameserver
 		host: str
 			ip (or name that resolves to that) of the network interface to use
 		shutdown_workers: bool
@@ -51,8 +46,7 @@ class Master(object):
 			previous run to warmstart the run
 		"""
 
-		self.working_directory = working_directory
-		os.makedirs(self.working_directory, exist_ok=True)
+		self.config_directory = config_directory
 
 		if logger is None:
 			self.logger = logging.getLogger('Lite-BO[MASTER]')
@@ -84,7 +78,18 @@ class Master(object):
 
 		self.config = {'time_ref': self.time_ref}
 
-		self.dispatcher = Dispatcher(self.job_callback, queue_callback=self.adjust_queue_size, run_id=run_id, ping_interval=ping_interval, nameserver=nameserver, nameserver_port=nameserver_port, host=host)
+		if self.config_directory is None:
+			self.config_directory = 'conf'
+		config_path = os.path.join(self.config_directory, 'distrib.config')
+		config = configparser.ConfigParser()
+		config.read(config_path)
+		name_server = dict(config.items('name_server'))
+		self.nameserver = name_server['nameserver']
+		self.nameserver_port = int(name_server['nameserver_port'])
+
+		self.dispatcher = Dispatcher(self.job_callback, queue_callback=self.adjust_queue_size,
+									 run_id=run_id, ping_interval=ping_interval,
+									 nameserver=self.nameserver, nameserver_port=self.nameserver_port, host=host)
 
 		self.dispatcher_thread = threading.Thread(target=self.dispatcher.run)
 		self.dispatcher_thread.start()
@@ -106,7 +111,7 @@ class Master(object):
 		self.logger.debug('wait_for_workers trying to get the condition')
 		with self.thread_cond:
 			while self.dispatcher.number_of_workers() < min_n_workers:
-				self.logger.debug('Lite-BO[MASTER]: only %i worker(s) available, waiting for at least %i.' % (self.dispatcher.number_of_workers(), min_n_workers))
+				self.logger.info('Lite-BO[MASTER]: only %i worker(s) available, waiting for at least %i.' % (self.dispatcher.number_of_workers(), min_n_workers))
 				self.thread_cond.wait(1)
 				self.dispatcher.trigger_discover_worker()
 
@@ -236,7 +241,7 @@ class Master(object):
 		self.config_advisor.running_configs.append(config)
 		with self.thread_cond:
 			self.logger.info('Lite-BO[MASTER]: submitting job %s to dispatcher' % str(config_id))
-			self.dispatcher.submit_job(config_id, config=config.get_dictionary(), budget=budget, working_directory=self.working_directory)
+			self.dispatcher.submit_job(config_id, config=config.get_dictionary(), budget=budget)
 			self.num_running_jobs += 1
 
 		# shouldn't the next line be executed while holding the condition?

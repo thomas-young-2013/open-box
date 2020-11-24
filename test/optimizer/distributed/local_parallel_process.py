@@ -18,17 +18,17 @@ args = parser.parse_args()
 task_id = 'local_parallel_example'
 
 if args.mode == 'worker':
-    w = BraninWorker(sleep_interval=0.5, nameserver='127.0.0.1', run_id=task_id)
+    w = BraninWorker(sleep_interval=0.5, run_id=task_id)
     w.run(background=False)
     exit(0)
 
 # Start a nameserver.
-NS = hpns.NameServer(run_id='example3', host='127.0.0.1', port=None)
+NS = hpns.NameServer(run_id='example3')
 NS.start()
 
 dsmbo = DistributedSMBO(task_id=task_id, config_space=BraninWorker.get_configspace())
 
-dsmbo.run()
+dsmbo.run(min_n_workers=args.n_workers)
 
 # Step 4: Shutdown
 # After the optimizer run, we must shutdown the master and the nameserver.

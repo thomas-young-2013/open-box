@@ -10,7 +10,7 @@ from litebo.acq_maximizer.ei_optimization import InterleavedLocalAndRandomSearch
 from litebo.acq_maximizer.random_configuration_chooser import ChooserProb
 from litebo.utils.util_funcs import get_types, get_rng
 from litebo.config_space.util import convert_configurations_to_array
-from litebo.utils.constants import MAXINT, SUCCESS, FAILDED, TIMEOUT
+from litebo.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
 from litebo.utils.limit import time_limit, TimeoutException
 from litebo.utils.logging_utils import setup_logger, get_logger
 
@@ -133,7 +133,7 @@ class BayesianOptimization(BaseFacade):
                     trial_state = TIMEOUT
                 else:
                     traceback.print_exc(file=sys.stdout)
-                    trial_state = FAILDED
+                    trial_state = FAILED
                 perf = MAXINT
                 trial_info = str(e)
                 self.logger.error(trial_info)
@@ -157,7 +157,7 @@ class BayesianOptimization(BaseFacade):
                 config_idx = self.configurations.index(config)
                 trial_state, perf = SUCCESS, self.perfs[config_idx]
             else:
-                trial_state, perf = FAILDED, MAXINT
+                trial_state, perf = FAILED, MAXINT
 
         self.iteration_id += 1
         self.logger.info(

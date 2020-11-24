@@ -5,7 +5,6 @@ from collections import OrderedDict
 from litebo.optimizer.base import BOBase
 from litebo.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
 from litebo.utils.limit import time_limit, TimeoutException
-from litebo.core.advisor import Advisor
 
 
 class SMBO(BOBase):
@@ -13,6 +12,7 @@ class SMBO(BOBase):
                  sample_strategy: str = 'bo',
                  max_runs=200,
                  time_limit_per_trial=180,
+                 advisor_type='default',
                  surrogate_type='prf',
                  history_bo_data: List[OrderedDict] = None,
                  logging_dir='logs',
@@ -25,14 +25,19 @@ class SMBO(BOBase):
                          random_state=random_state, initial_runs=initial_runs, max_runs=max_runs,
                          sample_strategy=sample_strategy, time_limit_per_trial=time_limit_per_trial,
                          history_bo_data=history_bo_data)
-        self.config_advisor = Advisor(config_space, initial_trials=initial_runs,
-                                      initial_configurations=initial_configurations,
-                                      optimization_strategy=sample_strategy,
-                                      surrogate_type=surrogate_type,
-                                      history_bo_data=history_bo_data,
-                                      task_id=task_id,
-                                      output_dir=logging_dir,
-                                      rng=self.rng)
+        if advisor_type == 'default':
+            from litebo.core.advisor import Advisor
+            self.config_advisor = Advisor(config_space, initial_trials=initial_runs,
+                                          initial_configurations=initial_configurations,
+                                          optimization_strategy=sample_strategy,
+                                          surrogate_type=surrogate_type,
+                                          history_bo_data=history_bo_data,
+                                          task_id=task_id,
+                                          output_dir=logging_dir,
+                                          rng=self.rng)
+        elif advisor_type == 'tpe':
+            from litebo.core.tpe_advisor import TPE_Advisor
+            self.config_advisor = TPE_Advisor(config_space)
 
     def run(self):
         while self.iteration_id < self.max_iterations:
