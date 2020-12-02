@@ -93,7 +93,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
         initial_configs = list()
 
         for config in src_configs:
-            dis = np.linalg.norm(config.convert_configurations_to_arrray()-default_config.convert_configurations_to_array())
+            dis = np.linalg.norm(config.get_array()-default_config.get_array())  # get_array may have NaN problems
             min_dis.append(dis)
         min_dis = np.array(min_dis)
 
