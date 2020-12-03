@@ -29,4 +29,5 @@ dist
 .project
 
 logs/
-
+runs/
+test/.ipynb_checkpoints/

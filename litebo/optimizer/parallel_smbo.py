@@ -109,7 +109,8 @@ class pSMBO(BOBase):
                     _perf = _result[-1]
                     _observation = [_config, _perf, SUCCESS]
                     self.config_advisor.update_observation(_observation)
-                    self.logger.info('In the %d-th batch [%d], result is: %.3f' % (batch_id, idx, _perf))
+                    self.logger.info('In the %d-th batch [%d], using config %s, result is: %.3f'
+                                     % (batch_id, idx, str(_config), _perf))
                 batch_id += 1
 
     def run(self):
