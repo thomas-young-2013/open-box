@@ -1,6 +1,7 @@
 import collections
-from litebo.config_space import Configuration
 from litebo.utils.constants import MAXINT
+from litebo.config_space import Configuration
+from litebo.utils.logging_utils import get_logger
 
 
 Perf = collections.namedtuple(
@@ -14,10 +15,13 @@ class HistoryContainer(object):
         self.config_counter = 0
         self.incumbent_value = MAXINT
         self.incumbents = list()
+        self.logger = get_logger(self.__class__.__name__)
 
     def add(self, config: Configuration, perf: Perf):
         if config in self.data:
-            raise ValueError('Repeated configuration detected!')
+            self.logger.warning('Repeated configuration detected!')
+            return
+
         self.data[config] = perf
         self.config_counter += 1
 
