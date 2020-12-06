@@ -15,13 +15,14 @@ from litebo.core.base import Observation
 
 class SMBO(BOBase):
     def __init__(self, objective_function: callable, config_space,
-                 has_constraints=False,
-                 has_multiobjs=False,
+                 num_constraints=0,
+                 num_objs=1,
                  sample_strategy: str = 'bo',
                  max_runs=200,
                  time_limit_per_trial=180,
                  advisor_type='default',
                  surrogate_type='prf',
+                 acq_type='ei',
                  history_bo_data: List[OrderedDict] = None,
                  logging_dir='logs',
                  initial_configurations=None,
@@ -29,7 +30,8 @@ class SMBO(BOBase):
                  task_id=None,
                  random_state=1):
 
-        self.task_info = {'has_constraints': has_constraints, 'has_multiobjs': has_multiobjs}
+        self.task_info = {'num_constraints': num_constraints, 'num_objs': num_objs}
+        self.FAILED_PERF = [MAXINT] * num_objs
         super().__init__(objective_function, config_space, task_id=task_id, output_dir=logging_dir,
                          random_state=random_state, initial_runs=initial_runs, max_runs=max_runs,
                          sample_strategy=sample_strategy, time_limit_per_trial=time_limit_per_trial,
@@ -41,6 +43,7 @@ class SMBO(BOBase):
                                           initial_configurations=initial_configurations,
                                           optimization_strategy=sample_strategy,
                                           surrogate_type=surrogate_type,
+                                          acq_type=acq_type,
                                           history_bo_data=history_bo_data,
                                           task_id=task_id,
                                           output_dir=logging_dir,
@@ -70,7 +73,7 @@ class SMBO(BOBase):
                     raise TimeoutException(
                         'Timeout: time limit for this evaluation is %.1fs' % self.time_limit_per_trial)
                 else:
-                    objs = _result['objs']
+                    objs = _result['objs'] if _result['objs'] is not None else self.FAILED_PERF
                     constraints = _result['constraints']
             except Exception as e:
                 if isinstance(e, TimeoutException):
@@ -78,7 +81,7 @@ class SMBO(BOBase):
                 else:
                     traceback.print_exc(file=sys.stdout)
                     trial_state = FAILED
-                objs = None
+                objs = self.FAILED_PERF
                 constraints = None
                 trial_info = str(e)
 
@@ -88,10 +91,10 @@ class SMBO(BOBase):
             self.logger.info('This configuration has been evaluated! Skip it.')
             if config in self.config_advisor.configurations:
                 config_idx = self.config_advisor.configurations.index(config)
-                trial_state, perf = SUCCESS, self.config_advisor.perfs[config_idx]
+                trial_state, objs = SUCCESS, self.config_advisor.perfs[config_idx]
             else:
-                trial_state, perf = FAILED, MAXINT
+                trial_state, objs = FAILED, self.FAILED_PERF
 
         self.iteration_id += 1
-        self.logger.info('In the %d-th iteration, the objective value: %.4f' % (self.iteration_id, perf))
-        return config, trial_state, perf, trial_info
+        self.logger.info('In the %d-th iteration, the objective value: %s' % (self.iteration_id, str(objs)))
+        return config, trial_state, objs, trial_info

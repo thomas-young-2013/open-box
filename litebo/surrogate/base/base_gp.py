@@ -101,8 +101,9 @@ class BaseGP(AbstractModel):
         # Obtain a list of all priors for each tunable hyperparameter of the kernel
         all_priors = []
         to_visit = []
-        to_visit.append(self.gp.kernel.k1)
-        to_visit.append(self.gp.kernel.k2)
+        # to_visit.append(self.gp.kernel.k1)
+        # to_visit.append(self.gp.kernel.k2)
+        to_visit.append(self.gp.kernel)  # fix single kernel
         while len(to_visit) > 0:
             current_param = to_visit.pop(0)
             if isinstance(current_param, sklearn.gaussian_process.kernels.KernelOperator):

@@ -2,7 +2,7 @@ import numpy as np
 from litebo.surrogate.base.gp import GaussianProcess
 from litebo.surrogate.base.gp_mcmc import GaussianProcessMCMC
 from litebo.surrogate.base.gp_base_prior import HorseshoePrior, LognormalPrior
-from litebo.surrogate.base.gp_kernels import ConstantKernel, Matern, HammingKernel, WhiteKernel
+from litebo.surrogate.base.gp_kernels import ConstantKernel, Matern, HammingKernel, WhiteKernel, RBF
 
 
 def create_gp_model(model_type, config_space, types, bounds, rng):
@@ -73,6 +73,19 @@ def create_gp_model(model_type, config_space, types, bounds, rng):
             types=types,
             bounds=bounds,
             kernel=kernel,
+            normalize_y=True,
+            seed=rng.randint(low=0, high=10000),
+        )
+    elif model_type == 'gp_rbf':
+        rbf_kernel = RBF(
+            length_scale=1,
+            length_scale_bounds=(1e-3, 1e2),
+        )
+        model = GaussianProcess(
+            configspace=config_space,
+            types=types,
+            bounds=bounds,
+            kernel=rbf_kernel,
             normalize_y=True,
             seed=rng.randint(low=0, high=10000),
         )
