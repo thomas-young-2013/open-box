@@ -107,7 +107,7 @@ class BatchBayesianOptimization(BaseFacade):
                         trial_state_list[i] = TIMEOUT
                     else:
                         traceback.print_exc(file=sys.stdout)
-                        trial_state_list[i] = FAILDED
+                        trial_state_list[i] = FAILED
                     perf_list[i] = MAXINT
                     trial_info_list[i] = str(e)
                     self.logger.error(trial_info_list[i])
@@ -131,7 +131,7 @@ class BatchBayesianOptimization(BaseFacade):
                     config_idx = self.configurations.index(config)
                     trial_state_list[i], perf_list[i] = SUCCESS, self.perfs[config_idx]
                 else:
-                    trial_state_list[i], perf_list[i] = FAILDED, MAXINT
+                    trial_state_list[i], perf_list[i] = FAILED, MAXINT
 
         self.iteration_id += 1
         self.logger.info(
