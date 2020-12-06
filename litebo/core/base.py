@@ -4,6 +4,10 @@ from litebo.surrogate.base.rf_with_instances import RandomForestWithInstances
 from litebo.surrogate.base.build_gp import create_gp_model
 from litebo.utils.util_funcs import get_types
 from litebo.utils.constants import MAXINT
+from collections import namedtuple
+
+
+Observation = namedtuple('Observation', ['config', 'trial_state', 'constraints', 'objectives'])
 
 
 def build_acq_func(func_str='ei', model=None):
