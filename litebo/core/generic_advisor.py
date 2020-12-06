@@ -19,6 +19,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
                  history_bo_data=None,
                  optimization_strategy='bo',
                  surrogate_type='prf',
+                 acq_type=None,
                  output_dir='logs',
                  task_id=None,
                  rng=None):
@@ -44,6 +45,13 @@ class Advisor(object, metaclass=abc.ABCMeta):
         self.perc = None
         self.min_y = None
         self.max_y = None
+        self.num_constraints = int(self.task_info['num_constraints'])
+        if self.num_constraints > 0:
+            self.constraint_perfs = [list() for _ in range(self.num_constraints)]
+        if acq_type is None:
+            self.acq_type = 'ei' if self.num_constraints == 0 else 'eic'
+        else:
+            self.acq_type = acq_type
 
         # Init the basic ingredients in Bayesian optimization.
         self.history_bo_data = history_bo_data
@@ -61,6 +69,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
         self.history_container = HistoryContainer(task_id)
 
         self.surrogate_model = None
+        self.constraint_models = None
         self.acquisition_function = None
         self.optimizer = None
         self.setup_bo_basics()
@@ -70,8 +79,12 @@ class Advisor(object, metaclass=abc.ABCMeta):
                                                config_space=self.config_space,
                                                rng=self.rng,
                                                history_hpo_data=self.history_bo_data)
+        if self.num_constraints > 0:
+            self.constraint_models = [build_surrogate(func_str='gp',
+                                                      config_space=self.config_space,
+                                                      rng=self.rng) for _ in range(self.num_constraints)]
 
-        self.acquisition_function = build_acq_func(func_str=acq_type, model=self.surrogate_model)
+        self.acquisition_function = build_acq_func(func_str=acq_type, model=self.surrogate_model, constraint_models=self.constraint_models)
 
         self.optimizer = build_optimizer(func_str=acq_optimizer_type,
                                          acq_func=self.acquisition_function,
@@ -132,6 +145,16 @@ class Advisor(object, metaclass=abc.ABCMeta):
             return self.sample_random_configs(1)[0]
         elif self.optimization_strategy == 'bo':
             self.surrogate_model.train(X, Y)
+
+            if self.num_constraints > 0:
+                cX = []
+                for c in self.constraint_perfs:
+                    failed_c = list() if num_failed_trial == 0 else [max(c)] * num_failed_trial
+                    cX.append(np.array(c + failed_c, dtype=np.float64))
+
+                for i, model in enumerate(self.constraint_models):
+                    model.train(X, cX[i])
+
             incumbent_value = self.history_container.get_incumbents()[0][1]
             self.acquisition_function.update(model=self.surrogate_model,
                                              eta=incumbent_value,
@@ -152,10 +175,27 @@ class Advisor(object, metaclass=abc.ABCMeta):
             raise ValueError('Unknown optimization strategy: %s.' % self.optimization_strategy)
 
     def update_observation(self, observation: Observation):
-        config, perf, trial_state = observation
+        config, trial_state, constraints, objs = observation
+
+        # Magnify the difference between y and 0
+        def bilog(y):
+            if y >= 0:
+                return np.log(1 + y)
+            else:
+                return -np.log(1 - y)
+
+        perf = objs[0]
         if trial_state == SUCCESS and perf < MAXINT:
             if len(self.configurations) == 0:
                 self.default_obj_value = perf
+
+            if self.num_constraints > 0:
+                # If infeasible, set observation to the largest found objective value
+                if any(c > 0 for c in constraints):
+                    perf = max(self.perfs) if self.perfs else 1000
+                # Update constraint perfs regardless of feasibility
+                for i in range(self.num_constraints):
+                    self.constraint_perfs[i].append(bilog(constraints[i]))
 
             self.configurations.append(config)
             self.perfs.append(perf)
