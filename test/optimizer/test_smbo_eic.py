@@ -1,5 +1,9 @@
 import numpy as np
 
+import os
+import sys
+sys.path.insert(0, os.getcwd())
+
 from litebo.optimizer.generic_smbo import SMBO
 from litebo.config_space import ConfigurationSpace, Configuration, \
     UniformFloatHyperparameter, UniformIntegerHyperparameter

@@ -1,4 +1,5 @@
 from litebo.acquisition_function.acquisition import *
+from litebo.acquisition_function.multi_objective_acquisition import *
 from litebo.acq_maximizer.ei_optimization import InterleavedLocalAndRandomSearch
 from litebo.surrogate.base.rf_with_instances import RandomForestWithInstances
 from litebo.surrogate.base.build_gp import create_gp_model
@@ -10,7 +11,7 @@ from collections import namedtuple
 Observation = namedtuple('Observation', ['config', 'trial_state', 'constraints', 'objectives'])
 
 
-def build_acq_func(func_str='ei', model=None, constraint_models=None):
+def build_acq_func(func_str='ei', model=None, constraint_models=None, **kwargs):
     func_str = func_str.lower()
     if constraint_models is None:
         if func_str == 'ei':
@@ -25,11 +26,16 @@ def build_acq_func(func_str='ei', model=None, constraint_models=None):
             acq_func = LCB
         elif func_str == 'lpei':
             acq_func = LPEI
+        elif func_str == 'mesmo':
+            acq_func = MESMO
         else:
             raise ValueError('Invalid string %s for acquisition function!' % func_str)
-        return acq_func(model=model)
+        return acq_func(model=model, **kwargs)
     else:
-        acq_func = EIC
+        if func_str == 'eic':
+            acq_func = EIC
+        else:
+            raise ValueError('Invalid string %s for acquisition function!' % func_str)
         return acq_func(model=model, constraint_models=constraint_models)
 
 

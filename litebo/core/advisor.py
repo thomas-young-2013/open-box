@@ -91,6 +91,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
     def max_min_distance(self, default_config, src_configs, num):
         min_dis = list()
         initial_configs = list()
+        initial_configs.append(default_config)
 
         for config in src_configs:
             dis = np.linalg.norm(config.get_array()-default_config.get_array())

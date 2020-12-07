@@ -98,6 +98,8 @@ class pSMBO(BOBase):
     def sync_run(self):
         with ParallelEvaluation(wrapper, n_worker=self.batch_size) as proc:
             batch_num = (self.max_iterations + self.batch_size - 1) // self.batch_size
+            if self.batch_size > self.config_advisor.init_num:
+                batch_num += 1  # fix bug
             batch_id = 0
             while batch_id < batch_num:
                 configs = self.config_advisor.get_suggestions()

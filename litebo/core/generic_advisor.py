@@ -1,9 +1,9 @@
 import abc
 import numpy as np
 
-from litebo.utils.util_funcs import get_rng
+from litebo.utils.util_funcs import get_rng, get_types
 from litebo.utils.logging_utils import get_logger
-from litebo.utils.history_container import HistoryContainer
+from litebo.utils.history_container import HistoryContainer, MOHistoryContainer
 from litebo.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
 from litebo.config_space.util import convert_configurations_to_array
 from litebo.core.base import build_acq_func, build_optimizer, build_surrogate
@@ -18,7 +18,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
                  init_strategy='random_explore_first',
                  history_bo_data=None,
                  optimization_strategy='bo',
-                 surrogate_type='prf',
+                 surrogate_type=None,
                  acq_type=None,
                  output_dir='logs',
                  task_id=None,
@@ -28,6 +28,8 @@ class Advisor(object, metaclass=abc.ABCMeta):
         # Init logging module.
         # Random seed generator.
         self.task_info = task_info
+        self.num_objs = task_info['num_objs']
+        self.num_constraints = task_info['num_constraints']
         self.init_strategy = init_strategy
         self.output_dir = output_dir
         if rng is None:
@@ -37,7 +39,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
 
         # Basic components in Advisor.
         self.optimization_strategy = optimization_strategy
-        self.default_obj_value = MAXINT
+        self.default_obj_value = [MAXINT] * self.num_objs
         self.configurations = list()
         self.failed_configurations = list()
         self.perfs = list()
@@ -45,9 +47,9 @@ class Advisor(object, metaclass=abc.ABCMeta):
         self.perc = None
         self.min_y = None
         self.max_y = None
-        self.num_constraints = int(self.task_info['num_constraints'])
         if self.num_constraints > 0:
             self.constraint_perfs = [list() for _ in range(self.num_constraints)]
+        # todo
         if acq_type is None:
             self.acq_type = 'ei' if self.num_constraints == 0 else 'eic'
         else:
@@ -56,6 +58,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
         # Init the basic ingredients in Bayesian optimization.
         self.history_bo_data = history_bo_data
         self.surrogate_type = surrogate_type
+        self.acq_type = acq_type
         self.init_num = initial_trials
         self.config_space = config_space
         self.config_space.seed(rng.randint(MAXINT))
@@ -66,25 +69,94 @@ class Advisor(object, metaclass=abc.ABCMeta):
         else:
             self.initial_configurations = self.create_initial_design(self.init_strategy)
             self.init_num = len(self.initial_configurations)
-        self.history_container = HistoryContainer(task_id)
+        if self.num_objs == 1:
+            self.history_container = HistoryContainer(task_id)
+        else:   # multi-objectives
+            self.history_container = MOHistoryContainer(task_id)
 
         self.surrogate_model = None
         self.constraint_models = None
         self.acquisition_function = None
         self.optimizer = None
+        self.check_setup()
         self.setup_bo_basics()
 
-    def setup_bo_basics(self, acq_type='ei', acq_optimizer_type='local_random'):
-        self.surrogate_model = build_surrogate(func_str=self.surrogate_type,
-                                               config_space=self.config_space,
-                                               rng=self.rng,
-                                               history_hpo_data=self.history_bo_data)
+    def check_setup(self):
+        """
+            check num_objs, num_constraints, acq_type, surrogate_type
+        """
+        assert isinstance(self.num_objs, int)
+        assert isinstance(self.num_constraints, int)
+
+        if self.num_objs > 1 and self.num_constraints > 0:
+            self.logger.error('Multi-objective with constraints will be supported in future version!'
+                              'It is not supported at present.')
+            raise ValueError('Multi-objective with constraints will be supported in future version!'
+                             'It is not supported at present.')  # todo try except
+
+        # single objective no constraint
+        if self.num_objs == 1 and self.num_constraints == 0:
+            if self.acq_type is None:
+                self.acq_type = 'ei'
+            assert self.acq_type not in ['eic', 'mesmo']
+            if self.surrogate_type is None:
+                self.surrogate_type = 'prf'
+
+        # multi-objective
+        if self.num_objs > 1:
+            if self.acq_type is None:
+                self.acq_type = 'mesmo'
+            assert self.acq_type in ['mesmo']
+            if self.surrogate_type is None:
+                self.surrogate_type = 'gp_rbf'
+            if self.acq_type == 'mesmo' and self.surrogate_type != 'gp_rbf':
+                self.surrogate_type = 'gp_rbf'
+                self.logger.warning('Surrogate model has changed to Gaussian Process with RBF kernel '
+                                    'since MESMO is used. Surrogate_type should be set to \'gp_rbf\'.')
+
+        # constraint
+        if self.num_constraints > 0:
+            if self.acq_type is None:
+                self.acq_type = 'eic'
+            assert self.acq_type in ['eic', 'ts']
+            if self.surrogate_type is None:
+                if self.acq_type == 'ts':
+                    self.surrogate_type = 'gp'
+                else:
+                    self.surrogate_type = 'prf'
+            if self.acq_type == 'ts' and self.surrogate_type != 'gp':
+                self.surrogate_type = 'gp'
+                self.logger.warning('Surrogate model has changed to Gaussian Process '
+                                    'since TS is used. Surrogate_type should be set to \'gp\'.')
+
+    def setup_bo_basics(self, acq_optimizer_type='local_random'):
+        if self.num_objs == 1:
+            self.surrogate_model = build_surrogate(func_str=self.surrogate_type,
+                                                   config_space=self.config_space,
+                                                   rng=self.rng,
+                                                   history_hpo_data=self.history_bo_data)
+        else:   # multi-objectives
+            self.surrogate_model = []
+            for _ in range(self.num_objs):
+                model = build_surrogate(func_str=self.surrogate_type,
+                                        config_space=self.config_space,
+                                        rng=self.rng,
+                                        history_hpo_data=self.history_bo_data)
+                self.surrogate_model.append(model)
+
         if self.num_constraints > 0:
             self.constraint_models = [build_surrogate(func_str='gp',
                                                       config_space=self.config_space,
                                                       rng=self.rng) for _ in range(self.num_constraints)]
 
-        self.acquisition_function = build_acq_func(func_str=acq_type, model=self.surrogate_model, constraint_models=self.constraint_models)
+        if self.acq_type == 'mesmo':
+            types, bounds = get_types(self.config_space)
+            self.acquisition_function = build_acq_func(func_str=self.acq_type, model=self.surrogate_model,
+                                                       constraint_models=self.constraint_models,
+                                                       types=types, bounds=bounds)
+        else:
+            self.acquisition_function = build_acq_func(func_str=self.acq_type, model=self.surrogate_model,
+                                                       constraint_models=self.constraint_models)
 
         self.optimizer = build_optimizer(func_str=acq_optimizer_type,
                                          acq_func=self.acquisition_function,
@@ -107,6 +179,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
     def max_min_distance(self, default_config, src_configs, num):
         min_dis = list()
         initial_configs = list()
+        initial_configs.append(default_config)
 
         for config in src_configs:
             dis = np.linalg.norm(config.get_array()-default_config.get_array())
@@ -144,7 +217,11 @@ class Advisor(object, metaclass=abc.ABCMeta):
         if self.optimization_strategy == 'random':
             return self.sample_random_configs(1)[0]
         elif self.optimization_strategy == 'bo':
-            self.surrogate_model.train(X, Y)
+            if self.num_objs == 1:
+                self.surrogate_model.train(X, Y)
+            else:   # multi-objectives
+                for i in range(self.num_objs):
+                    self.surrogate_model[i].train(X, Y[:, i])
 
             if self.num_constraints > 0:
                 cX = []
@@ -155,10 +232,20 @@ class Advisor(object, metaclass=abc.ABCMeta):
                 for i, model in enumerate(self.constraint_models):
                     model.train(X, cX[i])
 
-            incumbent_value = self.history_container.get_incumbents()[0][1]
-            self.acquisition_function.update(model=self.surrogate_model,
-                                             eta=incumbent_value,
-                                             num_data=num_config_evaluated)
+            if self.num_objs == 1:
+                incumbent_value = self.history_container.get_incumbents()[0][1]
+                self.acquisition_function.update(model=self.surrogate_model,
+                                                 constraint_models=self.constraint_models,
+                                                 eta=incumbent_value,
+                                                 num_data=num_config_evaluated)
+            else:   # multi-objectives
+                mo_incumbent_value = self.history_container.get_mo_incumbent_value()
+                self.acquisition_function.update(model=self.surrogate_model,
+                                                 constraint_models=self.constraint_models,
+                                                 eta=mo_incumbent_value,
+                                                 num_data=num_config_evaluated,
+                                                 X=X, Y=Y)
+
             challengers = self.optimizer.maximize(runhistory=self.history_container,
                                                   num_points=5000)
             is_repeated_config = True
@@ -175,35 +262,33 @@ class Advisor(object, metaclass=abc.ABCMeta):
             raise ValueError('Unknown optimization strategy: %s.' % self.optimization_strategy)
 
     def update_observation(self, observation: Observation):
-        config, trial_state, constraints, objs = observation
-
-        # Magnify the difference between y and 0
         def bilog(y):
+            """Magnify the difference between y and 0"""
             if y >= 0:
                 return np.log(1 + y)
             else:
                 return -np.log(1 - y)
 
-        perf = objs[0]
-        if trial_state == SUCCESS and perf < MAXINT:
+        config, trial_state, constraints, objs = observation
+        if trial_state == SUCCESS and all(perf < MAXINT for perf in objs):
             if len(self.configurations) == 0:
-                self.default_obj_value = perf
+                self.default_obj_value = objs
 
             if self.num_constraints > 0:
                 # If infeasible, set observation to the largest found objective value
                 if any(c > 0 for c in constraints):
-                    perf = max(self.perfs) if self.perfs else 1000
+                    objs = np.max(self.perfs, axis=0) if self.perfs else objs
                 # Update constraint perfs regardless of feasibility
                 for i in range(self.num_constraints):
                     self.constraint_perfs[i].append(bilog(constraints[i]))
 
             self.configurations.append(config)
-            self.perfs.append(perf)
-            self.history_container.add(config, perf)
+            self.perfs.append(objs)
+            self.history_container.add(config, objs)
 
-            self.perc = np.percentile(self.perfs, self.scale_perc)
-            self.min_y = np.min(self.perfs)
-            self.max_y = np.max(self.perfs)
+            self.perc = np.percentile(self.perfs, self.scale_perc, axis=0)
+            self.min_y = np.min(self.perfs, axis=0)
+            self.max_y = np.max(self.perfs, axis=0)
         else:
             self.failed_configurations.append(config)
 
