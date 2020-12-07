@@ -15,21 +15,23 @@ from litebo.core.base import Observation
 
 class SMBO(BOBase):
     def __init__(self, objective_function: callable, config_space,
-                 has_constraints=False,
-                 has_multiobjs=False,
+                 num_constraints=0,
+                 num_objs=1,
                  sample_strategy: str = 'bo',
                  max_runs=200,
                  time_limit_per_trial=180,
                  advisor_type='default',
                  surrogate_type='prf',
+                 acq_type=None,
                  history_bo_data: List[OrderedDict] = None,
                  logging_dir='logs',
+                 init_strategy='random_explore_first',
                  initial_configurations=None,
                  initial_runs=3,
                  task_id=None,
                  random_state=1):
 
-        self.task_info = {'has_constraints': has_constraints, 'has_multiobjs': has_multiobjs}
+        self.task_info = {'num_constraints': num_constraints, 'num_objs': num_objs}
         super().__init__(objective_function, config_space, task_id=task_id, output_dir=logging_dir,
                          random_state=random_state, initial_runs=initial_runs, max_runs=max_runs,
                          sample_strategy=sample_strategy, time_limit_per_trial=time_limit_per_trial,
@@ -38,9 +40,11 @@ class SMBO(BOBase):
             from litebo.core.generic_advisor import Advisor
             self.config_advisor = Advisor(config_space, self.task_info,
                                           initial_trials=initial_runs,
+                                          init_strategy=init_strategy,
                                           initial_configurations=initial_configurations,
                                           optimization_strategy=sample_strategy,
                                           surrogate_type=surrogate_type,
+                                          acq_type=acq_type,
                                           history_bo_data=history_bo_data,
                                           task_id=task_id,
                                           output_dir=logging_dir,
@@ -93,5 +97,5 @@ class SMBO(BOBase):
                 trial_state, perf = FAILED, MAXINT
 
         self.iteration_id += 1
-        self.logger.info('In the %d-th iteration, the objective value: %.4f' % (self.iteration_id, perf))
-        return config, trial_state, perf, trial_info
+        self.logger.info('In the %d-th iteration, the objective value: %.4f' % (self.iteration_id, objs[0]))
+        return config, trial_state, objs[0], trial_info
