@@ -11,26 +11,32 @@ from collections import namedtuple
 Observation = namedtuple('Observation', ['config', 'trial_state', 'constraints', 'objectives'])
 
 
-def build_acq_func(func_str='ei', model=None, **kwargs):
+def build_acq_func(func_str='ei', model=None, constraint_models=None, **kwargs):
     func_str = func_str.lower()
-    if func_str == 'ei':
-        acq_func = EI
-    elif func_str == 'eips':
-        acq_func = EIPS
-    elif func_str == 'logei':
-        acq_func = LogEI
-    elif func_str == 'pi':
-        acq_func = PI
-    elif func_str == 'lcb':
-        acq_func = LCB
-    elif func_str == 'lpei':
-        acq_func = LPEI
-    elif func_str == 'mesmo':
-        acq_func = MESMO
+    if constraint_models is None:
+        if func_str == 'ei':
+            acq_func = EI
+        elif func_str == 'eips':
+            acq_func = EIPS
+        elif func_str == 'logei':
+            acq_func = LogEI
+        elif func_str == 'pi':
+            acq_func = PI
+        elif func_str == 'lcb':
+            acq_func = LCB
+        elif func_str == 'lpei':
+            acq_func = LPEI
+        elif func_str == 'mesmo':
+            acq_func = MESMO
+        else:
+            raise ValueError('Invalid string %s for acquisition function!' % func_str)
+        return acq_func(model=model, **kwargs)
     else:
-        raise ValueError('Invalid string %s for acquisition function!' % func_str)
-
-    return acq_func(model=model, **kwargs)
+        if func_str == 'eic':
+            acq_func = EIC
+        else:
+            raise ValueError('Invalid string %s for acquisition function!' % func_str)
+        return acq_func(model=model, constraint_models=constraint_models)
 
 
 def build_optimizer(func_str='local_random', acq_func=None, config_space=None, rng=None):

@@ -66,8 +66,8 @@ bo = SMBO(multi_objective_func, cs, num_objs=2, max_runs=max_runs,
 print('MESMO', '='*30)
 # bo.run()
 for i in range(max_runs):
-    config, trial_state, perf, trial_info = bo.iterate()
-    print(perf, config)
+    config, trial_state, objs, trial_info = bo.iterate()
+    print(objs, config)
     hv = hypervolume(bo.get_history().get_all_perfs()).compute(referencePoint)
     hv2 = hypervolume(bo.get_history().get_pareto_front()).compute(referencePoint)
     print('hypervolume =', hv, hv2)
@@ -78,8 +78,8 @@ bo_r = SMBO(multi_objective_func, cs, num_objs=2, max_runs=max_runs,
 print('Random', '='*30)
 # bo.run()
 for i in range(max_runs):
-    config, trial_state, perf, trial_info = bo_r.iterate()
-    print(perf, config)
+    config, trial_state, objs, trial_info = bo_r.iterate()
+    print(objs, config)
     hv = hypervolume(bo_r.get_history().get_all_perfs()).compute(referencePoint)
     hv2 = hypervolume(bo_r.get_history().get_pareto_front()).compute(referencePoint)
     print('hypervolume =', hv, hv2)

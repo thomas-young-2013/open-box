@@ -10,6 +10,7 @@ import math
 from litebo.config_space import Configuration
 from litebo.config_space.util import convert_configurations_to_array
 from litebo.surrogate.base.base_model import AbstractModel
+from litebo.surrogate.base.gp import GaussianProcess
 
 
 class AbstractAcquisitionFunction(object, metaclass=abc.ABCMeta):
@@ -175,6 +176,62 @@ class EI(AbstractAcquisitionFunction):
                 "Expected Improvement is smaller than 0 for at least one "
                 "sample.")
 
+        return f
+
+
+class EIC(EI):
+    r"""Computes for a given x the expected constrained improvement as
+    acquisition value.
+
+    :math:`\text{EIC}(X) := \text{EI}(X)\prod_{k=1}^K\text{Pr}(c_k(x) \leq 0 | \mathcal{D}_t)`,
+    with :math:`c_k \leq 0,\ 1 \leq k \leq K` the constraints, :math:`\mathcal{D}_t` the previous observations.
+    """
+    def __init__(self,
+                 model: AbstractModel,
+                 constraint_models: List[GaussianProcess],
+                 batch_configs=None,
+                 par: float = 0.0,
+                 estimate_L: float = 10.0,
+                 **kwargs):
+        """Constructor
+
+        Parameters
+        ----------
+        model : AbstractEPM
+            A surrogate that implements at least
+                 - predict_marginalized_over_instances(X)
+        par : float, default=0.0
+            Controls the balance between exploration and exploitation of the
+            acquisition function.
+        """
+        super(EIC, self).__init__(model, par=par)
+        self.constraint_models = constraint_models
+        self.estimate_L = estimate_L
+        if batch_configs is None:
+            batch_configs = []
+        self.batch_configs = batch_configs
+        self.long_name = 'Expected Constrained Improvement'
+
+    def _compute(self, X: np.ndarray, **kwargs):
+        """Computes the EIC value and its derivatives.
+
+        Parameters
+        ----------
+        X: np.ndarray(N, D), The input points where the acquisition function
+            should be evaluated. The dimensionality of X is (N, D), with N as
+            the number of points to evaluate at and D is the number of
+            dimensions of one X.
+
+        Returns
+        -------
+        np.ndarray(N,1)
+            Expected Constrained Improvement of X
+        """
+        f = super()._compute(X)
+        for model in self.constraint_models:
+            m, v = model.predict_marginalized_over_instances(X)
+            s = np.sqrt(v)
+            f *= norm.cdf(-m/s)
         return f
 
 
