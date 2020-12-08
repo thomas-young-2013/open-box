@@ -80,9 +80,10 @@ class Advisor(object, metaclass=abc.ABCMeta):
         """
             check num_objs, num_constraints, acq_type, surrogate_type
         """
-        assert isinstance(self.num_objs, int)
-        assert isinstance(self.num_constraints, int)
+        assert isinstance(self.num_objs, int) and self.num_objs >= 1
+        assert isinstance(self.num_constraints, int) and self.num_constraints >= 0
 
+        # multi-objective with constraints
         if self.num_objs > 1 and self.num_constraints > 0:
             self.logger.error('Multi-objective with constraints will be supported in future version!'
                               'It is not supported at present.')
@@ -90,15 +91,15 @@ class Advisor(object, metaclass=abc.ABCMeta):
                              'It is not supported at present.')  # todo try except
 
         # single objective no constraint
-        if self.num_objs == 1 and self.num_constraints == 0:
+        elif self.num_objs == 1 and self.num_constraints == 0:
             if self.acq_type is None:
                 self.acq_type = 'ei'
             assert self.acq_type not in ['eic', 'mesmo']
             if self.surrogate_type is None:
                 self.surrogate_type = 'prf'
 
-        # multi-objective
-        if self.num_objs > 1:
+        # multi-objective no constraint
+        elif self.num_objs > 1:
             if self.acq_type is None:
                 self.acq_type = 'mesmo'
             assert self.acq_type in ['mesmo']
@@ -109,8 +110,8 @@ class Advisor(object, metaclass=abc.ABCMeta):
                 self.logger.warning('Surrogate model has changed to Gaussian Process with RBF kernel '
                                     'since MESMO is used. Surrogate_type should be set to \'gp_rbf\'.')
 
-        # constraint
-        if self.num_constraints > 0:
+        # single objective with constraints
+        elif self.num_constraints > 0:
             if self.acq_type is None:
                 self.acq_type = 'eic'
             assert self.acq_type in ['eic', 'ts']
@@ -131,20 +132,18 @@ class Advisor(object, metaclass=abc.ABCMeta):
                                                    rng=self.rng,
                                                    history_hpo_data=self.history_bo_data)
         else:   # multi-objectives
-            self.surrogate_model = []
-            for _ in range(self.num_objs):
-                model = build_surrogate(func_str=self.surrogate_type,
-                                        config_space=self.config_space,
-                                        rng=self.rng,
-                                        history_hpo_data=self.history_bo_data)
-                self.surrogate_model.append(model)
+            self.surrogate_model = [build_surrogate(func_str=self.surrogate_type,
+                                                    config_space=self.config_space,
+                                                    rng=self.rng,
+                                                    history_hpo_data=self.history_bo_data)
+                                    for _ in range(self.num_objs)]
 
         if self.num_constraints > 0:
             self.constraint_models = [build_surrogate(func_str='gp',
                                                       config_space=self.config_space,
                                                       rng=self.rng) for _ in range(self.num_constraints)]
 
-        if self.acq_type == 'mesmo':
+        if self.acq_type in ['mesmo', ]:
             types, bounds = get_types(self.config_space)
             self.acquisition_function = build_acq_func(func_str=self.acq_type, model=self.surrogate_model,
                                                        constraint_models=self.constraint_models,
@@ -212,12 +211,14 @@ class Advisor(object, metaclass=abc.ABCMeta):
         if self.optimization_strategy == 'random':
             return self.sample_random_configs(1)[0]
         elif self.optimization_strategy == 'bo':
+            # train surrogate model
             if self.num_objs == 1:
                 self.surrogate_model.train(X, Y)
             else:   # multi-objectives
                 for i in range(self.num_objs):
                     self.surrogate_model[i].train(X, Y[:, i])
 
+            # train constraints model
             if self.num_constraints > 0:
                 cX = []
                 for c in self.constraint_perfs:
@@ -227,6 +228,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
                 for i, model in enumerate(self.constraint_models):
                     model.train(X, cX[i])
 
+            # update acquisition function
             if self.num_objs == 1:
                 incumbent_value = self.history_container.get_incumbents()[0][1]
                 self.acquisition_function.update(model=self.surrogate_model,
@@ -241,6 +243,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
                                                  num_data=num_config_evaluated,
                                                  X=X, Y=Y)
 
+            # optimize acquisition function
             challengers = self.optimizer.maximize(runhistory=self.history_container,
                                                   num_points=5000)
             is_repeated_config = True

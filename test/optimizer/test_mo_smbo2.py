@@ -19,31 +19,25 @@ parser.add_argument('--n', type=int, default=100)
 args = parser.parse_args()
 max_runs = args.n
 
-referencePoint = [0] * 2    # must greater than max value of objective
+referencePoint = [2] * 2    # must greater than max value of objective
 
 
-def Currin(x):
-    return -1 * float(((1 - math.exp(-0.5 * (1 / x[1]))) * (
-                (2300 * pow(x[0], 3) + 1900 * x[0] * x[0] + 2092 * x[0] + 60) / (
-                    100 * pow(x[0], 3) + 500 * x[0] * x[0] + 4 * x[0] + 20))))
-
-
-def branin(x1):
-    x = deepcopy(x1)
-    x[0] = 15 * x[0] - 5
-    x[1] = 15 * x[1]
-    return -1 * float(
-        np.square(x[1] - (5.1 / (4 * np.square(math.pi))) * np.square(x[0]) + (5 / math.pi) * x[0] - 6) + 10 * (
-                    1 - (1. / (8 * math.pi))) * np.cos(x[0]) + 10)
+def vlmop2(x):
+    transl = 1 / np.sqrt(2)
+    part1 = (x[0] - transl) ** 2 + (x[1] - transl) ** 2
+    part2 = (x[0] + transl) ** 2 + (x[1] + transl) ** 2
+    y1 = 1 - np.exp(-1 * part1)
+    y2 = 1 - np.exp(-1 * part2)
+    #return y1-1000, y2-1000
+    return y1, y2
 
 
 def multi_objective_func(config):
     xs = config.get_dictionary()
-    x0 = (xs['x0'] + 100) / 200
-    x1 = xs['x1'] / 10
-    x = [x0, x1]    # x0, x1 in [0, 1]. test scale in MOSMBO
-    y1 = Currin(x)
-    y2 = branin(x)
+    x0 = xs['x0']
+    x1 = xs['x1']
+    x = [x0, x1]
+    y1, y2 = vlmop2(x)
     res = dict()
     res['config'] = config
     res['objs'] = (y1, y2)
@@ -52,11 +46,9 @@ def multi_objective_func(config):
 
 
 cs = ConfigurationSpace()
-# x1 = CSH.UniformFloatHyperparameter("x0", -100, 100)
-x1 = CSH.UniformIntegerHyperparameter("x0", -100, 100)  # test int in MOSMBO
-x2 = CSH.UniformFloatHyperparameter("x1", 0, 10)
-#x3 = CSH.Constant('c', 123)    # test constant in MOSMBO, no use todo
-cs.add_hyperparameters([x1, x2])
+x0 = CSH.UniformFloatHyperparameter("x0", -5, 5)
+x1 = CSH.UniformFloatHyperparameter("x1", -5, 5)
+cs.add_hyperparameters([x0, x1])
 
 
 # Evaluate MESMO
@@ -96,7 +88,7 @@ plt.scatter(pf_r[:, 0], pf_r[:, 1], label='random', marker='x')
 print(pf.shape[0], pf_r.shape[0])
 
 plt.title('Pareto Front')
-plt.xlabel('Objective 1 - Currin')
-plt.ylabel('Objective 2 - branin')
+plt.xlabel('Objective 1')
+plt.ylabel('Objective 2')
 plt.legend()
 plt.show()
