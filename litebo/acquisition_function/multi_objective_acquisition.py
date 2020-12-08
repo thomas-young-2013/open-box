@@ -7,15 +7,15 @@ from sklearn.kernel_approximation import RBFSampler
 from litebo.acquisition_function.acquisition import AbstractAcquisitionFunction
 from litebo.surrogate.base.base_model import AbstractModel
 
-from platypus import NSGAII, Problem, Real  # todo requirements
+from platypus import NSGAII, Problem, Real
 
 
-class MaxvalueEntropySearch(object):
+class MaxvalueEntropySearch(object):    # todo name min?
     def __init__(self, model, X, Y, beta=1e6):
         self.model = model      # GP model
         self.X = X
         self.Y = Y
-        self.beta = beta     # todo what is GPmodel.beta?
+        self.beta = beta     # todo what is beta?
         self.rbf_features = None
         self.weights_mu = None
         self.L = None
@@ -38,9 +38,9 @@ class MaxvalueEntropySearch(object):
 
     def f_regression(self, x):
         X_features = self.rbf_features.fit_transform(x.reshape(1, len(x)))
-        return -(X_features.dot(self.sampled_weights))
+        return X_features.dot(self.sampled_weights)
 
-    def __call__(self, X, maximum):
+    def __call__(self, X, minimum):
         """Computes the MESMO value of single objective.
 
         Parameters
@@ -65,13 +65,13 @@ class MaxvalueEntropySearch(object):
                 y_std = 1
             s[s == 0.0] = np.sqrt(1e-5) * y_std
 
-        maximum = max(maximum, max(self.Y) + 5 / self.beta)
+        minimum = min(minimum, min(self.Y) - 5 / self.beta)
 
-        normalized_max = (maximum - m) / s
-        pdf = norm.pdf(normalized_max)
-        cdf = norm.cdf(normalized_max)
+        normalized_min = (m - minimum) / s  # todo confirm
+        pdf = norm.pdf(normalized_min)
+        cdf = norm.cdf(normalized_min)
         cdf[cdf == 0.0] = 1e-30
-        return -(normalized_max * pdf) / (2 * cdf) + np.log(cdf)
+        return (normalized_min * pdf) / (2 * cdf) - np.log(cdf)
 
 
 class MESMO(AbstractAcquisitionFunction):
@@ -117,7 +117,7 @@ class MESMO(AbstractAcquisitionFunction):
         self.X_dim = None
         self.Y_dim = None
         self.Multiplemes = None
-        self.max_samples = None
+        self.min_samples = None
         self.check_types_bounds()
 
     def check_types_bounds(self):
@@ -142,7 +142,7 @@ class MESMO(AbstractAcquisitionFunction):
             self.Multiplemes[i] = MaxvalueEntropySearch(self.model[i], self.X, self.Y[:, i])
             self.Multiplemes[i].Sampling_RFM()
 
-        self.max_samples = []
+        self.min_samples = []
         for j in range(self.sample_num):
             for i in range(self.Y_dim):
                 self.Multiplemes[i].weigh_sampling()
@@ -159,9 +159,9 @@ class MESMO(AbstractAcquisitionFunction):
             algorithm = NSGAII(problem)
             algorithm.run(1500)
             cheap_pareto_front = [list(solution.objectives) for solution in algorithm.result]
-            # picking the max over the pareto: best case
-            max_of_functions = [-1 * min(f) for f in list(zip(*cheap_pareto_front))]
-            self.max_samples.append(max_of_functions)
+            # picking the min over the pareto: best case
+            min_of_functions = [min(f) for f in list(zip(*cheap_pareto_front))]
+            self.min_samples.append(min_of_functions)
 
     def _compute(self, X: np.ndarray, **kwargs):
         """Computes the MESMO value.
@@ -185,6 +185,6 @@ class MESMO(AbstractAcquisitionFunction):
         for j in range(self.sample_num):
             multi_obj_acq_sample = np.zeros(shape=(X.shape[0], 1))
             for i in range(self.Y_dim):
-                multi_obj_acq_sample += self.Multiplemes[i](X, self.max_samples[j][i])
+                multi_obj_acq_sample += self.Multiplemes[i](X, self.min_samples[j][i])
             multi_obj_acq_total += multi_obj_acq_sample
         return multi_obj_acq_total / self.sample_num

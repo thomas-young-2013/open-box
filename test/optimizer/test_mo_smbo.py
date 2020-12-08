@@ -19,11 +19,11 @@ parser.add_argument('--n', type=int, default=100)
 args = parser.parse_args()
 max_runs = args.n
 
-referencePoint = [0] * 2    # must greater than max value of objective
+referencePoint = [1e5] * 2    # must greater than max value of objective
 
 
 def Currin(x):
-    return -1 * float(((1 - math.exp(-0.5 * (1 / x[1]))) * (
+    return float(((1 - math.exp(-0.5 * (1 / x[1]))) * (
                 (2300 * pow(x[0], 3) + 1900 * x[0] * x[0] + 2092 * x[0] + 60) / (
                     100 * pow(x[0], 3) + 500 * x[0] * x[0] + 4 * x[0] + 20))))
 
@@ -32,7 +32,7 @@ def branin(x1):
     x = deepcopy(x1)
     x[0] = 15 * x[0] - 5
     x[1] = 15 * x[1]
-    return -1 * float(
+    return float(
         np.square(x[1] - (5.1 / (4 * np.square(math.pi))) * np.square(x[0]) + (5 / math.pi) * x[0] - 6) + 10 * (
                     1 - (1. / (8 * math.pi))) * np.cos(x[0]) + 10)
 
