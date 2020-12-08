@@ -11,3 +11,4 @@ pyyaml
 lazy_import
 scikit-optimize
 emcee
+platypus-opt==1.0.4
