@@ -49,11 +49,6 @@ class Advisor(object, metaclass=abc.ABCMeta):
         self.max_y = None
         if self.num_constraints > 0:
             self.constraint_perfs = [list() for _ in range(self.num_constraints)]
-        # todo
-        if acq_type is None:
-            self.acq_type = 'ei' if self.num_constraints == 0 else 'eic'
-        else:
-            self.acq_type = acq_type
 
         # Init the basic ingredients in Bayesian optimization.
         self.history_bo_data = history_bo_data
