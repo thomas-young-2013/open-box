@@ -22,38 +22,25 @@ max_runs = args.n
 
 num_inputs = 2
 num_objs = 2
-referencePoint = [1e5] * num_objs    # must greater than max value of objective
+referencePoint = [1.5] * 2    # must greater than max value of objective
 
 
-def Currin(x):
-    return float(((1 - math.exp(-0.5 * (1 / x[1]))) * (
-                (2300 * pow(x[0], 3) + 1900 * x[0] * x[0] + 2092 * x[0] + 60) / (
-                    100 * pow(x[0], 3) + 500 * x[0] * x[0] + 4 * x[0] + 20))))
-
-
-def branin(x1):
-    x = deepcopy(x1)
-    x[0] = 15 * x[0] - 5
-    x[1] = 15 * x[1]
-    return float(
-        np.square(x[1] - (5.1 / (4 * np.square(math.pi))) * np.square(x[0]) + (5 / math.pi) * x[0] - 6) + 10 * (
-                    1 - (1. / (8 * math.pi))) * np.cos(x[0]) + 10)
-
-
-# test scale
-# scale1 = 100
-# scale2 = 10
-scale1 = 1
-scale2 = 1
+def vlmop2(x):
+    transl = 1 / np.sqrt(2)
+    part1 = (x[0] - transl) ** 2 + (x[1] - transl) ** 2
+    part2 = (x[0] + transl) ** 2 + (x[1] + transl) ** 2
+    y1 = 1 - np.exp(-1 * part1)
+    y2 = 1 - np.exp(-1 * part2)
+    #return y1-1000, y2-1000
+    return y1, y2
 
 
 def multi_objective_func(config):
     xs = config.get_dictionary()
-    x0 = (xs['x0'] + scale1) / (2 * scale1)
-    x1 = xs['x1'] / scale2
-    x = [x0, x1]    # x0, x1 in [0, 1]. test scale in MOSMBO
-    y1 = Currin(x)
-    y2 = branin(x)
+    x0 = xs['x0']
+    x1 = xs['x1']
+    x = [x0, x1]
+    y1, y2 = vlmop2(x)
     res = dict()
     res['config'] = config
     res['objs'] = (y1, y2)
@@ -61,12 +48,12 @@ def multi_objective_func(config):
     return res
 
 
+search_range = 5
+
 cs = ConfigurationSpace()
-x1 = CSH.UniformFloatHyperparameter("x0", -scale1, scale1)
-# x1 = CSH.UniformIntegerHyperparameter("x0", -scale1, scale1)  # test int in MOSMBO
-x2 = CSH.UniformFloatHyperparameter("x1", 0, scale2)
-#x3 = CSH.Constant('c', 123)    # test constant in MOSMBO, no use todo
-cs.add_hyperparameters([x1, x2])
+x0 = CSH.UniformFloatHyperparameter("x0", -search_range, search_range)
+x1 = CSH.UniformFloatHyperparameter("x1", -search_range, search_range)
+cs.add_hyperparameters([x0, x1])
 
 
 # Evaluate MESMO
@@ -96,16 +83,13 @@ for i in range(max_runs):
     print('hypervolume =', hv, hv2)
 
 # Run NSGA-II to get 'real' pareto front
-def CMO(xi):
-    xi = np.asarray(xi)
-    y = [Currin(xi), branin(xi)]
-    return y
 problem = Problem(num_inputs, num_objs)
-problem.types[:] = Real(0, 1)
-problem.function = CMO
+problem.types[:] = Real(-search_range, search_range)
+problem.function = vlmop2
 algorithm = NSGAII(problem)
 algorithm.run(2500)
 cheap_pareto_front = np.array([list(solution.objectives) for solution in algorithm.result])
+
 
 # plot pareto front
 import matplotlib.pyplot as plt
@@ -120,7 +104,7 @@ plt.scatter(cheap_pareto_front[:, 0], cheap_pareto_front[:, 1], label='NSGA-II',
 print(pf.shape[0], pf_r.shape[0])
 
 plt.title('Pareto Front')
-plt.xlabel('Objective 1 - Currin')
-plt.ylabel('Objective 2 - branin')
+plt.xlabel('Objective 1')
+plt.ylabel('Objective 2')
 plt.legend()
 plt.show()

@@ -22,6 +22,7 @@ max_runs = args.n
 
 num_inputs = 2
 num_objs = 2
+num_constraints = 2
 referencePoint = [1e5] * num_objs    # must greater than max value of objective
 
 
@@ -54,10 +55,14 @@ def multi_objective_func(config):
     x = [x0, x1]    # x0, x1 in [0, 1]. test scale in MOSMBO
     y1 = Currin(x)
     y2 = branin(x)
+    c = (7-y2, -y1)     # y1 >= 0, y2 >= 7
     res = dict()
     res['config'] = config
     res['objs'] = (y1, y2)
-    res['constraints'] = None
+    MAXINT = 2 ** 31 - 1
+    # if any(ci > 0 for ci in c):
+    #     res['objs'] = (MAXINT, MAXINT)
+    res['constraints'] = c
     return res
 
 
@@ -69,9 +74,12 @@ x2 = CSH.UniformFloatHyperparameter("x1", 0, scale2)
 cs.add_hyperparameters([x1, x2])
 
 
-# Evaluate MESMO
-bo = SMBO(multi_objective_func, cs, num_objs=num_objs, max_runs=max_runs,
-          surrogate_type='gp_rbf', acq_type='mesmo',
+# Evaluate MESMOC
+# bo = SMBO(multi_objective_func, cs, num_constraints=num_constraints, num_objs=num_objs, max_runs=max_runs,
+#           surrogate_type='gp_rbf', acq_type='mesmoc',
+#           time_limit_per_trial=60, logging_dir='logs')
+bo = SMBO(multi_objective_func, cs, num_constraints=num_constraints, num_objs=num_objs, max_runs=max_runs,
+          acq_type='mesmoc2',
           time_limit_per_trial=60, logging_dir='logs')
 bo.config_advisor.optimizer.random_chooser.prob = 0     # no random
 print('MESMO', '='*30)
@@ -84,7 +92,7 @@ for i in range(max_runs):
     print('hypervolume =', hv, hv2)
 
 # Evaluate the random search.
-bo_r = SMBO(multi_objective_func, cs, num_objs=num_objs, max_runs=max_runs,
+bo_r = SMBO(multi_objective_func, cs, num_constraints=num_constraints, num_objs=num_objs, max_runs=max_runs,
             time_limit_per_trial=60, sample_strategy='random', logging_dir='logs')
 print('Random', '='*30)
 # bo.run()
@@ -98,20 +106,25 @@ for i in range(max_runs):
 # Run NSGA-II to get 'real' pareto front
 def CMO(xi):
     xi = np.asarray(xi)
-    y = [Currin(xi), branin(xi)]
-    return y
-problem = Problem(num_inputs, num_objs)
+    y1 = Currin(xi)
+    y2 = branin(xi)
+    y = [y1, y2]
+    y_c = [7-y2, -y1]
+    return y, y_c
+problem = Problem(num_inputs, num_objs, num_constraints)
 problem.types[:] = Real(0, 1)
+problem.constraints[:] = "<=0"
 problem.function = CMO
 algorithm = NSGAII(problem)
 algorithm.run(2500)
 cheap_pareto_front = np.array([list(solution.objectives) for solution in algorithm.result])
+cheap_constraints_values = [list(solution.constraints) for solution in algorithm.result]
 
 # plot pareto front
 import matplotlib.pyplot as plt
 
 pf = np.asarray(bo.get_history().get_pareto_front())
-plt.scatter(pf[:, 0], pf[:, 1], label='mesmo')
+plt.scatter(pf[:, 0], pf[:, 1], label='mesmoc')
 pf_r = np.asarray(bo_r.get_history().get_pareto_front())
 plt.scatter(pf_r[:, 0], pf_r[:, 1], label='random', marker='x')
 
