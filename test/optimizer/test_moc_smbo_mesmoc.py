@@ -75,8 +75,11 @@ cs.add_hyperparameters([x1, x2])
 
 
 # Evaluate MESMOC
+# bo = SMBO(multi_objective_func, cs, num_constraints=num_constraints, num_objs=num_objs, max_runs=max_runs,
+#           surrogate_type='gp_rbf', acq_type='mesmoc',
+#           time_limit_per_trial=60, logging_dir='logs')
 bo = SMBO(multi_objective_func, cs, num_constraints=num_constraints, num_objs=num_objs, max_runs=max_runs,
-          surrogate_type='gp_rbf', acq_type='mesmoc',
+          acq_type='mesmoc2',
           time_limit_per_trial=60, logging_dir='logs')
 bo.config_advisor.optimizer.random_chooser.prob = 0     # no random
 print('MESMO', '='*30)

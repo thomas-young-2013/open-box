@@ -96,11 +96,14 @@ class Advisor(object, metaclass=abc.ABCMeta):
         elif self.num_objs > 1 and self.num_constraints > 0:
             if self.acq_type is None:
                 self.acq_type = 'mesmoc'
-            assert self.acq_type in ['mesmoc', ]
+            assert self.acq_type in ['mesmoc', 'mesmoc2']
             if self.surrogate_type is None:
                 self.surrogate_type = 'gp_rbf'
             if self.constraint_surrogate_type is None:
-                self.constraint_surrogate_type = 'gp_rbf'
+                if self.acq_type == 'mesmoc2':
+                    self.constraint_surrogate_type = 'gp'
+                else:
+                    self.constraint_surrogate_type = 'gp_rbf'
             if self.acq_type == 'mesmoc' and self.surrogate_type != 'gp_rbf':
                 self.surrogate_type = 'gp_rbf'
                 self.logger.warning('Surrogate model has changed to Gaussian Process with RBF kernel '
@@ -157,7 +160,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
                                                       config_space=self.config_space,
                                                       rng=self.rng) for _ in range(self.num_constraints)]
 
-        if self.acq_type in ['mesmo', 'mesmoc', ]:
+        if self.acq_type in ['mesmo', 'mesmoc', 'mesmoc2']:
             types, bounds = get_types(self.config_space)
             self.acquisition_function = build_acq_func(func_str=self.acq_type, model=self.surrogate_model,
                                                        constraint_models=self.constraint_models,

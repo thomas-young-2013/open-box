@@ -105,6 +105,8 @@ class MESMO(AbstractAcquisitionFunction):
         bounds : List[Tuple[float, float]]
             Bounds of input dimensions: (lower, upper) for continuous dims; (n_cat, np.nan) for categorical dims
             # todo cat dims
+        sample_num : int
+
         """
 
         super(MESMO, self).__init__(model)
@@ -212,6 +214,9 @@ class MESMOC(AbstractAcquisitionFunction):
         model : List[AbstractEPM]
             A list of surrogate that implements at least
                  - predict_marginalized_over_instances(X)
+        constraint_models : List[AbstractEPM]
+            A list of constraint surrogate that implements at least
+                 - predict_marginalized_over_instances(X)
         types : List[int]
             Specifies the number of categorical values of an input dimension where
             the i-th entry corresponds to the i-th input dimension. Let's say we
@@ -221,6 +226,8 @@ class MESMOC(AbstractAcquisitionFunction):
         bounds : List[Tuple[float, float]]
             Bounds of input dimensions: (lower, upper) for continuous dims; (n_cat, np.nan) for categorical dims
             # todo cat dims
+        sample_num : int
+
         """
 
         super(MESMOC, self).__init__(model)
@@ -337,6 +344,65 @@ class MESMOC(AbstractAcquisitionFunction):
         unsatisfied_idx = np.where(np.any(constraints > 0, axis=1, keepdims=True))  # todo confirm
         acq[unsatisfied_idx] = -1e10
         return acq
+
+
+class MESMOC2(MESMO):
+    r"""Computes MESMOC2 as acquisition value.
+    """
+    def __init__(self,
+                 model: List[AbstractModel],
+                 constraint_models: List[AbstractModel],
+                 types: List[int],
+                 bounds: List[Tuple[float, float]],
+                 sample_num=1,
+                 **kwargs):
+        """Constructor
+
+        Parameters
+        ----------
+        model : List[AbstractEPM]
+            A list of surrogate that implements at least
+                 - predict_marginalized_over_instances(X)
+        constraint_models : List[AbstractEPM]
+            A list of constraint surrogate that implements at least
+                 - predict_marginalized_over_instances(X)
+        types : List[int]
+            Specifies the number of categorical values of an input dimension where
+            the i-th entry corresponds to the i-th input dimension. Let's say we
+            have 2 dimension where the first dimension consists of 3 different
+            categorical choices and the second dimension is continuous than we
+            have to pass [3, 0]. Note that we count starting from 0.
+        bounds : List[Tuple[float, float]]
+            Bounds of input dimensions: (lower, upper) for continuous dims; (n_cat, np.nan) for categorical dims
+            # todo cat dims
+        sample_num : int
+
+        """
+        super(MESMOC2, self).__init__(model, types, bounds, sample_num)
+        self.constraint_models = constraint_models
+        self.long_name = 'MESMOC2'
+
+    def _compute(self, X: np.ndarray, **kwargs):
+        """Computes the MESMOC2 value
+
+        Parameters
+        ----------
+        X: np.ndarray(N, D), The input points where the acquisition function
+            should be evaluated. The dimensionality of X is (N, D), with N as
+            the number of points to evaluate at and D is the number of
+            dimensions of one X.
+
+        Returns
+        -------
+        np.ndarray(N,1)
+            MESMOC2 of X
+        """
+        f = super()._compute(X)
+        for model in self.constraint_models:
+            m, v = model.predict_marginalized_over_instances(X)
+            s = np.sqrt(v)
+            f *= norm.cdf(-m/s)
+        return f
 
 
 # class MaxvalueEntropySearch(object):
