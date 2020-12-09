@@ -11,6 +11,7 @@ sys.path.insert(0, os.getcwd())
 from litebo.optimizer.generic_smbo import SMBO
 from litebo.config_space import ConfigurationSpace
 
+from platypus import NSGAII, Problem, Real
 from pygmo import hypervolume
 
 parser = argparse.ArgumentParser()
@@ -19,7 +20,9 @@ parser.add_argument('--n', type=int, default=100)
 args = parser.parse_args()
 max_runs = args.n
 
-referencePoint = [1e5] * 2    # must greater than max value of objective
+num_inputs = 2
+num_objs = 2
+referencePoint = [1e5] * num_objs    # must greater than max value of objective
 
 
 def Currin(x):
@@ -37,10 +40,17 @@ def branin(x1):
                     1 - (1. / (8 * math.pi))) * np.cos(x[0]) + 10)
 
 
+# test scale
+# scale1 = 100
+# scale2 = 10
+scale1 = 1
+scale2 = 1
+
+
 def multi_objective_func(config):
     xs = config.get_dictionary()
-    x0 = (xs['x0'] + 100) / 200
-    x1 = xs['x1'] / 10
+    x0 = (xs['x0'] + scale1) / (2 * scale1)
+    x1 = xs['x1'] / scale2
     x = [x0, x1]    # x0, x1 in [0, 1]. test scale in MOSMBO
     y1 = Currin(x)
     y2 = branin(x)
@@ -52,15 +62,15 @@ def multi_objective_func(config):
 
 
 cs = ConfigurationSpace()
-# x1 = CSH.UniformFloatHyperparameter("x0", -100, 100)
-x1 = CSH.UniformIntegerHyperparameter("x0", -100, 100)  # test int in MOSMBO
-x2 = CSH.UniformFloatHyperparameter("x1", 0, 10)
+x1 = CSH.UniformFloatHyperparameter("x0", -scale1, scale1)
+# x1 = CSH.UniformIntegerHyperparameter("x0", -scale1, scale1)  # test int in MOSMBO
+x2 = CSH.UniformFloatHyperparameter("x1", 0, scale2)
 #x3 = CSH.Constant('c', 123)    # test constant in MOSMBO, no use todo
 cs.add_hyperparameters([x1, x2])
 
 
 # Evaluate MESMO
-bo = SMBO(multi_objective_func, cs, num_objs=2, max_runs=max_runs,
+bo = SMBO(multi_objective_func, cs, num_objs=num_objs, max_runs=max_runs,
           surrogate_type='gp_rbf', acq_type='mesmo',
           time_limit_per_trial=60, logging_dir='logs')
 bo.config_advisor.optimizer.random_chooser.prob = 0     # no random
@@ -74,7 +84,7 @@ for i in range(max_runs):
     print('hypervolume =', hv, hv2)
 
 # Evaluate the random search.
-bo_r = SMBO(multi_objective_func, cs, num_objs=2, max_runs=max_runs,
+bo_r = SMBO(multi_objective_func, cs, num_objs=num_objs, max_runs=max_runs,
             time_limit_per_trial=60, sample_strategy='random', logging_dir='logs')
 print('Random', '='*30)
 # bo.run()
@@ -85,6 +95,18 @@ for i in range(max_runs):
     hv2 = hypervolume(bo_r.get_history().get_pareto_front()).compute(referencePoint)
     print('hypervolume =', hv, hv2)
 
+# Run NSGA-II to get 'real' pareto front
+def CMO(xi):
+    xi = np.asarray(xi)
+    y = [Currin(xi), branin(xi)]
+    return y
+problem = Problem(num_inputs, num_objs)
+problem.types[:] = Real(0, 1)
+problem.function = CMO
+algorithm = NSGAII(problem)
+algorithm.run(2500)
+cheap_pareto_front = np.array([list(solution.objectives) for solution in algorithm.result])
+
 # plot pareto front
 import matplotlib.pyplot as plt
 
@@ -92,6 +114,8 @@ pf = np.asarray(bo.get_history().get_pareto_front())
 plt.scatter(pf[:, 0], pf[:, 1], label='mesmo')
 pf_r = np.asarray(bo_r.get_history().get_pareto_front())
 plt.scatter(pf_r[:, 0], pf_r[:, 1], label='random', marker='x')
+
+plt.scatter(cheap_pareto_front[:, 0], cheap_pareto_front[:, 1], label='NSGA-II', marker='.', alpha=0.5)
 
 print(pf.shape[0], pf_r.shape[0])
 

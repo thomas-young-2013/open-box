@@ -11,6 +11,7 @@ sys.path.insert(0, os.getcwd())
 from litebo.optimizer.generic_smbo import SMBO
 from litebo.config_space import ConfigurationSpace
 
+from platypus import NSGAII, Problem, Real
 from pygmo import hypervolume
 
 parser = argparse.ArgumentParser()
@@ -19,7 +20,9 @@ parser.add_argument('--n', type=int, default=100)
 args = parser.parse_args()
 max_runs = args.n
 
-referencePoint = [2] * 2    # must greater than max value of objective
+num_inputs = 2
+num_objs = 2
+referencePoint = [1.5] * 2    # must greater than max value of objective
 
 
 def vlmop2(x):
@@ -45,14 +48,16 @@ def multi_objective_func(config):
     return res
 
 
+search_range = 5
+
 cs = ConfigurationSpace()
-x0 = CSH.UniformFloatHyperparameter("x0", -5, 5)
-x1 = CSH.UniformFloatHyperparameter("x1", -5, 5)
+x0 = CSH.UniformFloatHyperparameter("x0", -search_range, search_range)
+x1 = CSH.UniformFloatHyperparameter("x1", -search_range, search_range)
 cs.add_hyperparameters([x0, x1])
 
 
 # Evaluate MESMO
-bo = SMBO(multi_objective_func, cs, num_objs=2, max_runs=max_runs,
+bo = SMBO(multi_objective_func, cs, num_objs=num_objs, max_runs=max_runs,
           surrogate_type='gp_rbf', acq_type='mesmo',
           time_limit_per_trial=60, logging_dir='logs')
 bo.config_advisor.optimizer.random_chooser.prob = 0     # no random
@@ -66,7 +71,7 @@ for i in range(max_runs):
     print('hypervolume =', hv, hv2)
 
 # Evaluate the random search.
-bo_r = SMBO(multi_objective_func, cs, num_objs=2, max_runs=max_runs,
+bo_r = SMBO(multi_objective_func, cs, num_objs=num_objs, max_runs=max_runs,
             time_limit_per_trial=60, sample_strategy='random', logging_dir='logs')
 print('Random', '='*30)
 # bo.run()
@@ -77,6 +82,15 @@ for i in range(max_runs):
     hv2 = hypervolume(bo_r.get_history().get_pareto_front()).compute(referencePoint)
     print('hypervolume =', hv, hv2)
 
+# Run NSGA-II to get 'real' pareto front
+problem = Problem(num_inputs, num_objs)
+problem.types[:] = Real(-search_range, search_range)
+problem.function = vlmop2
+algorithm = NSGAII(problem)
+algorithm.run(2500)
+cheap_pareto_front = np.array([list(solution.objectives) for solution in algorithm.result])
+
+
 # plot pareto front
 import matplotlib.pyplot as plt
 
@@ -84,6 +98,8 @@ pf = np.asarray(bo.get_history().get_pareto_front())
 plt.scatter(pf[:, 0], pf[:, 1], label='mesmo')
 pf_r = np.asarray(bo_r.get_history().get_pareto_front())
 plt.scatter(pf_r[:, 0], pf_r[:, 1], label='random', marker='x')
+
+plt.scatter(cheap_pareto_front[:, 0], cheap_pareto_front[:, 1], label='NSGA-II', marker='.', alpha=0.5)
 
 print(pf.shape[0], pf_r.shape[0])
 
