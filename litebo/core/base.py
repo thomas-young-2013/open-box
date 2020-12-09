@@ -34,9 +34,11 @@ def build_acq_func(func_str='ei', model=None, constraint_models=None, **kwargs):
     else:
         if func_str == 'eic':
             acq_func = EIC
+        elif func_str == 'mesmoc':
+            acq_func = MESMOC
         else:
             raise ValueError('Invalid string %s for acquisition function!' % func_str)
-        return acq_func(model=model, constraint_models=constraint_models)
+        return acq_func(model=model, constraint_models=constraint_models, **kwargs)
 
 
 def build_optimizer(func_str='local_random', acq_func=None, config_space=None, rng=None):

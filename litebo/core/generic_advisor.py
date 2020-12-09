@@ -53,6 +53,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
         # Init the basic ingredients in Bayesian optimization.
         self.history_bo_data = history_bo_data
         self.surrogate_type = surrogate_type
+        self.constraint_surrogate_type = None
         self.acq_type = acq_type
         self.init_num = initial_trials
         self.config_space = config_space
@@ -83,20 +84,31 @@ class Advisor(object, metaclass=abc.ABCMeta):
         assert isinstance(self.num_objs, int) and self.num_objs >= 1
         assert isinstance(self.num_constraints, int) and self.num_constraints >= 0
 
-        # multi-objective with constraints
-        if self.num_objs > 1 and self.num_constraints > 0:
-            self.logger.error('Multi-objective with constraints will be supported in future version!'
-                              'It is not supported at present.')
-            raise ValueError('Multi-objective with constraints will be supported in future version!'
-                             'It is not supported at present.')  # todo try except
-
         # single objective no constraint
-        elif self.num_objs == 1 and self.num_constraints == 0:
+        if self.num_objs == 1 and self.num_constraints == 0:
             if self.acq_type is None:
                 self.acq_type = 'ei'
-            assert self.acq_type not in ['eic', 'mesmo']
+            assert self.acq_type in ['ei', 'eips', 'logei', 'pi', 'lcb', 'lpei', ]
             if self.surrogate_type is None:
                 self.surrogate_type = 'prf'
+
+        # multi-objective with constraints
+        elif self.num_objs > 1 and self.num_constraints > 0:
+            if self.acq_type is None:
+                self.acq_type = 'mesmoc'
+            assert self.acq_type in ['mesmoc', ]
+            if self.surrogate_type is None:
+                self.surrogate_type = 'gp_rbf'
+            if self.constraint_surrogate_type is None:
+                self.constraint_surrogate_type = 'gp_rbf'
+            if self.acq_type == 'mesmoc' and self.surrogate_type != 'gp_rbf':
+                self.surrogate_type = 'gp_rbf'
+                self.logger.warning('Surrogate model has changed to Gaussian Process with RBF kernel '
+                                    'since MESMOC is used. Surrogate_type should be set to \'gp_rbf\'.')
+            if self.acq_type == 'mesmoc' and self.constraint_surrogate_type != 'gp_rbf':
+                self.surrogate_type = 'gp_rbf'
+                self.logger.warning('Constraint surrogate model has changed to Gaussian Process with RBF kernel '
+                                    'since MESMOC is used. Surrogate_type should be set to \'gp_rbf\'.')
 
         # multi-objective no constraint
         elif self.num_objs > 1:
@@ -120,6 +132,8 @@ class Advisor(object, metaclass=abc.ABCMeta):
                     self.surrogate_type = 'gp'
                 else:
                     self.surrogate_type = 'prf'
+            if self.constraint_surrogate_type is None:
+                self.constraint_surrogate_type = 'gp'
             if self.acq_type == 'ts' and self.surrogate_type != 'gp':
                 self.surrogate_type = 'gp'
                 self.logger.warning('Surrogate model has changed to Gaussian Process '
@@ -139,11 +153,11 @@ class Advisor(object, metaclass=abc.ABCMeta):
                                     for _ in range(self.num_objs)]
 
         if self.num_constraints > 0:
-            self.constraint_models = [build_surrogate(func_str='gp',
+            self.constraint_models = [build_surrogate(func_str=self.constraint_surrogate_type,
                                                       config_space=self.config_space,
                                                       rng=self.rng) for _ in range(self.num_constraints)]
 
-        if self.acq_type in ['mesmo', ]:
+        if self.acq_type in ['mesmo', 'mesmoc', ]:
             types, bounds = get_types(self.config_space)
             self.acquisition_function = build_acq_func(func_str=self.acq_type, model=self.surrogate_model,
                                                        constraint_models=self.constraint_models,
@@ -218,7 +232,8 @@ class Advisor(object, metaclass=abc.ABCMeta):
                 for i in range(self.num_objs):
                     self.surrogate_model[i].train(X, Y[:, i])
 
-            # train constraints model
+            # train constraint model
+            cX = None
             if self.num_constraints > 0:
                 cX = []
                 for c in self.constraint_perfs:
@@ -239,6 +254,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
                 mo_incumbent_value = self.history_container.get_mo_incumbent_value()
                 self.acquisition_function.update(model=self.surrogate_model,
                                                  constraint_models=self.constraint_models,
+                                                 constraint_perfs=cX,   # for MESMOC
                                                  eta=mo_incumbent_value,
                                                  num_data=num_config_evaluated,
                                                  X=X, Y=Y)

@@ -190,6 +190,155 @@ class MESMO(AbstractAcquisitionFunction):
         return multi_obj_acq_total / self.sample_num
 
 
+class MESMOC(AbstractAcquisitionFunction):
+
+    r"""Computes MESMOC for multi-objective optimization
+
+    Syrine Belakaria, Aryan Deshwal, Janardhan Rao Doppa
+    Max-value Entropy Search for Multi-Objective Bayesian Optimization with Constraints. 2020
+    """
+
+    def __init__(self,
+                 model: List[AbstractModel],
+                 constraint_models: List[AbstractModel],
+                 types: List[int],
+                 bounds: List[Tuple[float, float]],
+                 sample_num=1,
+                 **kwargs):
+        """Constructor
+
+        Parameters
+        ----------
+        model : List[AbstractEPM]
+            A list of surrogate that implements at least
+                 - predict_marginalized_over_instances(X)
+        types : List[int]
+            Specifies the number of categorical values of an input dimension where
+            the i-th entry corresponds to the i-th input dimension. Let's say we
+            have 2 dimension where the first dimension consists of 3 different
+            categorical choices and the second dimension is continuous than we
+            have to pass [3, 0]. Note that we count starting from 0.
+        bounds : List[Tuple[float, float]]
+            Bounds of input dimensions: (lower, upper) for continuous dims; (n_cat, np.nan) for categorical dims
+            # todo cat dims
+        """
+
+        super(MESMOC, self).__init__(model)
+        self.long_name = 'Multi-Objective Max-value Entropy Search with Constraints'
+        self.sample_num = sample_num
+        self.types = np.asarray(types)
+        self.bounds = np.asarray(bounds)
+        self.constraint_models = constraint_models
+        self.num_constraints = len(constraint_models)
+        self.constraint_perfs = None
+        self.X = None
+        self.Y = None
+        self.X_dim = None
+        self.Y_dim = None
+        self.Multiplemes = None
+        self.Multiplemes_constraints = None
+        self.min_samples = None
+        self.min_samples_constraints = None
+        self.check_types_bounds()
+
+    def check_types_bounds(self):
+        # todo
+        for i, (t, b) in enumerate(zip(self.types, self.bounds)):
+            if b[1] is np.nan:
+                self.logger.error("Only int and float hyperparameters are supported in MESMOC at present!")
+                raise ValueError("Only int and float hyperparameters are supported in MESMOC at present!")
+
+    def update(self, **kwargs):
+        """
+        Rewrite update to support pareto front sampling.
+        """
+        assert 'X' in kwargs and 'Y' in kwargs
+        assert 'constraint_perfs' in kwargs
+        super(MESMOC, self).update(**kwargs)
+
+        self.X_dim = self.X.shape[1]
+        self.Y_dim = self.Y.shape[1]
+
+        self.Multiplemes = [None] * self.Y_dim
+        self.Multiplemes_constraints = [None] * self.num_constraints
+        for i in range(self.Y_dim):
+            self.Multiplemes[i] = MaxvalueEntropySearch(self.model[i], self.X, self.Y[:, i])
+            self.Multiplemes[i].Sampling_RFM()
+        for i in range(self.num_constraints):
+            # Caution dim of self.constraint_perfs!
+            self.Multiplemes_constraints[i] = MaxvalueEntropySearch(self.constraint_models[i],
+                                                                    self.X, self.constraint_perfs[i])
+            self.Multiplemes_constraints[i].Sampling_RFM()
+
+        self.min_samples = []
+        self.min_samples_constraints = []
+        for j in range(self.sample_num):
+            for i in range(self.Y_dim):
+                self.Multiplemes[i].weigh_sampling()
+            for i in range(self.num_constraints):
+                self.Multiplemes_constraints[i].weigh_sampling()
+
+            def CMO(xi):
+                xi = np.asarray(xi)
+                y = [self.Multiplemes[i].f_regression(xi)[0][0] for i in range(self.Y_dim)]
+                y_c = [self.Multiplemes_constraints[i].f_regression(xi)[0][0] for i in range(self.num_constraints)]
+                return y, y_c
+
+            problem = Problem(self.X_dim, self.Y_dim, self.num_constraints)
+            for k in range(self.X_dim):
+                problem.types[k] = Real(self.bounds[k][0], self.bounds[k][1])  # todo other types
+            problem.constraints[:] = "<=0"  # todo confirm
+            problem.function = CMO
+            algorithm = NSGAII(problem)
+            algorithm.run(1500)
+            cheap_pareto_front = [list(solution.objectives) for solution in algorithm.result]
+            cheap_constraints_values = [list(solution.constraints) for solution in algorithm.result]
+            # picking the min over the pareto: best case
+            min_of_functions = [min(f) for f in list(zip(*cheap_pareto_front))]
+            min_of_constraints = [min(f) for f in list(zip(*cheap_constraints_values))] # todo confirm
+            self.min_samples.append(min_of_functions)
+            self.min_samples_constraints.append(min_of_constraints)
+
+    def _compute(self, X: np.ndarray, **kwargs):
+        """Computes the MESMOC value.
+
+        Parameters
+        ----------
+        X: np.ndarray(N, D), The input points where the acquisition function
+            should be evaluated. The dimensionality of X is (N, D), with N as
+            the number of points to evaluate at and D is the number of
+            dimensions of one X.
+
+        Returns
+        -------
+        np.ndarray(N,1)
+            Multi-Objective Max-value Entropy Search with Constraints of X
+        """
+        if len(X.shape) == 1:
+            X = X[:, np.newaxis]
+
+        multi_obj_acq_total = np.zeros(shape=(X.shape[0], 1))
+        for j in range(self.sample_num):
+            multi_obj_acq_sample = np.zeros(shape=(X.shape[0], 1))
+            for i in range(self.Y_dim):
+                multi_obj_acq_sample += self.Multiplemes[i](X, self.min_samples[j][i])
+            for i in range(self.num_constraints):
+                # todo confirm +-
+                multi_obj_acq_sample += self.Multiplemes_constraints[i](X, self.min_samples_constraints[j][i])
+            multi_obj_acq_total += multi_obj_acq_sample
+        acq = multi_obj_acq_total / self.sample_num
+
+        # set unsatisfied
+        constraints = []
+        for i in range(self.num_constraints):
+            m, _ = self.constraint_models[i].predict_marginalized_over_instances(X)
+            constraints.append(m)
+        constraints = np.hstack(constraints)
+        unsatisfied_idx = np.where(np.any(constraints > 0, axis=1, keepdims=True))  # todo confirm
+        acq[unsatisfied_idx] = -1e10
+        return acq
+
+
 # class MaxvalueEntropySearch(object):
 #     def __init__(self, model, X, Y, beta=1e6):
 #         self.model = model      # GP model
