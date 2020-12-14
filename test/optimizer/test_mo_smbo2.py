@@ -16,9 +16,13 @@ from pygmo import hypervolume
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--n', type=int, default=100)
+parser.add_argument('--rand_prob', type=float, default=0)
+parser.add_argument('--sample_num', type=int, default=1)
 
 args = parser.parse_args()
 max_runs = args.n
+rand_prob = args.rand_prob
+sample_num = args.sample_num
 
 num_inputs = 2
 num_objs = 2
@@ -60,7 +64,8 @@ cs.add_hyperparameters([x0, x1])
 bo = SMBO(multi_objective_func, cs, num_objs=num_objs, max_runs=max_runs,
           surrogate_type='gp_rbf', acq_type='mesmo',
           time_limit_per_trial=60, logging_dir='logs')
-bo.config_advisor.optimizer.random_chooser.prob = 0     # no random
+bo.config_advisor.optimizer.random_chooser.prob = rand_prob     # set rand_prob, default 0
+bo.config_advisor.acquisition_function.sample_num = sample_num  # set sample_num
 print('MESMO', '='*30)
 # bo.run()
 for i in range(max_runs):
