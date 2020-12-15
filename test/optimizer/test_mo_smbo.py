@@ -81,6 +81,20 @@ x2 = CSH.UniformFloatHyperparameter("x1", scale2[0], scale2[1])
 cs.add_hyperparameters([x1, x2])
 
 
+# Run NSGA-II to get 'real' pareto front
+def CMO(xi):
+    xi = np.asarray(xi)
+    y = [branin(xi), Currin(xi)]
+    return y
+problem = Problem(num_inputs, num_objs)
+problem.types[:] = Real(0, 1)
+problem.function = CMO
+algorithm = NSGAII(problem)
+algorithm.run(10000)
+cheap_pareto_front = np.array([list(solution.objectives) for solution in algorithm.result])
+real_hv = hypervolume(cheap_pareto_front).compute(referencePoint)
+
+
 X_init = np.array([
     [ 6.66666667e-01,  3.33333333e-01],
     [ 3.33333333e-01,  6.66666667e-01],
@@ -104,12 +118,16 @@ bo.config_advisor.optimizer.random_chooser.prob = rand_prob     # set rand_prob,
 bo.config_advisor.acquisition_function.sample_num = sample_num  # set sample_num
 print('MESMO', '='*30)
 # bo.run()
+hv_diffs = []
 for i in range(max_runs):
     config, trial_state, objs, trial_info = bo.iterate()
     print(objs, config)
     hv = hypervolume(bo.get_history().get_all_perfs()).compute(referencePoint)
     hv2 = hypervolume(bo.get_history().get_pareto_front()).compute(referencePoint)
     print('hypervolume =', hv, hv2)
+    hv_diff = real_hv - hv
+    hv_diffs.append(hv_diff)
+    print('hv diff =', hv_diff)
 
 # Evaluate the random search.
 bo_r = SMBO(multi_objective_func, cs, num_objs=num_objs, max_runs=max_runs,
@@ -122,18 +140,9 @@ for i in range(max_runs):
     hv = hypervolume(bo_r.get_history().get_all_perfs()).compute(referencePoint)
     hv2 = hypervolume(bo_r.get_history().get_pareto_front()).compute(referencePoint)
     print('hypervolume =', hv, hv2)
+    hv_diff = real_hv - hv
+    print('hv diff =', hv_diff)
 
-# Run NSGA-II to get 'real' pareto front
-def CMO(xi):
-    xi = np.asarray(xi)
-    y = [branin(xi), Currin(xi)]
-    return y
-problem = Problem(num_inputs, num_objs)
-problem.types[:] = Real(0, 1)
-problem.function = CMO
-algorithm = NSGAII(problem)
-algorithm.run(2500)
-cheap_pareto_front = np.array([list(solution.objectives) for solution in algorithm.result])
 
 # plot pareto front
 import matplotlib.pyplot as plt
@@ -141,14 +150,17 @@ import matplotlib.pyplot as plt
 pf = np.asarray(bo.get_history().get_pareto_front())
 plt.scatter(pf[:, 0], pf[:, 1], label='mesmo')
 pf_r = np.asarray(bo_r.get_history().get_pareto_front())
-#plt.scatter(pf_r[:, 0], pf_r[:, 1], label='random', marker='x')
+plt.scatter(pf_r[:, 0], pf_r[:, 1], label='random', marker='x')
 
 plt.scatter(cheap_pareto_front[:, 0], cheap_pareto_front[:, 1], label='NSGA-II', marker='.', alpha=0.5)
 
 print(pf.shape[0], pf_r.shape[0])
+print('real hv =', real_hv)
 
 plt.title('Pareto Front')
 plt.xlabel('Objective 1 - branin')
 plt.ylabel('Objective 2 - Currin')
 plt.legend()
 plt.show()
+
+print('hv_diffs:', hv_diffs)

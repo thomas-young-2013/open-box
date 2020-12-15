@@ -120,3 +120,8 @@ plt.show()
 
 print('X_init:', X_init)
 print('Y_init:', Y_init)
+
+real_hv = 9999842098.025301
+hv = optimizer.acquisition.pareto.hypervolume(np.array(referencePoint))
+hv_diff = real_hv - hv
+print(hv, hv_diff)
