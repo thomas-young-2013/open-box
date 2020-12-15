@@ -1,6 +1,6 @@
 from litebo.acquisition_function.acquisition import *
 from litebo.acquisition_function.multi_objective_acquisition import *
-from litebo.acq_maximizer.ei_optimization import InterleavedLocalAndRandomSearch
+from litebo.acq_maximizer.ei_optimization import InterleavedLocalAndRandomSearch, USeMO_Optimizer
 from litebo.surrogate.base.rf_with_instances import RandomForestWithInstances
 from litebo.surrogate.base.build_gp import create_gp_model
 from litebo.utils.util_funcs import get_types
@@ -28,6 +28,8 @@ def build_acq_func(func_str='ei', model=None, constraint_models=None, **kwargs):
             acq_func = LPEI
         elif func_str == 'mesmo':
             acq_func = MESMO
+        elif func_str == 'usemo':   # todo single acq type
+            acq_func = USeMO
         else:
             raise ValueError('Invalid string %s for acquisition function!' % func_str)
         return acq_func(model=model, **kwargs)
@@ -49,6 +51,8 @@ def build_optimizer(func_str='local_random', acq_func=None, config_space=None, r
 
     if func_str == 'local_random':
         optimizer = InterleavedLocalAndRandomSearch
+    elif func_str == 'usemo_optimizer':
+        optimizer = USeMO_Optimizer
     else:
         raise ValueError('Invalid string %s for acq_maximizer!' % func_str)
 

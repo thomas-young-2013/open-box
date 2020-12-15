@@ -6,6 +6,7 @@ from sklearn.kernel_approximation import RBFSampler
 
 from litebo.acquisition_function.acquisition import AbstractAcquisitionFunction
 from litebo.surrogate.base.base_model import AbstractModel
+from litebo.acquisition_function.acquisition import Uncertainty
 
 from platypus import NSGAII, Problem, Real
 
@@ -125,7 +126,7 @@ class MESMO(AbstractAcquisitionFunction):
     def check_types_bounds(self):
         # todo
         for i, (t, b) in enumerate(zip(self.types, self.bounds)):
-            if b[1] is np.nan:
+            if np.isnan(b[1]):
                 self.logger.error("Only int and float hyperparameters are supported in MESMO at present!")
                 raise ValueError("Only int and float hyperparameters are supported in MESMO at present!")
 
@@ -251,7 +252,7 @@ class MESMOC(AbstractAcquisitionFunction):
     def check_types_bounds(self):
         # todo
         for i, (t, b) in enumerate(zip(self.types, self.bounds)):
-            if b[1] is np.nan:
+            if np.isnan(b[1]):
                 self.logger.error("Only int and float hyperparameters are supported in MESMOC at present!")
                 raise ValueError("Only int and float hyperparameters are supported in MESMOC at present!")
 
@@ -403,6 +404,114 @@ class MESMOC2(MESMO):
             s = np.sqrt(v)
             f *= norm.cdf(-m/s)
         return f
+
+
+class USeMO(AbstractAcquisitionFunction):
+
+    r"""Computes USeMO for multi-objective optimization
+
+    Syrine Belakaria, Aryan Deshwal, Nitthilan Kannappan Jayakodi, Janardhan Rao Doppa
+    Uncertainty-Aware Search Framework for Multi-Objective Bayesian Optimization
+    AAAI 2020
+    """
+
+    def __init__(self,
+                 model: List[AbstractModel],
+                 types: List[int],
+                 bounds: List[Tuple[float, float]],
+                 acq_type='ei',
+                 **kwargs):
+        """Constructor
+
+        Parameters
+        ----------
+        model : List[AbstractEPM]
+            A list of surrogate that implements at least
+                 - predict_marginalized_over_instances(X)
+        types : List[int]
+            Specifies the number of categorical values of an input dimension where
+            the i-th entry corresponds to the i-th input dimension. Let's say we
+            have 2 dimension where the first dimension consists of 3 different
+            categorical choices and the second dimension is continuous than we
+            have to pass [3, 0]. Note that we count starting from 0.
+        bounds : List[Tuple[float, float]]
+            Bounds of input dimensions: (lower, upper) for continuous dims; (n_cat, np.nan) for categorical dims
+            # todo cat dims
+        acq_type:
+            todo
+        """
+
+        super(USeMO, self).__init__(model)
+        self.long_name = 'Uncertainty-Aware Search'
+        self.types = np.asarray(types)
+        self.bounds = np.asarray(bounds)
+        from litebo.core.base import build_acq_func
+        self.single_acq = [build_acq_func(func_str=acq_type, model=m) for m in model]
+        self.uncertainty_acq = [Uncertainty(model=m) for m in model]
+        self.X = None
+        self.Y = None
+        self.X_dim = None
+        self.Y_dim = None
+        self.eta = None
+        self.num_data = None
+        self.uncertainties = None
+        self.candidates = None
+        self.check_types_bounds()
+
+    def check_types_bounds(self):
+        # todo
+        for i, (t, b) in enumerate(zip(self.types, self.bounds)):
+            if np.isnan(b[1]):
+                self.logger.error("Only int and float hyperparameters are supported in USeMO at present!")
+                raise ValueError("Only int and float hyperparameters are supported in USeMO at present!")
+
+    def update(self, **kwargs):
+        """
+        Rewrite update
+        """
+        assert 'X' in kwargs and 'Y' in kwargs
+        assert 'eta' in kwargs and 'num_data' in kwargs
+        super(USeMO, self).update(**kwargs)
+
+        self.X_dim = self.X.shape[1]
+        self.Y_dim = self.Y.shape[1]
+        assert self.Y_dim > 1
+
+        # update single acquisition function
+        for i in range(self.Y_dim):
+            self.single_acq[i].update(model=self.model[i],
+                                      eta=self.eta[i],
+                                      num_data=self.num_data)
+            self.uncertainty_acq[i].update(model=self.model[i],
+                                           eta=self.eta[i],
+                                           num_data=self.num_data)
+
+        def CMO(x):
+            x = np.asarray(x)
+            # minimize negative acq
+            return [-self.single_acq[i](x, convert=False)[0][0] for i in range(self.Y_dim)]
+
+        problem = Problem(self.X_dim, self.Y_dim)
+        for k in range(self.X_dim):
+            problem.types[k] = Real(self.bounds[k][0], self.bounds[k][1])   # todo other types
+        problem.function = CMO
+        algorithm = NSGAII(problem, population_size=200)    # todo
+        algorithm.run(2500)
+        cheap_pareto_set = [solution.variables for solution in algorithm.result]
+        # cheap_pareto_set_unique = []
+        # for i in range(len(cheap_pareto_set)):
+        #     if not any((cheap_pareto_set[i] == x).all() for x in self.X):   # todo convert problem? no this step?
+        #         cheap_pareto_set_unique.append(cheap_pareto_set[i])
+        cheap_pareto_set_unique = cheap_pareto_set
+
+        single_uncertainty = np.array([self.uncertainty_acq[i](np.asarray(cheap_pareto_set_unique), convert=False)
+                                       for i in range(self.Y_dim)])      # shape=(Y_dim, N, 1)
+        single_uncertainty = single_uncertainty.reshape(self.Y_dim, -1)  # shape=(Y_dim, N)
+        self.uncertainties = np.prod(single_uncertainty, axis=0)         # shape=(Y_dim,) todo normalize?
+        self.candidates = np.array(cheap_pareto_set_unique)
+
+    def _compute(self, X: np.ndarray, **kwargs):
+        raise NotImplementedError
 
 
 # class MaxvalueEntropySearch(object):

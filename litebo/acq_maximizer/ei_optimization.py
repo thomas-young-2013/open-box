@@ -480,6 +480,93 @@ class InterleavedLocalAndRandomSearch(AcquisitionFunctionMaximizer):
         raise NotImplementedError()
 
 
+class USeMO_Optimizer(AcquisitionFunctionMaximizer):
+    """Implements USeMO optimizer
+
+    Parameters
+    ----------
+    acquisition_function : ~litebo.acquisition_function.acquisition.AbstractAcquisitionFunction
+
+    config_space : ~litebo.config_space.ConfigurationSpace
+
+    rng : np.random.RandomState or int, optional
+
+    """
+
+    def __init__(
+            self,
+            acquisition_function: AbstractAcquisitionFunction,
+            config_space: ConfigurationSpace,
+            rng: Union[bool, np.random.RandomState] = None,
+            rand_prob=0.0
+    ):
+        super().__init__(acquisition_function, config_space, rng)
+        self.random_chooser = ChooserProb(prob=rand_prob, rng=rng)
+
+    def maximize(
+            self,
+            runhistory: HistoryContainer,
+            num_points: int,    # useless in USeMO
+            random_configuration_chooser=None,
+            **kwargs
+    ) -> Iterable[Configuration]:
+        """Maximize acquisition function using ``_maximize``.
+
+        Parameters
+        ----------
+        runhistory: ~litebo.utils.history_container.HistoryContainer
+            runhistory object
+        num_points: int
+            number of points to be sampled
+        random_configuration_chooser: ~litebo.acq_maximizer.random_configuration_chooser.RandomConfigurationChooser
+            part of the returned ChallengerList such
+            that we can interleave random configurations
+            by a scheme defined by the random_configuration_chooser;
+            random_configuration_chooser.next_smbo_iteration()
+            is called at the end of this function
+        **kwargs
+            passed to acquisition function
+
+        Returns
+        -------
+        Iterable[Configuration]
+            to be concrete: ~litebo.ei_optimization.ChallengerList
+        """
+
+        acq_vals = np.asarray(self.acquisition_function.uncertainties)
+        candidates = np.asarray(self.acquisition_function.candidates)
+        assert len(acq_vals.shape) == 1 and len(candidates.shape) == 2 \
+               and acq_vals.shape[0] == candidates.shape[0]
+
+        configs_acq = []
+        for i in range(acq_vals.shape[0]):
+            # convert array to Configuration todo
+            config = Configuration(self.config_space, vector=candidates[i])
+            configs_acq.append((acq_vals[i], config))
+
+        # shuffle for random tie-break
+        self.rng.shuffle(configs_acq)
+
+        # sort according to acq value
+        configs_acq.sort(reverse=True, key=lambda x: x[0])
+
+        configs = [_[1] for _ in configs_acq]
+
+        challengers = ChallengerList(configs,
+                                     self.config_space,
+                                     self.random_chooser)
+        self.random_chooser.next_smbo_iteration()
+        return challengers
+
+    def _maximize(
+            self,
+            runhistory: HistoryContainer,
+            num_points: int,
+            **kwargs
+    ) -> Iterable[Tuple[float, Configuration]]:
+        raise NotImplementedError()
+
+
 class ChallengerList(object):
     """Helper class to interleave random configurations in a list of challengers.
 
