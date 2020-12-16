@@ -12,7 +12,7 @@ from platypus import NSGAII, Problem, Real
 
 
 class MaxvalueEntropySearch(object):    # todo name min?
-    def __init__(self, model, X, Y, beta=1e6):
+    def __init__(self, model, X, Y, beta=1e6, random_state=1):
         self.model = model      # GP model
         self.X = X
         self.Y = Y
@@ -21,10 +21,11 @@ class MaxvalueEntropySearch(object):    # todo name min?
         self.weights_mu = None
         self.L = None
         self.sampled_weights = None
+        self.random_state = random_state
 
     def Sampling_RFM(self):
         self.rbf_features = RBFSampler(gamma=1 / (2 * self.model.kernel.length_scale ** 2),
-                                       n_components=1000, random_state=1)       # todo random_state, length_scale
+                                       n_components=1000, random_state=self.random_state)       # todo length_scale
         X_train_features = self.rbf_features.fit_transform(np.asarray(self.X))
 
         A_inv = np.linalg.inv(
@@ -89,6 +90,7 @@ class MESMO(AbstractAcquisitionFunction):
                  types: List[int],
                  bounds: List[Tuple[float, float]],
                  sample_num=1,
+                 random_state=1,
                  **kwargs):
         """Constructor
 
@@ -113,6 +115,7 @@ class MESMO(AbstractAcquisitionFunction):
         super(MESMO, self).__init__(model)
         self.long_name = 'Multi-Objective Max-value Entropy Search'
         self.sample_num = sample_num
+        self.random_state = random_state
         self.types = np.asarray(types)
         self.bounds = np.asarray(bounds)
         self.X = None
@@ -142,7 +145,8 @@ class MESMO(AbstractAcquisitionFunction):
 
         self.Multiplemes = [None] * self.Y_dim
         for i in range(self.Y_dim):
-            self.Multiplemes[i] = MaxvalueEntropySearch(self.model[i], self.X, self.Y[:, i])
+            self.Multiplemes[i] = MaxvalueEntropySearch(self.model[i], self.X, self.Y[:, i],
+                                                        random_state=self.random_state)
             self.Multiplemes[i].Sampling_RFM()
 
         self.min_samples = []
@@ -207,6 +211,7 @@ class MESMOC(AbstractAcquisitionFunction):
                  types: List[int],
                  bounds: List[Tuple[float, float]],
                  sample_num=1,
+                 random_state=1,
                  **kwargs):
         """Constructor
 
@@ -229,11 +234,14 @@ class MESMOC(AbstractAcquisitionFunction):
             # todo cat dims
         sample_num : int
 
+        random_state :
+
         """
 
         super(MESMOC, self).__init__(model)
         self.long_name = 'Multi-Objective Max-value Entropy Search with Constraints'
         self.sample_num = sample_num
+        self.random_state = random_state
         self.types = np.asarray(types)
         self.bounds = np.asarray(bounds)
         self.constraint_models = constraint_models
@@ -270,7 +278,8 @@ class MESMOC(AbstractAcquisitionFunction):
         self.Multiplemes = [None] * self.Y_dim
         self.Multiplemes_constraints = [None] * self.num_constraints
         for i in range(self.Y_dim):
-            self.Multiplemes[i] = MaxvalueEntropySearch(self.model[i], self.X, self.Y[:, i])
+            self.Multiplemes[i] = MaxvalueEntropySearch(self.model[i], self.X, self.Y[:, i],
+                                                        random_state=self.random_state)
             self.Multiplemes[i].Sampling_RFM()
         for i in range(self.num_constraints):
             # Caution dim of self.constraint_perfs!
@@ -356,6 +365,7 @@ class MESMOC2(MESMO):
                  types: List[int],
                  bounds: List[Tuple[float, float]],
                  sample_num=1,
+                 random_state=1,
                  **kwargs):
         """Constructor
 
@@ -378,8 +388,10 @@ class MESMOC2(MESMO):
             # todo cat dims
         sample_num : int
 
+        random_state :
+
         """
-        super(MESMOC2, self).__init__(model, types, bounds, sample_num)
+        super(MESMOC2, self).__init__(model, types, bounds, sample_num, random_state)
         self.constraint_models = constraint_models
         self.long_name = 'MESMOC2'
 
@@ -495,7 +507,7 @@ class USeMO(AbstractAcquisitionFunction):
         for k in range(self.X_dim):
             problem.types[k] = Real(self.bounds[k][0], self.bounds[k][1])   # todo other types
         problem.function = CMO
-        algorithm = NSGAII(problem, population_size=200)    # todo
+        algorithm = NSGAII(problem)    # todo population_size
         algorithm.run(2500)
         cheap_pareto_set = [solution.variables for solution in algorithm.result]
         # cheap_pareto_set_unique = []

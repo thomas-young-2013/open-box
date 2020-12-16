@@ -1,100 +1,48 @@
 import os
 import sys
+import time
 import numpy as np
-import math
-from copy import deepcopy
 import argparse
-
-import ConfigSpace.hyperparameters as CSH
-from ConfigSpace.configuration_space import Configuration
+import pickle as pkl
+from pygmo import hypervolume
 
 sys.path.insert(0, os.getcwd())
 from litebo.optimizer.generic_smbo import SMBO
-from litebo.config_space import ConfigurationSpace
+from litebo.config_space import Configuration
+from mo_benchmark_function import timeit
 
-from platypus import NSGAII, Problem, Real
-from pygmo import hypervolume
+# set problem
+from mo_benchmark_function import multi_objective_func_bc, get_cs_bc, run_nsgaii_bc
+problem_str = 'bc'
+multi_objective_func = multi_objective_func_bc
+cs = get_cs_bc()
+run_nsgaii = run_nsgaii_bc
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--n', type=int, default=100)
 parser.add_argument('--rand_prob', type=float, default=0)
 parser.add_argument('--sample_num', type=int, default=1)
+parser.add_argument('--rep', type=int, default=1)
+parser.add_argument('--start_id', type=int, default=0)
+parser.add_argument('--mth', type=str, default='mesmo')
 
 args = parser.parse_args()
 max_runs = args.n
 rand_prob = args.rand_prob
 sample_num = args.sample_num
+rep = args.rep
+start_id = args.start_id
+mth = args.mth
 
+seeds = [4774, 3711, 7238, 3203, 4254, 2137, 1188, 4356,  517, 5887,
+         9082, 4702, 4801, 8242, 7391, 1893, 4400, 1192, 5553, 9039]
 num_inputs = 2
 num_objs = 2
 referencePoint = [1e5] * num_objs    # must greater than max value of objective
+real_hv = 1e10
 
 
-def branin(x1):
-    x = deepcopy(x1)
-    x = np.asarray(x)
-    assert x.shape == (2, )
-    x[0] = 15 * x[0] - 5
-    x[1] = 15 * x[1]
-    return float(
-        np.square(x[1] - (5.1 / (4 * np.square(math.pi))) * np.square(x[0]) + (5 / math.pi) * x[0] - 6) + 10 * (
-                    1 - (1. / (8 * math.pi))) * np.cos(x[0]) + 10)
-
-
-def Currin(x):
-    x = np.asarray(x)
-    assert x.shape == (2, )
-    try:
-        return float(((1 - math.exp(-0.5 * (1 / x[1]))) * (
-                    (2300 * pow(x[0], 3) + 1900 * x[0] * x[0] + 2092 * x[0] + 60) / (
-                        100 * pow(x[0], 3) + 500 * x[0] * x[0] + 4 * x[0] + 20))))
-    except Exception as e:
-        return 300
-
-
-# test scale
-# scale1 = [-100, 100]
-# scale2 = [0, 10]
-scale1 = [0, 1]
-scale2 = [0, 1]
-
-
-def multi_objective_func(config):
-    xs = config.get_dictionary()
-    x0 = (xs['x0'] + scale1[0]) / (scale1[0] + scale1[1])
-    x1 = (xs['x1'] + scale2[0]) / (scale2[0] + scale2[1])
-    x = [x0, x1]    # x0, x1 in [0, 1]. test scale in MOSMBO
-    y1 = branin(x)
-    y2 = Currin(x)
-    res = dict()
-    res['config'] = config
-    res['objs'] = (y1, y2)
-    res['constraints'] = None
-    return res
-
-
-cs = ConfigurationSpace()
-x1 = CSH.UniformFloatHyperparameter("x0", scale1[0], scale1[1])
-# x1 = CSH.UniformIntegerHyperparameter("x0", scale1[0], scale1[1])  # test int in MOSMBO
-x2 = CSH.UniformFloatHyperparameter("x1", scale2[0], scale2[1])
-#x3 = CSH.Constant('c', 123)    # test constant in MOSMBO, no use todo
-cs.add_hyperparameters([x1, x2])
-
-
-# Run NSGA-II to get 'real' pareto front
-def CMO(xi):
-    xi = np.asarray(xi)
-    y = [branin(xi), Currin(xi)]
-    return y
-problem = Problem(num_inputs, num_objs)
-problem.types[:] = Real(0, 1)
-problem.function = CMO
-algorithm = NSGAII(problem)
-algorithm.run(10000)
-cheap_pareto_front = np.array([list(solution.objectives) for solution in algorithm.result])
-real_hv = hypervolume(cheap_pareto_front).compute(referencePoint)
-
-
+# Evaluate mth
 X_init = np.array([
     [ 6.66666667e-01,  3.33333333e-01],
     [ 3.33333333e-01,  6.66666667e-01],
@@ -109,58 +57,77 @@ X_init = np.array([
 ])
 X_init = [Configuration(cs, vector=X_init[i]) for i in range(X_init.shape[0])]
 
-# Evaluate MESMO
-bo = SMBO(multi_objective_func, cs, num_objs=num_objs, max_runs=max_runs,
-          surrogate_type='gp_rbf', acq_type='mesmo',
-          initial_configurations=X_init, initial_runs=10,   # use latin hypercube from gpflowopt
-          time_limit_per_trial=60, logging_dir='logs')
-bo.config_advisor.optimizer.random_chooser.prob = rand_prob     # set rand_prob, default 0
-bo.config_advisor.acquisition_function.sample_num = sample_num  # set sample_num
-print('MESMO', '='*30)
-# bo.run()
-hv_diffs = []
-for i in range(max_runs):
-    config, trial_state, objs, trial_info = bo.iterate()
-    print(objs, config)
-    hv = hypervolume(bo.get_history().get_all_perfs()).compute(referencePoint)
-    hv2 = hypervolume(bo.get_history().get_pareto_front()).compute(referencePoint)
-    print('hypervolume =', hv, hv2)
-    hv_diff = real_hv - hv
-    hv_diffs.append(hv_diff)
-    print('hv diff =', hv_diff)
+with timeit('%s all' % (mth,)):
+    for run_i in range(start_id, start_id + rep):
+        seed = seeds[run_i]
+        with timeit('%s %d %d' % (mth, run_i, seed)):
+            bo = SMBO(multi_objective_func, cs, num_objs=num_objs, max_runs=max_runs,
+                      # surrogate_type='gp_rbf',    # use default
+                      acq_type=mth,
+                      initial_configurations=X_init, initial_runs=10,   # use latin hypercube from gpflowopt
+                      time_limit_per_trial=60, logging_dir='logs', random_state=seed)
+            bo.config_advisor.optimizer.random_chooser.prob = rand_prob     # set rand_prob, default 0
+            bo.config_advisor.acquisition_function.sample_num = sample_num  # set sample_num
+            bo.config_advisor.acquisition_function.random_state = seed      # set random_state
+            print(seed, mth, 'start ='*30)
+            # bo.run()
+            hv_diffs = []
+            for i in range(max_runs):
+                config, trial_state, objs, trial_info = bo.iterate()
+                print(seed, i, objs, config)
+                hv = hypervolume(bo.get_history().get_pareto_front()).compute(referencePoint)
+                hv2 = hypervolume(bo.get_history().get_all_perfs()).compute(referencePoint)
+                print(seed, i, 'hypervolume =', hv, hv2)
+                hv_diff = real_hv - hv
+                hv_diffs.append(hv_diff)
+                print(seed, i, 'hv diff =', hv_diff)
 
-# Evaluate the random search.
-bo_r = SMBO(multi_objective_func, cs, num_objs=num_objs, max_runs=max_runs,
-            time_limit_per_trial=60, sample_strategy='random', logging_dir='logs')
-print('Random', '='*30)
-# bo.run()
-for i in range(max_runs):
-    config, trial_state, objs, trial_info = bo_r.iterate()
-    print(objs, config)
-    hv = hypervolume(bo_r.get_history().get_all_perfs()).compute(referencePoint)
-    hv2 = hypervolume(bo_r.get_history().get_pareto_front()).compute(referencePoint)
-    print('hypervolume =', hv, hv2)
-    hv_diff = real_hv - hv
-    print('hv diff =', hv_diff)
+            # Save result
+            pf = np.asarray(bo.get_history().get_pareto_front())
+            data = bo.get_history().data
+            print(seed, mth, 'pareto num:', pf.shape[0])
+            print(seed, 'real hv =', real_hv)
+            print(seed, 'hv_diffs:', hv_diffs)
 
+            timestamp = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
+            dir_path = 'logs/mo_benchmark_%s_%d/%s-%d/' % (problem_str, max_runs, mth, sample_num)
+            file = 'benchmark_%s-%d_%04d_%s.pkl' % (mth, sample_num, seed, timestamp)
+            if not os.path.exists(dir_path):
+                os.makedirs(dir_path)
+            with open(os.path.join(dir_path, file), 'wb') as f:
+                save_item = (hv_diffs, pf, data)
+                pkl.dump(save_item, f)
+            print(dir_path, file, 'saved!')
 
-# plot pareto front
-import matplotlib.pyplot as plt
+if rep == 1:
+    import matplotlib.pyplot as plt
+    # Evaluate the random search.
+    bo_r = SMBO(multi_objective_func, cs, num_objs=num_objs, max_runs=max_runs,
+                time_limit_per_trial=60, sample_strategy='random', logging_dir='logs')
+    print('Random', '='*30)
+    # bo.run()
+    for i in range(max_runs):
+        config, trial_state, objs, trial_info = bo_r.iterate()
+        print(objs, config)
+        hv = hypervolume(bo_r.get_history().get_all_perfs()).compute(referencePoint)
+        hv2 = hypervolume(bo_r.get_history().get_pareto_front()).compute(referencePoint)
+        print('hypervolume =', hv, hv2)
+        hv_diff = real_hv - hv
+        print('hv diff =', hv_diff)
 
-pf = np.asarray(bo.get_history().get_pareto_front())
-plt.scatter(pf[:, 0], pf[:, 1], label='mesmo')
-pf_r = np.asarray(bo_r.get_history().get_pareto_front())
-plt.scatter(pf_r[:, 0], pf_r[:, 1], label='random', marker='x')
+    pf_r = np.asarray(bo_r.get_history().get_pareto_front())
+    print('random pareto num:', pf_r.shape[0])
 
-plt.scatter(cheap_pareto_front[:, 0], cheap_pareto_front[:, 1], label='NSGA-II', marker='.', alpha=0.5)
+    # Run NSGA-II to get 'real' pareto front
+    cheap_pareto_front = run_nsgaii()
 
-print(pf.shape[0], pf_r.shape[0])
-print('real hv =', real_hv)
+    # Plot pareto front
+    plt.scatter(pf[:, 0], pf[:, 1], label=mth)
+    plt.scatter(pf_r[:, 0], pf_r[:, 1], label='random', marker='x')
+    plt.scatter(cheap_pareto_front[:, 0], cheap_pareto_front[:, 1], label='NSGA-II', marker='.', alpha=0.5)
 
-plt.title('Pareto Front')
-plt.xlabel('Objective 1 - branin')
-plt.ylabel('Objective 2 - Currin')
-plt.legend()
-plt.show()
-
-print('hv_diffs:', hv_diffs)
+    plt.title('Pareto Front')
+    plt.xlabel('Objective 1 - branin')
+    plt.ylabel('Objective 2 - Currin')
+    plt.legend()
+    plt.show()
