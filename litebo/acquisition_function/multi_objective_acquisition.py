@@ -110,6 +110,8 @@ class MESMO(AbstractAcquisitionFunction):
             # todo cat dims
         sample_num : int
 
+        random_state :
+
         """
 
         super(MESMO, self).__init__(model)

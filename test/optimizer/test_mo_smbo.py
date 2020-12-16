@@ -61,43 +61,46 @@ with timeit('%s all' % (mth,)):
     for run_i in range(start_id, start_id + rep):
         seed = seeds[run_i]
         with timeit('%s %d %d' % (mth, run_i, seed)):
-            bo = SMBO(multi_objective_func, cs, num_objs=num_objs, max_runs=max_runs,
-                      # surrogate_type='gp_rbf',    # use default
-                      acq_type=mth,
-                      initial_configurations=X_init, initial_runs=10,   # use latin hypercube from gpflowopt
-                      time_limit_per_trial=60, logging_dir='logs', random_state=seed)
-            bo.config_advisor.optimizer.random_chooser.prob = rand_prob     # set rand_prob, default 0
-            bo.config_advisor.acquisition_function.sample_num = sample_num  # set sample_num
-            bo.config_advisor.acquisition_function.random_state = seed      # set random_state
-            print(seed, mth, 'start ='*30)
-            # bo.run()
-            hv_diffs = []
-            for i in range(max_runs):
-                config, trial_state, objs, trial_info = bo.iterate()
-                print(seed, i, objs, config)
-                hv = hypervolume(bo.get_history().get_pareto_front()).compute(referencePoint)
-                hv2 = hypervolume(bo.get_history().get_all_perfs()).compute(referencePoint)
-                print(seed, i, 'hypervolume =', hv, hv2)
-                hv_diff = real_hv - hv
-                hv_diffs.append(hv_diff)
-                print(seed, i, 'hv diff =', hv_diff)
+            try:
+                bo = SMBO(multi_objective_func, cs, num_objs=num_objs, max_runs=max_runs,
+                          # surrogate_type='gp_rbf',    # use default
+                          acq_type=mth,
+                          initial_configurations=X_init, initial_runs=10,   # use latin hypercube from gpflowopt
+                          time_limit_per_trial=60, logging_dir='logs', random_state=seed)
+                bo.config_advisor.optimizer.random_chooser.prob = rand_prob     # set rand_prob, default 0
+                bo.config_advisor.acquisition_function.sample_num = sample_num  # set sample_num
+                bo.config_advisor.acquisition_function.random_state = seed      # set random_state
+                print(seed, mth, 'start ='*30)
+                # bo.run()
+                hv_diffs = []
+                for i in range(max_runs):
+                    config, trial_state, objs, trial_info = bo.iterate()
+                    print(seed, i, objs, config)
+                    hv = hypervolume(bo.get_history().get_pareto_front()).compute(referencePoint)
+                    hv2 = hypervolume(bo.get_history().get_all_perfs()).compute(referencePoint)
+                    print(seed, i, 'hypervolume =', hv, hv2)
+                    hv_diff = real_hv - hv
+                    hv_diffs.append(hv_diff)
+                    print(seed, i, 'hv diff =', hv_diff)
 
-            # Save result
-            pf = np.asarray(bo.get_history().get_pareto_front())
-            data = bo.get_history().data
-            print(seed, mth, 'pareto num:', pf.shape[0])
-            print(seed, 'real hv =', real_hv)
-            print(seed, 'hv_diffs:', hv_diffs)
+                # Save result
+                pf = np.asarray(bo.get_history().get_pareto_front())
+                data = bo.get_history().data
+                print(seed, mth, 'pareto num:', pf.shape[0])
+                print(seed, 'real hv =', real_hv)
+                print(seed, 'hv_diffs:', hv_diffs)
 
-            timestamp = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
-            dir_path = 'logs/mo_benchmark_%s_%d/%s-%d/' % (problem_str, max_runs, mth, sample_num)
-            file = 'benchmark_%s-%d_%04d_%s.pkl' % (mth, sample_num, seed, timestamp)
-            if not os.path.exists(dir_path):
-                os.makedirs(dir_path)
-            with open(os.path.join(dir_path, file), 'wb') as f:
-                save_item = (hv_diffs, pf, data)
-                pkl.dump(save_item, f)
-            print(dir_path, file, 'saved!')
+                timestamp = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
+                dir_path = 'logs/mo_benchmark_%s_%d/%s-%d/' % (problem_str, max_runs, mth, sample_num)
+                file = 'benchmark_%s-%d_%04d_%s.pkl' % (mth, sample_num, seed, timestamp)
+                if not os.path.exists(dir_path):
+                    os.makedirs(dir_path)
+                with open(os.path.join(dir_path, file), 'wb') as f:
+                    save_item = (hv_diffs, pf, data)
+                    pkl.dump(save_item, f)
+                print(dir_path, file, 'saved!')
+            except Exception as e:
+                print(mth, run_i, seed, 'run error:', e)
 
 if rep == 1:
     import matplotlib.pyplot as plt
