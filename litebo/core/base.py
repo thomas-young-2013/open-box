@@ -1,12 +1,10 @@
 from litebo.acquisition_function.acquisition import *
 from litebo.acquisition_function.multi_objective_acquisition import *
-from litebo.acq_maximizer.ei_optimization import InterleavedLocalAndRandomSearch, USeMO_Optimizer, Scipy_Optimizer
 from litebo.surrogate.base.rf_with_instances import RandomForestWithInstances
 from litebo.surrogate.base.build_gp import create_gp_model
 from litebo.utils.util_funcs import get_types
 from litebo.utils.constants import MAXINT
 from collections import namedtuple
-
 
 Observation = namedtuple('Observation', ['config', 'trial_state', 'constraints', 'objectives'])
 
@@ -50,11 +48,17 @@ def build_optimizer(func_str='local_random', acq_func=None, config_space=None, r
     func_str = func_str.lower()
 
     if func_str == 'local_random':
+        from litebo.acq_maximizer.ei_optimization import InterleavedLocalAndRandomSearch
         optimizer = InterleavedLocalAndRandomSearch
-    elif func_str == 'scipy':
-        optimizer = Scipy_Optimizer
+    elif func_str == 'mesmo_optimizer':
+        from litebo.acq_maximizer.ei_optimization import MESMO_Optimizer
+        optimizer = MESMO_Optimizer
     elif func_str == 'usemo_optimizer':
+        from litebo.acq_maximizer.ei_optimization import USeMO_Optimizer
         optimizer = USeMO_Optimizer
+    elif func_str == 'cma_es':
+        from litebo.acq_maximizer.ei_optimization import CMAESOptimizer
+        optimizer = CMAESOptimizer
     else:
         raise ValueError('Invalid string %s for acq_maximizer!' % func_str)
 

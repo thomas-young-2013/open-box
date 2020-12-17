@@ -12,6 +12,7 @@ from litebo.config_space import get_one_exchange_neighbourhood, \
 from litebo.acq_maximizer.random_configuration_chooser import ChooserNoCoolDown, ChooserProb
 from litebo.utils.constants import MAXINT
 from litebo.utils.history_container import HistoryContainer
+from litebo.utils.util_funcs import get_types
 
 
 class AcquisitionFunctionMaximizer(object, metaclass=abc.ABCMeta):
@@ -130,6 +131,75 @@ class AcquisitionFunctionMaximizer(object, metaclass=abc.ABCMeta):
         # Cannot use zip here because the indices array cannot index the
         # rand_configs list, because the second is a pure python list
         return [(acq_values[ind][0], configs[ind]) for ind in indices[::-1]]
+
+
+class CMAESOptimizer(AcquisitionFunctionMaximizer):
+    def __init__(
+            self,
+            acquisition_function: AbstractAcquisitionFunction,
+            config_space: ConfigurationSpace,
+            rng: Union[bool, np.random.RandomState] = None,
+            rand_prob=0.25,
+    ):
+        super().__init__(acquisition_function, config_space, rng)
+        self.random_chooser = ChooserProb(prob=rand_prob, rng=rng)
+
+    def _maximize(
+            self,
+            runhistory: HistoryContainer,
+            num_points: int,
+            **kwargs
+    ) -> Iterable[Tuple[float, Configuration]]:
+        raise NotImplementedError()
+
+    def maximize(
+            self,
+            runhistory: HistoryContainer,
+            num_points: int,
+            **kwargs
+    ) -> Iterable[Tuple[float, Configuration]]:
+        try:
+            from cma import CMAEvolutionStrategy
+        except ImportError:
+            raise ImportError("Package cma is not installed!")
+
+        types, bounds = get_types(self.config_space)
+        assert all(types == 0)
+
+        # Check Constant Hyperparameter
+        const_idx = list()
+        for i, bound in enumerate(bounds):
+            if np.isnan(bound[1]):
+                const_idx.append(i)
+
+        hp_num = len(bounds) - len(const_idx)
+        es = CMAEvolutionStrategy(hp_num * [0], 0.99, inopts={'bounds': [0, 1]})
+
+        eval_num = 0
+        next_configs_by_acq_value = list()
+        while eval_num < num_points:
+            X = es.ask(number=es.popsize)
+            _X = X.copy()
+            for i in range(len(_X)):
+                for index in const_idx:
+                    _X[i] = np.insert(_X[i], index, 0)
+            _X = np.asarray(_X)
+            values = self.acquisition_function._compute(_X)
+            values = np.reshape(values, (-1,))
+            es.tell(X, values)
+            next_configs_by_acq_value.extend([(values[i], _X[i]) for i in range(es.popsize)])
+            eval_num += es.popsize
+
+        next_configs_by_acq_value.sort(reverse=True, key=lambda x: x[0])
+        next_configs_by_acq_value = [_[1] for _ in next_configs_by_acq_value]
+        next_configs_by_acq_value = [Configuration(self.config_space, vector=array) for array in
+                                     next_configs_by_acq_value]
+
+        challengers = ChallengerList(next_configs_by_acq_value,
+                                     self.config_space,
+                                     self.random_chooser)
+        self.random_chooser.next_smbo_iteration()
+        return challengers
 
 
 class LocalSearch(AcquisitionFunctionMaximizer):
@@ -481,8 +551,8 @@ class InterleavedLocalAndRandomSearch(AcquisitionFunctionMaximizer):
         raise NotImplementedError()
 
 
-class Scipy_Optimizer(AcquisitionFunctionMaximizer):
-    """Implements Scipy optimizer (for MESMO). Only on continuous dims
+class MESMO_Optimizer(AcquisitionFunctionMaximizer):
+    """Implements Scipy optimizer for MESMO. Only on continuous dims
 
     Parameters
     ----------
