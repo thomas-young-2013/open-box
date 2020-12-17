@@ -117,13 +117,16 @@ class MOHistoryContainer(object):
         return self.config_counter == 0
 
     def get_incumbents(self):
-        return self.get_pareto_set()
+        return self.get_pareto()
 
     def get_mo_incumbents(self):
         return self.mo_incumbents
 
     def get_mo_incumbent_value(self):
         return self.mo_incumbent_value
+
+    def get_pareto(self):
+        return list(self.pareto.items())
 
     def get_pareto_set(self):
         return list(self.pareto.keys())

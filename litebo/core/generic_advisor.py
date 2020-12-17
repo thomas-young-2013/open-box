@@ -95,7 +95,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
         # multi-objective with constraints
         elif self.num_objs > 1 and self.num_constraints > 0:
             if self.acq_type is None:
-                self.acq_type = 'mesmoc'
+                self.acq_type = 'mesmoc2'
             assert self.acq_type in ['mesmoc', 'mesmoc2']
             if self.surrogate_type is None:
                 self.surrogate_type = 'gp_rbf'
@@ -117,9 +117,12 @@ class Advisor(object, metaclass=abc.ABCMeta):
         elif self.num_objs > 1:
             if self.acq_type is None:
                 self.acq_type = 'mesmo'
-            assert self.acq_type in ['mesmo']
+            assert self.acq_type in ['mesmo', 'usemo']
             if self.surrogate_type is None:
-                self.surrogate_type = 'gp_rbf'
+                if self.acq_type == 'mesmo':
+                    self.surrogate_type = 'gp_rbf'
+                else:
+                    self.surrogate_type = 'gp'
             if self.acq_type == 'mesmo' and self.surrogate_type != 'gp_rbf':
                 self.surrogate_type = 'gp_rbf'
                 self.logger.warning('Surrogate model has changed to Gaussian Process with RBF kernel '
@@ -160,7 +163,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
                                                       config_space=self.config_space,
                                                       rng=self.rng) for _ in range(self.num_constraints)]
 
-        if self.acq_type in ['mesmo', 'mesmoc', 'mesmoc2']:
+        if self.acq_type in ['mesmo', 'mesmoc', 'mesmoc2', 'usemo']:
             types, bounds = get_types(self.config_space)
             self.acquisition_function = build_acq_func(func_str=self.acq_type, model=self.surrogate_model,
                                                        constraint_models=self.constraint_models,
@@ -168,7 +171,10 @@ class Advisor(object, metaclass=abc.ABCMeta):
         else:
             self.acquisition_function = build_acq_func(func_str=self.acq_type, model=self.surrogate_model,
                                                        constraint_models=self.constraint_models)
-
+        if self.acq_type == 'usemo':
+            acq_optimizer_type = 'usemo_optimizer'
+        elif self.acq_type.startswith('mesmo'):
+            acq_optimizer_type = 'mesmo_optimizer'
         self.optimizer = build_optimizer(func_str=acq_optimizer_type,
                                          acq_func=self.acquisition_function,
                                          config_space=self.config_space,

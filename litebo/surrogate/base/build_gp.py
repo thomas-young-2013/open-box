@@ -85,6 +85,7 @@ def create_gp_model(model_type, config_space, types, bounds, rng):
             configspace=config_space,
             types=types,
             bounds=bounds,
+            alpha=1e-10,    # Fix RBF kernel error
             kernel=rbf_kernel,
             normalize_y=False,  # todo confirm
             seed=rng.randint(low=0, high=10000),

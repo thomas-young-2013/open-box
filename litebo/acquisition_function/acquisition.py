@@ -54,21 +54,25 @@ class AbstractAcquisitionFunction(object, metaclass=abc.ABCMeta):
         for key in kwargs:
             setattr(self, key, kwargs[key])
 
-    def __call__(self, configurations: List[Configuration]):
+    def __call__(self, configurations: List[Configuration], convert=True):
         """Computes the acquisition value for a given X
 
         Parameters
         ----------
         configurations : list
             The configurations where the acquisition function
-            should be evaluated. 
+            should be evaluated.
+        convert : bool
 
         Returns
         -------
         np.ndarray(N, 1)
             acquisition values for X
         """
-        X = convert_configurations_to_array(configurations)
+        if convert:
+            X = convert_configurations_to_array(configurations)
+        else:
+            X = configurations  # to be compatible with multi-objective acq to call single acq
         if len(X.shape) == 1:
             X = X[np.newaxis, :]
 
@@ -549,7 +553,7 @@ class LCB(AbstractAcquisitionFunction):
         Returns
         -------
         np.ndarray(N,1)
-            Expected Improvement of X
+            (Negative) Lower Confidence Bound of X
         """
         if self.num_data is None:
             raise ValueError('No current number of Datapoints specified. Call update('
@@ -561,3 +565,58 @@ class LCB(AbstractAcquisitionFunction):
         std = np.sqrt(var_)
         beta = 2*np.log((X.shape[1] * self.num_data**2) / self.par)
         return -(m - np.sqrt(beta)*std)
+
+
+class Uncertainty(AbstractAcquisitionFunction):
+    def __init__(self,
+                 model: AbstractModel,
+                 par: float=1.0):
+
+        """Computes half of the difference between upper and lower confidence bound (Uncertainty).
+
+        :math:`LCB(X) = \mu(\mathbf{X}) - \sqrt(\beta_t)\sigma(\mathbf{X})`
+        :math:`UCB(X) = \mu(\mathbf{X}) + \sqrt(\beta_t)\sigma(\mathbf{X})`
+        :math:`Uncertainty(X) = \sqrt(\beta_t)\sigma(\mathbf{X})`
+
+        Parameters
+        ----------
+        model : AbstractEPM
+            A surrogate that implements at least
+                 - predict_marginalized_over_instances(X)
+        par : float, default=1.0
+            Controls the balance between exploration and exploitation of the
+            acquisition function.
+        """
+        super(Uncertainty, self).__init__(model)
+        self.long_name = 'Uncertainty'
+        self.par = par
+        self.eta = None  # to be compatible with the existing update calls in SMBO
+        self.num_data = None
+
+    def _compute(self, X: np.ndarray):
+        """Computes the Uncertainty value.
+
+        Parameters
+        ----------
+        X: np.ndarray(N, D)
+           Points to evaluate Uncertainty. N is the number of points and D the dimension for the points
+
+        Returns
+        -------
+        tuple(np.ndarray(N,1), np.ndarray(N,1))
+            Uncertainty of X
+        """
+        if self.num_data is None:
+            raise ValueError('No current number of Datapoints specified. Call update('
+                             'num_data=<int>) to inform the acquisition function '
+                             'about the number of datapoints.')
+        if len(X.shape) == 1:
+            X = X[:, np.newaxis]
+        m, var_ = self.model.predict_marginalized_over_instances(X)
+        std = np.sqrt(var_)
+        beta = 2*np.log((X.shape[1] * self.num_data**2) / self.par)
+        uncertainty = np.sqrt(beta)*std
+        if np.any(np.isnan(uncertainty)):
+            self.logger.warning('Uncertainty has nan-value. Set to 0.')
+            uncertainty[np.isnan(uncertainty)] = 0
+        return uncertainty

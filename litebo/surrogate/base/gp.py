@@ -41,6 +41,10 @@ class GaussianProcess(BaseGP):
         Model seed.
     kernel : george kernel object
         Specifies the kernel that is used for all Gaussian Process
+    alpha : float or array-like, optional
+        Governed by the kernel in this implementation, so should be set to 0
+        Fix error when using RBF kernel (Set alpha=1e-10)
+        See skopt.learning.gaussian_process.GaussianProcessRegressor for details
     prior : prior object
         Defines a prior for the hyperparameters of the GP. Make sure that
         it implements the Prior interface.
@@ -61,6 +65,7 @@ class GaussianProcess(BaseGP):
             types: typing.List[int],
             bounds: typing.List[typing.Tuple[float, float]],
             kernel: Kernel,
+            alpha=0,
             normalize_y: bool = True,
             n_opt_restarts: int = 10,
             instance_features: typing.Optional[np.ndarray] = None,
@@ -77,6 +82,7 @@ class GaussianProcess(BaseGP):
             pca_components=pca_components,
         )
 
+        self.alpha = alpha  # Fix RBF kernel error
         self.normalize_y = normalize_y
         self.n_opt_restarts = n_opt_restarts
 
@@ -118,7 +124,7 @@ class GaussianProcess(BaseGP):
         n_tries = 10
         for i in range(n_tries):
             try:
-                self.gp = self._get_gp()
+                self.gp = self._get_gp(alpha=self.alpha)
                 self.gp.fit(X, y)
                 break
             except np.linalg.LinAlgError as e:
@@ -140,13 +146,13 @@ class GaussianProcess(BaseGP):
         self.is_trained = True
         return self
 
-    def _get_gp(self) -> GaussianProcessRegressor:
+    def _get_gp(self, alpha=0) -> GaussianProcessRegressor:
         return GaussianProcessRegressor(
             kernel=self.kernel,
             normalize_y=False,
             optimizer=None,
             n_restarts_optimizer=-1,  # Do not use scikit-learn's optimization routine
-            alpha=0,  # Governed by the kernel
+            alpha=alpha,    # The original is 0 (Governed by the kernel). Fix RBF kernel error.
             noise=None,
             random_state=self.rng,
         )

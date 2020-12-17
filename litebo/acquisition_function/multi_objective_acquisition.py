@@ -6,12 +6,13 @@ from sklearn.kernel_approximation import RBFSampler
 
 from litebo.acquisition_function.acquisition import AbstractAcquisitionFunction
 from litebo.surrogate.base.base_model import AbstractModel
+from litebo.acquisition_function.acquisition import Uncertainty
 
 from platypus import NSGAII, Problem, Real
 
 
 class MaxvalueEntropySearch(object):    # todo name min?
-    def __init__(self, model, X, Y, beta=1e6):
+    def __init__(self, model, X, Y, beta=1e6, random_state=1):
         self.model = model      # GP model
         self.X = X
         self.Y = Y
@@ -20,10 +21,11 @@ class MaxvalueEntropySearch(object):    # todo name min?
         self.weights_mu = None
         self.L = None
         self.sampled_weights = None
+        self.random_state = random_state
 
     def Sampling_RFM(self):
         self.rbf_features = RBFSampler(gamma=1 / (2 * self.model.kernel.length_scale ** 2),
-                                       n_components=1000, random_state=1)       # todo random_state, length_scale
+                                       n_components=1000, random_state=self.random_state)   # todo length_scale
         X_train_features = self.rbf_features.fit_transform(np.asarray(self.X))
 
         A_inv = np.linalg.inv(
@@ -88,6 +90,7 @@ class MESMO(AbstractAcquisitionFunction):
                  types: List[int],
                  bounds: List[Tuple[float, float]],
                  sample_num=1,
+                 random_state=1,
                  **kwargs):
         """Constructor
 
@@ -107,11 +110,14 @@ class MESMO(AbstractAcquisitionFunction):
             # todo cat dims
         sample_num : int
 
+        random_state :
+
         """
 
         super(MESMO, self).__init__(model)
         self.long_name = 'Multi-Objective Max-value Entropy Search'
         self.sample_num = sample_num
+        self.random_state = random_state
         self.types = np.asarray(types)
         self.bounds = np.asarray(bounds)
         self.X = None
@@ -125,7 +131,7 @@ class MESMO(AbstractAcquisitionFunction):
     def check_types_bounds(self):
         # todo
         for i, (t, b) in enumerate(zip(self.types, self.bounds)):
-            if b[1] is np.nan:
+            if np.isnan(b[1]):
                 self.logger.error("Only int and float hyperparameters are supported in MESMO at present!")
                 raise ValueError("Only int and float hyperparameters are supported in MESMO at present!")
 
@@ -141,7 +147,8 @@ class MESMO(AbstractAcquisitionFunction):
 
         self.Multiplemes = [None] * self.Y_dim
         for i in range(self.Y_dim):
-            self.Multiplemes[i] = MaxvalueEntropySearch(self.model[i], self.X, self.Y[:, i])
+            self.Multiplemes[i] = MaxvalueEntropySearch(self.model[i], self.X, self.Y[:, i],
+                                                        random_state=self.random_state)
             self.Multiplemes[i].Sampling_RFM()
 
         self.min_samples = []
@@ -206,6 +213,7 @@ class MESMOC(AbstractAcquisitionFunction):
                  types: List[int],
                  bounds: List[Tuple[float, float]],
                  sample_num=1,
+                 random_state=1,
                  **kwargs):
         """Constructor
 
@@ -228,11 +236,14 @@ class MESMOC(AbstractAcquisitionFunction):
             # todo cat dims
         sample_num : int
 
+        random_state :
+
         """
 
         super(MESMOC, self).__init__(model)
         self.long_name = 'Multi-Objective Max-value Entropy Search with Constraints'
         self.sample_num = sample_num
+        self.random_state = random_state
         self.types = np.asarray(types)
         self.bounds = np.asarray(bounds)
         self.constraint_models = constraint_models
@@ -251,7 +262,7 @@ class MESMOC(AbstractAcquisitionFunction):
     def check_types_bounds(self):
         # todo
         for i, (t, b) in enumerate(zip(self.types, self.bounds)):
-            if b[1] is np.nan:
+            if np.isnan(b[1]):
                 self.logger.error("Only int and float hyperparameters are supported in MESMOC at present!")
                 raise ValueError("Only int and float hyperparameters are supported in MESMOC at present!")
 
@@ -269,7 +280,8 @@ class MESMOC(AbstractAcquisitionFunction):
         self.Multiplemes = [None] * self.Y_dim
         self.Multiplemes_constraints = [None] * self.num_constraints
         for i in range(self.Y_dim):
-            self.Multiplemes[i] = MaxvalueEntropySearch(self.model[i], self.X, self.Y[:, i])
+            self.Multiplemes[i] = MaxvalueEntropySearch(self.model[i], self.X, self.Y[:, i],
+                                                        random_state=self.random_state)
             self.Multiplemes[i].Sampling_RFM()
         for i in range(self.num_constraints):
             # Caution dim of self.constraint_perfs!
@@ -355,6 +367,7 @@ class MESMOC2(MESMO):
                  types: List[int],
                  bounds: List[Tuple[float, float]],
                  sample_num=1,
+                 random_state=1,
                  **kwargs):
         """Constructor
 
@@ -377,8 +390,10 @@ class MESMOC2(MESMO):
             # todo cat dims
         sample_num : int
 
+        random_state :
+
         """
-        super(MESMOC2, self).__init__(model, types, bounds, sample_num)
+        super(MESMOC2, self).__init__(model, types, bounds, sample_num, random_state)
         self.constraint_models = constraint_models
         self.long_name = 'MESMOC2'
 
@@ -405,8 +420,116 @@ class MESMOC2(MESMO):
         return f
 
 
+class USeMO(AbstractAcquisitionFunction):
+
+    r"""Computes USeMO for multi-objective optimization
+
+    Syrine Belakaria, Aryan Deshwal, Nitthilan Kannappan Jayakodi, Janardhan Rao Doppa
+    Uncertainty-Aware Search Framework for Multi-Objective Bayesian Optimization
+    AAAI 2020
+    """
+
+    def __init__(self,
+                 model: List[AbstractModel],
+                 types: List[int],
+                 bounds: List[Tuple[float, float]],
+                 acq_type='ei',
+                 **kwargs):
+        """Constructor
+
+        Parameters
+        ----------
+        model : List[AbstractEPM]
+            A list of surrogate that implements at least
+                 - predict_marginalized_over_instances(X)
+        types : List[int]
+            Specifies the number of categorical values of an input dimension where
+            the i-th entry corresponds to the i-th input dimension. Let's say we
+            have 2 dimension where the first dimension consists of 3 different
+            categorical choices and the second dimension is continuous than we
+            have to pass [3, 0]. Note that we count starting from 0.
+        bounds : List[Tuple[float, float]]
+            Bounds of input dimensions: (lower, upper) for continuous dims; (n_cat, np.nan) for categorical dims
+            # todo cat dims
+        acq_type:
+            todo
+        """
+
+        super(USeMO, self).__init__(model)
+        self.long_name = 'Uncertainty-Aware Search'
+        self.types = np.asarray(types)
+        self.bounds = np.asarray(bounds)
+        from litebo.core.base import build_acq_func
+        self.single_acq = [build_acq_func(func_str=acq_type, model=m) for m in model]
+        self.uncertainty_acq = [Uncertainty(model=m) for m in model]
+        self.X = None
+        self.Y = None
+        self.X_dim = None
+        self.Y_dim = None
+        self.eta = None
+        self.num_data = None
+        self.uncertainties = None
+        self.candidates = None
+        self.check_types_bounds()
+
+    def check_types_bounds(self):
+        # todo
+        for i, (t, b) in enumerate(zip(self.types, self.bounds)):
+            if np.isnan(b[1]):
+                self.logger.error("Only int and float hyperparameters are supported in USeMO at present!")
+                raise ValueError("Only int and float hyperparameters are supported in USeMO at present!")
+
+    def update(self, **kwargs):
+        """
+        Rewrite update
+        """
+        assert 'X' in kwargs and 'Y' in kwargs
+        assert 'eta' in kwargs and 'num_data' in kwargs
+        super(USeMO, self).update(**kwargs)
+
+        self.X_dim = self.X.shape[1]
+        self.Y_dim = self.Y.shape[1]
+        assert self.Y_dim > 1
+
+        # update single acquisition function
+        for i in range(self.Y_dim):
+            self.single_acq[i].update(model=self.model[i],
+                                      eta=self.eta[i],
+                                      num_data=self.num_data)
+            self.uncertainty_acq[i].update(model=self.model[i],
+                                           eta=self.eta[i],
+                                           num_data=self.num_data)
+
+        def CMO(x):
+            x = np.asarray(x)
+            # minimize negative acq
+            return [-self.single_acq[i](x, convert=False)[0][0] for i in range(self.Y_dim)]
+
+        problem = Problem(self.X_dim, self.Y_dim)
+        for k in range(self.X_dim):
+            problem.types[k] = Real(self.bounds[k][0], self.bounds[k][1])   # todo other types
+        problem.function = CMO
+        algorithm = NSGAII(problem)    # todo population_size
+        algorithm.run(2500)
+        cheap_pareto_set = [solution.variables for solution in algorithm.result]
+        # cheap_pareto_set_unique = []
+        # for i in range(len(cheap_pareto_set)):
+        #     if not any((cheap_pareto_set[i] == x).all() for x in self.X):   # todo convert problem? no this step?
+        #         cheap_pareto_set_unique.append(cheap_pareto_set[i])
+        cheap_pareto_set_unique = cheap_pareto_set
+
+        single_uncertainty = np.array([self.uncertainty_acq[i](np.asarray(cheap_pareto_set_unique), convert=False)
+                                       for i in range(self.Y_dim)])      # shape=(Y_dim, N, 1)
+        single_uncertainty = single_uncertainty.reshape(self.Y_dim, -1)  # shape=(Y_dim, N)
+        self.uncertainties = np.prod(single_uncertainty, axis=0)         # shape=(Y_dim,) todo normalize?
+        self.candidates = np.array(cheap_pareto_set_unique)
+
+    def _compute(self, X: np.ndarray, **kwargs):
+        raise NotImplementedError   # use USeMO_Optimizer
+
+
 # class MaxvalueEntropySearch(object):
-#     def __init__(self, model, X, Y, beta=1e6):
+#         def __init__(self, model, X, Y, beta=1e6, random_state=1):
 #         self.model = model      # GP model
 #         self.X = X
 #         self.Y = Y
@@ -415,10 +538,11 @@ class MESMOC2(MESMO):
 #         self.weights_mu = None
 #         self.L = None
 #         self.sampled_weights = None
+#         self.random_state = random_state
 #
 #     def Sampling_RFM(self):
 #         self.rbf_features = RBFSampler(gamma=1 / (2 * self.model.kernel.length_scale ** 2),
-#                                        n_components=1000, random_state=1)       # todo random_state, length_scale
+#                                        n_components=1000, random_state=self.random_state)   # todo length_scale
 #         X_train_features = self.rbf_features.fit_transform(np.asarray(self.X))
 #
 #         A_inv = np.linalg.inv(
@@ -534,7 +658,8 @@ class MESMOC2(MESMO):
 #
 #         self.Multiplemes = [None] * self.Y_dim
 #         for i in range(self.Y_dim):
-#             self.Multiplemes[i] = MaxvalueEntropySearch(self.model[i], self.X, self.Y[:, i])
+#             self.Multiplemes[i] = MaxvalueEntropySearch(self.model[i], self.X, self.Y[:, i],
+#                                                         random_state=self.random_state)
 #             self.Multiplemes[i].Sampling_RFM()
 #
 #         self.max_samples = []
