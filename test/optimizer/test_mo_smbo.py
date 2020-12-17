@@ -12,11 +12,16 @@ from litebo.config_space import Configuration
 from mo_benchmark_function import timeit
 
 # set problem
-from mo_benchmark_function import multi_objective_func_bc, get_cs_bc, run_nsgaii_bc
-problem_str = 'bc'
-multi_objective_func = multi_objective_func_bc
-cs = get_cs_bc()
-run_nsgaii = run_nsgaii_bc
+from mo_benchmark_function import get_setup_bc
+setup = get_setup_bc()
+multi_objective_func = setup['multi_objective_func']
+cs = setup['cs']
+run_nsgaii = setup['run_nsgaii']
+problem_str = setup['problem_str']
+num_inputs = setup['num_inputs']
+num_objs = setup['num_objs']
+referencePoint = setup['referencePoint']
+real_hv = setup['real_hv']
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--n', type=int, default=100)
@@ -36,11 +41,6 @@ mth = args.mth
 
 seeds = [4774, 3711, 7238, 3203, 4254, 2137, 1188, 4356,  517, 5887,
          9082, 4702, 4801, 8242, 7391, 1893, 4400, 1192, 5553, 9039]
-num_inputs = 2
-num_objs = 2
-referencePoint = [1e5] * num_objs    # must greater than max value of objective
-real_hv = 1e10
-
 
 # Evaluate mth
 X_init = np.array([
