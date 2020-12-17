@@ -21,7 +21,12 @@ def wrapper(param):
         if timeout_status:
             raise TimeoutException('Timeout: time limit for this evaluation is %.1fs' % time_limit_per_trial)
         else:
-            result = _result if _result is not None else MAXINT
+            if _result is None:
+                result = MAXINT
+            elif isinstance(_result, dict):
+                result = _result['objective_value']
+            else:
+                result = _result
     except Exception as e:
         if isinstance(e, TimeoutException):
             trial_state = TIMEOUT
@@ -108,7 +113,12 @@ class pSMBO(BOBase):
                 results = proc.parallel_execute(params)
                 # Report their results.
                 for idx, (_config, _result) in enumerate(zip(configs, results)):
-                    _perf = _result[-1]
+                    if _result[-1] is None:
+                        _perf = MAXINT
+                    elif isinstance(_result[-1], dict):
+                        _perf = _result[-1]['objective_value']
+                    else:
+                        _perf = _result[-1]
                     _observation = [_config, _perf, SUCCESS]
                     self.config_advisor.update_observation(_observation)
                     self.logger.info('In the %d-th batch [%d], result is: %.3f' % (batch_id, idx, _perf))
