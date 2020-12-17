@@ -173,6 +173,8 @@ class Advisor(object, metaclass=abc.ABCMeta):
                                                        constraint_models=self.constraint_models)
         if self.acq_type == 'usemo':
             acq_optimizer_type = 'usemo_optimizer'
+        elif self.acq_type.startswith('mesmo'):
+            acq_optimizer_type = 'scipy'
         self.optimizer = build_optimizer(func_str=acq_optimizer_type,
                                          acq_func=self.acquisition_function,
                                          config_space=self.config_space,

@@ -25,7 +25,7 @@ class MaxvalueEntropySearch(object):    # todo name min?
 
     def Sampling_RFM(self):
         self.rbf_features = RBFSampler(gamma=1 / (2 * self.model.kernel.length_scale ** 2),
-                                       n_components=1000, random_state=self.random_state)       # todo length_scale
+                                       n_components=1000, random_state=self.random_state)   # todo length_scale
         X_train_features = self.rbf_features.fit_transform(np.asarray(self.X))
 
         A_inv = np.linalg.inv(
@@ -525,11 +525,11 @@ class USeMO(AbstractAcquisitionFunction):
         self.candidates = np.array(cheap_pareto_set_unique)
 
     def _compute(self, X: np.ndarray, **kwargs):
-        raise NotImplementedError
+        raise NotImplementedError   # use USeMO_Optimizer
 
 
 # class MaxvalueEntropySearch(object):
-#     def __init__(self, model, X, Y, beta=1e6):
+#         def __init__(self, model, X, Y, beta=1e6, random_state=1):
 #         self.model = model      # GP model
 #         self.X = X
 #         self.Y = Y
@@ -538,10 +538,11 @@ class USeMO(AbstractAcquisitionFunction):
 #         self.weights_mu = None
 #         self.L = None
 #         self.sampled_weights = None
+#         self.random_state = random_state
 #
 #     def Sampling_RFM(self):
 #         self.rbf_features = RBFSampler(gamma=1 / (2 * self.model.kernel.length_scale ** 2),
-#                                        n_components=1000, random_state=1)       # todo random_state, length_scale
+#                                        n_components=1000, random_state=self.random_state)   # todo length_scale
 #         X_train_features = self.rbf_features.fit_transform(np.asarray(self.X))
 #
 #         A_inv = np.linalg.inv(
@@ -657,7 +658,8 @@ class USeMO(AbstractAcquisitionFunction):
 #
 #         self.Multiplemes = [None] * self.Y_dim
 #         for i in range(self.Y_dim):
-#             self.Multiplemes[i] = MaxvalueEntropySearch(self.model[i], self.X, self.Y[:, i])
+#             self.Multiplemes[i] = MaxvalueEntropySearch(self.model[i], self.X, self.Y[:, i],
+#                                                         random_state=self.random_state)
 #             self.Multiplemes[i].Sampling_RFM()
 #
 #         self.max_samples = []
