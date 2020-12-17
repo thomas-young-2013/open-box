@@ -95,7 +95,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
         # multi-objective with constraints
         elif self.num_objs > 1 and self.num_constraints > 0:
             if self.acq_type is None:
-                self.acq_type = 'mesmoc'
+                self.acq_type = 'mesmoc2'
             assert self.acq_type in ['mesmoc', 'mesmoc2']
             if self.surrogate_type is None:
                 self.surrogate_type = 'gp_rbf'
