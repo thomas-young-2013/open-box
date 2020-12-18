@@ -20,6 +20,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
                  optimization_strategy='bo',
                  surrogate_type=None,
                  acq_type=None,
+                 acq_optimizer_type='local_random',
                  output_dir='logs',
                  task_id=None,
                  rng=None):
@@ -55,6 +56,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
         self.surrogate_type = surrogate_type
         self.constraint_surrogate_type = None
         self.acq_type = acq_type
+        self.acq_optimizer_type = acq_optimizer_type
         self.init_num = initial_trials
         self.config_space = config_space
         self.config_space.seed(rng.randint(MAXINT))
@@ -145,7 +147,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
                 self.logger.warning('Surrogate model has changed to Gaussian Process '
                                     'since TS is used. Surrogate_type should be set to \'gp\'.')
 
-    def setup_bo_basics(self, acq_optimizer_type='local_random'):
+    def setup_bo_basics(self):
         if self.num_objs == 1:
             self.surrogate_model = build_surrogate(func_str=self.surrogate_type,
                                                    config_space=self.config_space,
@@ -175,7 +177,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
             acq_optimizer_type = 'usemo_optimizer'
         elif self.acq_type.startswith('mesmo'):
             acq_optimizer_type = 'mesmo_optimizer'
-        self.optimizer = build_optimizer(func_str=acq_optimizer_type,
+        self.optimizer = build_optimizer(func_str=self.acq_optimizer_type,
                                          acq_func=self.acquisition_function,
                                          config_space=self.config_space,
                                          rng=self.rng)

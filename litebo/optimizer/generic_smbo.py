@@ -23,6 +23,7 @@ class SMBO(BOBase):
                  advisor_type='default',
                  surrogate_type=None,
                  acq_type=None,
+                 acq_optimizer_type='local_random',
                  history_bo_data: List[OrderedDict] = None,
                  logging_dir='logs',
                  init_strategy='random_explore_first',
@@ -46,6 +47,7 @@ class SMBO(BOBase):
                                           optimization_strategy=sample_strategy,
                                           surrogate_type=surrogate_type,
                                           acq_type=acq_type,
+                                          acq_optimizer_type=acq_optimizer_type,
                                           history_bo_data=history_bo_data,
                                           task_id=task_id,
                                           output_dir=logging_dir,
@@ -76,7 +78,7 @@ class SMBO(BOBase):
                         'Timeout: time limit for this evaluation is %.1fs' % self.time_limit_per_trial)
                 else:
                     objs = _result['objs'] if _result['objs'] is not None else self.FAILED_PERF
-                    constraints = _result['constraints']
+                    constraints = _result.get('constraints', None)
             except Exception as e:
                 if isinstance(e, TimeoutException):
                     trial_state = TIMEOUT
