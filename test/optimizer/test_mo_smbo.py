@@ -76,7 +76,7 @@ with timeit('%s all' % (mth,)):
                 bo.config_advisor.acquisition_function.random_state = seed      # set random_state
                 bo.config_advisor.optimizer.num_mc = opt_num_mc     # MESMO optimizer only
                 bo.config_advisor.optimizer.num_opt = opt_num_opt   # MESMO optimizer only
-                print(seed, mth, 'start ='*30)
+                print(seed, mth, '===== start =====')
                 # bo.run()
                 hv_diffs = []
                 for i in range(max_runs):
