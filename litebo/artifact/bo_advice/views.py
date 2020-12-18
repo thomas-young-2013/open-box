@@ -1,7 +1,7 @@
 import os
 import json
 import pickle
-import requests
+import numpy as np
 from django.http import HttpResponse
 from django.core.handlers.wsgi import WSGIRequest
 from ConfigSpace.read_and_write import json as config_json
@@ -42,7 +42,7 @@ def get_pickle_name_from_id(client_id):
 # POST API
 def task_register(request):
     """
-    receive a user's config_space and dump it into a pickle file
+    receive a user's  (id, config_space) and dump it into a pickle file
 
     Parameters
     ----------
@@ -52,7 +52,7 @@ def task_register(request):
 
     Returns
     -------
-    readable information string in HttpResponse form
+    (readable information) string in HttpResponse form
 
     """
     if request.method == 'POST':
@@ -73,7 +73,7 @@ def task_register(request):
 #
 def get_suggestion(request):
     """
-    take a user_id and reply a suggestion
+    take a (user_id) and reply a suggestion
 
     Parameters
     ----------
@@ -81,7 +81,7 @@ def get_suggestion(request):
 
     Returns
     -------
-    SUCCESS : a new configuration in dictionary form
+    SUCCESS : a new encoded (configuration)
     FAILED : a readable information string in HttpResponse form
     """
 
@@ -129,25 +129,30 @@ def update_observation(request):
     """
     if request.method == 'POST':
         if request.POST:
-            postdata = request.POST.get('postdata')
+            user_id = request.POST.get('user_id')
+            config_js = request.POST.get('config_json')
+            config_list = json.JSONDecoder().decode(config_js)
+            print(config_list)
+            config_vector = np.array(config_list)
+            perf = float(request.POST.get('perf'))
 
-            if postdata:
+            pickle_name = get_pickle_name_from_id(user_id)
+            with open(pickle_name, 'rb') as f:
+                config_space = pickle.load(f)
+            config = Configuration(config_space, vector=config_vector)
 
-                id = postdata['id']
-                observation = postdata['observation']
-                pickle_name = get_pickle_name_from_id(id)
-                bo = pickle.load(pickle_name)
-                bo.update_observation(observation)
-
-            else:
-                return HttpResponse('[bo_advice/views.py] error2')
+            dic = {'user_id': user_id, 'config_space': config_space, 'perf': perf}
+            print('--------------')
+            print(dic)
+            print('--------------')
+            return HttpResponse('[bo_advice/views.py] update SUCCESS')
         else:
             return HttpResponse('[bo_advice/views.py] error3')
     else:
         return HttpResponse('[bo_advice/views.py] error4')
 
 
-# POST API
+# POST API for test
 def task_done(request):
     """
 
@@ -161,21 +166,17 @@ def task_done(request):
     """
     if request.method == 'POST':
         if request.POST:
-            postdata = request.POST.get('postdata', 0)
-            postdata = json.loads(postdata)
-            if postdata:
-                id = postdata['id']
-                pickle_name = get_pickle_name_from_id(id)
-                os.remove(pickle_name)
-
-            else:
-                return HttpResponse('[bo_advice/views.py] error5')
+            user_id = request.POST.get('user_id')
+            pickle_name = get_pickle_name_from_id(user_id)
+            os.remove(pickle_name)
+            return HttpResponse('[bo_advice/views.py] remove SUCCESS')
         else:
-            return HttpResponse('[bo_advice/views.py] error6')
+            return HttpResponse('[bo_advice/views.py] empty post data')
     else:
-        return HttpResponse('[bo_advice/views.py] error7')
+        return HttpResponse('[bo_advice/views.py] should be a POST request')
 
 
+# POST API for test
 def test_upload(request: WSGIRequest) -> HttpResponse:
     print('---------------------------------------')
     print(request)
