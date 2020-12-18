@@ -8,6 +8,7 @@ import pickle as pkl
 import gpflow
 import gpflowopt
 
+sys.path.insert(0, os.getcwd())
 from mo_benchmark_function import timeit
 
 # set problem
