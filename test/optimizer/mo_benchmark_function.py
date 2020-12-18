@@ -66,10 +66,10 @@ def get_setup_bc():
 
     def get_cs_bc():
         cs_bc = ConfigurationSpace()
-        x1 = UniformFloatHyperparameter("x0", scale1[0], scale1[1])
-        # x1 = UniformIntegerHyperparameter("x0", scale1[0], scale1[1])  # test int
-        x2 = UniformFloatHyperparameter("x1", scale2[0], scale2[1])
-        cs_bc.add_hyperparameters([x1, x2])
+        x0 = UniformFloatHyperparameter("x0", scale1[0], scale1[1])
+        # x0 = UniformIntegerHyperparameter("x0", scale1[0], scale1[1])  # test int
+        x1 = UniformFloatHyperparameter("x1", scale2[0], scale2[1])
+        cs_bc.add_hyperparameters([x0, x1])
         return cs_bc
 
     def run_nsgaii_bc():
