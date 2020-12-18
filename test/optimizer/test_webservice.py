@@ -1,21 +1,15 @@
 import os
 import sys
-import time
 import numpy as np
 
 from ConfigSpace.hyperparameters import UniformFloatHyperparameter
 
 sys.path.append(os.getcwd())
-from litebo.optimizer.parallel_smbo import pSMBO
+from litebo.optimizer.smbo import SMBO
 from litebo.config_space import ConfigurationSpace
-from litebo.utils.visualization.visualizatoin_for_test_psmbo import visualize
-
-time_limit = 5
 
 
 def branin(x):
-    time_cost = np.random.rand() * time_limit
-    time.sleep(time_cost)
     xs = x.get_dictionary()
     x1 = xs['x1']
     x2 = xs['x2']
@@ -34,17 +28,15 @@ x1 = UniformFloatHyperparameter("x1", -5, 10, default_value=0)
 x2 = UniformFloatHyperparameter("x2", 0, 15, default_value=0)
 cs.add_hyperparameters([x1, x2])
 
-bo = pSMBO(branin, cs, max_runs=50, batch_size=3,
-           time_limit_per_trial=time_limit,
-           logging_dir='logs',
-           parallel_strategy='sync')
+bo = SMBO(branin, cs, advisor_type='default', max_runs=50, time_limit_per_trial=3, logging_dir='logs')
 bo.run()
 inc_value = bo.get_incumbent()
 print('BO', '=' * 30)
 print(inc_value)
 
-
-# =====for vvv=====
-# after the execution of this file
-# goto the roor directory using the command `tensorboard --logdir`
-visualize(bo.logger_name)
+# Evaluate the random search.
+bo = SMBO(branin, cs, max_runs=50, time_limit_per_trial=3, sample_strategy='random', logging_dir='logs')
+bo.run()
+inc_value = bo.get_incumbent()
+print('RANDOM', '=' * 30)
+print(inc_value)

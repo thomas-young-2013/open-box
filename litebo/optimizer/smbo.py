@@ -44,7 +44,7 @@ class SMBO(BOBase):
             self.iterate()
 
     def iterate(self):
-        config = self.config_advisor.get_suggestion()
+        config = self.config_advisor.get_suggestion()                             # here is the key step !!!!!
 
         trial_state, trial_info = SUCCESS, None
 
@@ -74,10 +74,66 @@ class SMBO(BOBase):
                 trial_info = str(e)
 
             observation = [config, perf, trial_state]
-            self.config_advisor.update_observation(observation)
+            self.config_advisor.update_observation(observation)                     # here is the key step !!!!!
         else:
             self.logger.info('This configuration has been evaluated! Skip it.')
             if config in self.config_advisor.configurations:
+                config_idx = self.config_advisor.configurations.index(config)
+                trial_state, perf = SUCCESS, self.config_advisor.perfs[config_idx]
+            else:
+                trial_state, perf = FAILED, MAXINT
+
+        self.iteration_id += 1
+        self.logger.info('In the %d-th iteration, the objective value: %.4f' % (self.iteration_id, perf))
+        return config, trial_state, perf, trial_info
+
+    def webservice_get_suggestion(self):
+        """
+        get a new suggestion that should be test in the next evaluation routine
+        the current implementation may return
+        Returns
+        -------
+        void
+        """
+        config = self.config_advisor.get_suggestion()
+        return config
+
+    def webservice_update_observation(self, postdata):
+        """
+        be triggered when a client post a evaluation outcome
+
+        postdata should be a dict including following keys:
+        'config' : the config being evaluated
+        'timeout_status' : function like timeout_status, _result = time_limit(self.objective_function,
+        '_result' :                                                         self.time_limit_per_trial,
+                                                                            args=args, kwargs=kwargs)
+
+        Returns
+        -------
+        void
+        """
+        if postdata['config'] not in (self.config_advisor.configurations + self.config_advisor.failed_configurations):
+            try:
+                args, kwargs = (postdata['config'],), dict()
+                if postdata['timeout_status']:
+                    raise TimeoutException(
+                        'Timeout: time limit for this evaluation is %.1fs' % self.time_limit_per_trial)
+                else:
+                    perf = postdata['_result'] if postdata['_result'] is not None else MAXINT
+            except Exception as e:
+                if isinstance(e, TimeoutException):
+                    trial_state = TIMEOUT
+                else:
+                    traceback.print_exc(file=sys.stdout)
+                    trial_state = FAILED
+                perf = MAXINT
+                trial_info = str(e)
+
+            observation = [postdata['config'], perf, trial_state]
+            self.config_advisor.update_observation(observation)                     # here is the key step !!!!!
+        else:
+            self.logger.info('This configuration has been evaluated! Skip it.')
+            if postdata['config'] in self.config_advisor.configurations:
                 config_idx = self.config_advisor.configurations.index(config)
                 trial_state, perf = SUCCESS, self.config_advisor.perfs[config_idx]
             else:

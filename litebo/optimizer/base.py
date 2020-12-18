@@ -33,6 +33,7 @@ class BOBase(object, metaclass=abc.ABCMeta):
             _time_stamp = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
             task_id = '%s-[%s]' % (_class_name, _time_stamp)
         self.task_id = task_id
+        self.logger_name = ''
         self.logger = self._get_logger(task_id)
         self.rng = np.random.RandomState(random_state)
 
@@ -52,5 +53,6 @@ class BOBase(object, metaclass=abc.ABCMeta):
 
     def _get_logger(self, name):
         logger_name = 'Lite-BO-%s' % name
-        setup_logger(os.path.join(self.output_dir, '%s.log' % str(logger_name)))
+        self.logger_name = os.path.join(self.output_dir, '%s.log' % str(logger_name))
+        setup_logger(self.logger_name)
         return get_logger(logger_name)
