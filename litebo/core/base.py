@@ -50,6 +50,9 @@ def build_optimizer(func_str='local_random', acq_func=None, config_space=None, r
     if func_str == 'local_random':
         from litebo.acq_maximizer.ei_optimization import InterleavedLocalAndRandomSearch
         optimizer = InterleavedLocalAndRandomSearch
+    elif func_str == 'random_scipy':
+        from litebo.acq_maximizer.ei_optimization import RandomScipyOptimizer
+        optimizer = RandomScipyOptimizer
     elif func_str == 'mesmo_optimizer':
         from litebo.acq_maximizer.ei_optimization import MESMO_Optimizer
         optimizer = MESMO_Optimizer
