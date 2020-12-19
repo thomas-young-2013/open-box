@@ -1,54 +1,24 @@
-import os
 import json
-import pickle
-import numpy as np
 from django.http import HttpResponse
-from django.core.handlers.wsgi import WSGIRequest
-from ConfigSpace.read_and_write import json as config_json
+
+from litebo.config_space import json as config_json
 from litebo.config_space import Configuration
-from litebo.config_space.util import convert_configurations_to_array
+from litebo.core.base import Observation
 
 
-"""
-THIS FILE IS ONLY A FRAMEWORK !!!
-
-the main routine is
-1. Client come -> (POST)task_register -> 
-2. (POST)get_suggestion -> (Clent run locally) -> (POST)update_observation
-3. cycle routine 2 till the client is satisfied
-4. ->(POST)task_done
-"""
-
-# naive implementation of id
-def get_pickle_name_from_id(client_id):
-    """
-    not fully implemented
-    should convert the client_id to a unique static file name
-    might change to a database
-
-    Parameters
-    ----------
-    client_id : an identifier to choose the correlated SMBO object's pickle
-
-    Returns
-    -------
-    filepath : <string> filepath of the pickle file
-
-    """
-    filepath = os.path.join('litebo/artifact/bo_advice/static_storage', str(client_id) + '.config_space.pkl')
-    return filepath
+# Global mapping from task_id to config advisor
+advisor_dict = {}
 
 
-# POST API
 def task_register(request):
     """
-    receive a user's  (id, config_space) and dump it into a pickle file
+    Receive a task's (task_id, config_space) and dump it into a pickle file.
 
     Parameters
     ----------
     request: a django.core.handlers.wsgi.WSGIRequest object with following keys:
-        'id' : a unique user id
-        'config_space_array' : json string of a config_space created by ConfigSpace.read_and_write.json.write()
+        'id' : a unique task id
+        'config_space_json' : json string of a config_space created by ConfigSpace.read_and_write.json.write()
 
     Returns
     -------
@@ -57,12 +27,30 @@ def task_register(request):
     """
     if request.method == 'POST':
         if request.POST:
-            user_id = request.POST.get('id')
-            pickle_name = get_pickle_name_from_id(user_id)
-            config_space_array = request.POST.get('config_space_array')
-            config_space = config_json.read(config_space_array)
-            with open(pickle_name, 'wb') as f:
-                pickle.dump(config_space, f, pickle.HIGHEST_PROTOCOL)
+            # Parse request
+            task_id = request.POST.get('task_id')
+            config_space_json = request.POST.get('config_space_json')
+            config_space = config_json.read(config_space_json)
+
+            num_constraints = int(request.POST.get('num_constraints', 0))
+            num_objs = int(request.POST.get('num_objs', 1))
+            task_info = {'num_constraints': num_constraints, 'num_objs': num_objs}
+            options = json.loads(request.POST.get('options', '{}'))
+
+            # Create advisor
+            advisor_type = request.POST.get('advisor_type', 'default')
+            if advisor_type == 'default':
+                from litebo.core.generic_advisor import Advisor
+                config_advisor = Advisor(config_space, task_info, task_id=task_id, **options)
+            elif advisor_type == 'tpe':
+                from litebo.core.tpe_advisor import TPE_Advisor
+                config_advisor = TPE_Advisor(config_space)
+            else:
+                raise ValueError('Invalid advisor type!')
+
+            # Save advisor in a global dict
+            advisor_dict[task_id] = config_advisor
+
             return HttpResponse('[bo_advice/views.py] SUCCESS')
         else:
             return HttpResponse('[bo_advice/views.py] empty post data')
@@ -70,10 +58,9 @@ def task_register(request):
         return HttpResponse('[bo_advice/views.py] should be a POST request')
 
 
-#
 def get_suggestion(request):
     """
-    take a (user_id) and reply a suggestion
+    Print the suggestion according to the specified task id.
 
     Parameters
     ----------
@@ -87,22 +74,14 @@ def get_suggestion(request):
 
     if request.method == 'POST':
         if request.POST:
-            user_id = request.POST.get('id')
-            pickle_name = get_pickle_name_from_id(user_id)
-            with open(pickle_name, 'rb') as f:
-                config_space = pickle.load(f)
+            task_id = request.POST.get('task_id')
+            config_advisor = advisor_dict[task_id]
 
-            """
-            这里应该引入计算新config的逻辑，这里先为了实现交互， 返回的是一个随机的的config
-            为了能用Http返回 这里采用了json格式，需要接受方把json格式转化成np.array再转化成config_space
-            """
-            sample = config_space.sample_configuration()
-            config_vector = convert_configurations_to_array([sample])[0].tolist()
-            print('---------------------')
-            print(type(config_vector))
-            print(config_vector)
-            print('---------------------')
-            res = json.JSONEncoder().encode(config_vector)
+            suggestion = config_advisor.get_suggestion()
+            print('-'*21)
+            print('Get suggestion')
+            print(suggestion, '-'*21, sep='')
+            res = json.JSONEncoder().encode(suggestion.get_dictionary())
 
             return HttpResponse(res)
         else:
@@ -111,17 +90,13 @@ def get_suggestion(request):
         return HttpResponse('[bo_advice/views.py] error7')
 
 
-# POST API
-# load the pickled SMBO
 def update_observation(request):
     """
-    take a user_id, take corresponding logging file, append a line in it
-    之后可能会改为内存数据库，还在理解阶段，用中文标明这里是下一个迷茫点
+    Update observation in config advisor.
 
     Parameters
     ----------
-    request : a json with the following keys
-
+    request : a dict
 
     Returns
     -------
@@ -129,22 +104,21 @@ def update_observation(request):
     """
     if request.method == 'POST':
         if request.POST:
-            user_id = request.POST.get('user_id')
-            config_js = request.POST.get('config_json')
-            config_list = json.JSONDecoder().decode(config_js)
-            print(config_list)
-            config_vector = np.array(config_list)
-            perf = float(request.POST.get('perf'))
+            task_id = request.POST.get('task_id')
+            config_advisor = advisor_dict[task_id]
+            config_dict = json.loads(request.POST.get('config'))
+            config = Configuration(config_advisor.config_space, config_dict)
+            trial_state = int(request.POST.get('trial_state'))
+            constraints = json.loads(request.POST.get('constraints'))
+            objs = json.loads(request.POST.get('objs'))
 
-            pickle_name = get_pickle_name_from_id(user_id)
-            with open(pickle_name, 'rb') as f:
-                config_space = pickle.load(f)
-            config = Configuration(config_space, vector=config_vector)
+            observation = Observation(config, trial_state, constraints, objs)
+            config_advisor.update_observation(observation)
 
-            dic = {'user_id': user_id, 'config_space': config_space, 'perf': perf}
-            print('--------------')
-            print(dic)
-            print('--------------')
+            print('-'*21)
+            print('Update observation')
+            print(observation)
+            print('-'*21)
             return HttpResponse('[bo_advice/views.py] update SUCCESS')
         else:
             return HttpResponse('[bo_advice/views.py] error3')
@@ -152,9 +126,9 @@ def update_observation(request):
         return HttpResponse('[bo_advice/views.py] error4')
 
 
-# POST API for test
-def task_done(request):
+def get_result(request):
     """
+    Get BO result and history.
 
     Parameters
     ----------
@@ -162,47 +136,26 @@ def task_done(request):
 
     Returns
     -------
-    a readable information string in HttpResponse form
+    BO incumbents, BO history
     """
+
     if request.method == 'POST':
         if request.POST:
-            user_id = request.POST.get('user_id')
-            pickle_name = get_pickle_name_from_id(user_id)
-            os.remove(pickle_name)
-            return HttpResponse('[bo_advice/views.py] remove SUCCESS')
+            task_id = request.POST.get('task_id')
+            config_advisor = advisor_dict[task_id]
+
+            incumbents = config_advisor.history_container.incumbents
+            incumbents = [(k.get_dictionary(), v) for k, v in incumbents]
+            history = config_advisor.history_container.data
+            history = [(k.get_dictionary(), v) for k, v in history.items()]
+            print('-'*21)
+            print('BO result')
+            print(incumbents, '-'*21, sep='')
+            res = json.JSONEncoder().encode({'result': json.dumps(incumbents),
+                                             'history': json.dumps(history)})
+
+            return HttpResponse(res)
         else:
-            return HttpResponse('[bo_advice/views.py] empty post data')
+            return HttpResponse('[bo_advice/views.py] error6')
     else:
-        return HttpResponse('[bo_advice/views.py] should be a POST request')
-
-
-# POST API for test
-def test_upload(request: WSGIRequest) -> HttpResponse:
-    print('---------------------------------------')
-    print(request)
-    print(type(request))
-    print('---------------------------------------')
-    assert request.method == 'POST'
-    id = request.POST.get('id')
-    print(id)
-    config = request.POST.getlist('config')
-    print(config)
-    filepath = get_pickle_name_from_id(id)
-    print(filepath)
-    with open(filepath, 'wb') as f:
-        savedata = {'id': id, 'config': config}
-        pickle.dump(savedata, f, pickle.HIGHEST_PROTOCOL)
-        print('dump finished')
-        return HttpResponse('upload_SUCCESS!')
-    return HttpResponse('upload_FAIL')
-
-
-def test_download(request):
-    assert request.method == 'POST'
-    id = request.POST.get('id', 0)
-    filepath = get_pickle_name_from_id(id)
-    with open(filepath, 'rb') as f:
-        data = pickle.load(f)
-    print(type(data))
-    print(data)
-    return HttpResponse(data)
+        return HttpResponse('[bo_advice/views.py] error7')

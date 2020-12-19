@@ -51,7 +51,7 @@ class SMBO(BOBase):
                                           history_bo_data=history_bo_data,
                                           task_id=task_id,
                                           output_dir=logging_dir,
-                                          rng=self.rng)
+                                          random_state=random_state)
         elif advisor_type == 'tpe':
             from litebo.core.tpe_advisor import TPE_Advisor
             self.config_advisor = TPE_Advisor(config_space)
