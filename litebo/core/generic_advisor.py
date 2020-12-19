@@ -1,7 +1,7 @@
 import abc
 import numpy as np
 
-from litebo.utils.util_funcs import get_rng, get_types
+from litebo.utils.util_funcs import get_types
 from litebo.utils.logging_utils import get_logger
 from litebo.utils.history_container import HistoryContainer, MOHistoryContainer
 from litebo.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
@@ -23,7 +23,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
                  acq_optimizer_type='local_random',
                  output_dir='logs',
                  task_id=None,
-                 rng=None):
+                 random_state=None):
 
         # Create output (logging) directory.
         # Init logging module.
@@ -33,9 +33,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
         self.num_constraints = task_info['num_constraints']
         self.init_strategy = init_strategy
         self.output_dir = output_dir
-        if rng is None:
-            run_id, rng = get_rng()
-        self.rng = rng
+        self.rng = np.random.RandomState(random_state)
         self.logger = get_logger(self.__class__.__name__)
 
         # Basic components in Advisor.
@@ -59,7 +57,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
         self.acq_optimizer_type = acq_optimizer_type
         self.init_num = initial_trials
         self.config_space = config_space
-        self.config_space.seed(rng.randint(MAXINT))
+        self.config_space.seed(self.rng.randint(MAXINT))
 
         if initial_configurations is not None and len(initial_configurations) > 0:
             self.initial_configurations = initial_configurations
@@ -302,7 +300,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
             if self.num_constraints > 0:
                 # If infeasible, set observation to the largest found objective value
                 if any(c > 0 for c in constraints):
-                    objs = np.max(self.perfs, axis=0) if self.perfs else objs
+                    objs = tuple(np.max(self.perfs, axis=0)) if self.perfs else objs
                 # Update constraint perfs regardless of feasibility
                 for i in range(self.num_constraints):
                     self.constraint_perfs[i].append(bilog(constraints[i]))
