@@ -5,6 +5,7 @@ from collections import OrderedDict
 from litebo.optimizer.base import BOBase
 from litebo.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
 from litebo.utils.limit import time_limit, TimeoutException
+from litebo.utils.multi_objective import Hypervolume
 from litebo.core.base import Observation
 
 
@@ -24,6 +25,7 @@ class SMBO(BOBase):
                  surrogate_type=None,
                  acq_type=None,
                  acq_optimizer_type='local_random',
+                 ref_point=None,
                  history_bo_data: List[OrderedDict] = None,
                  logging_dir='logs',
                  init_strategy='random_explore_first',
@@ -38,6 +40,7 @@ class SMBO(BOBase):
                          random_state=random_state, initial_runs=initial_runs, max_runs=max_runs,
                          sample_strategy=sample_strategy, time_limit_per_trial=time_limit_per_trial,
                          history_bo_data=history_bo_data)
+
         if advisor_type == 'default':
             from litebo.core.generic_advisor import Advisor
             self.config_advisor = Advisor(config_space, self.task_info,
@@ -48,6 +51,7 @@ class SMBO(BOBase):
                                           surrogate_type=surrogate_type,
                                           acq_type=acq_type,
                                           acq_optimizer_type=acq_optimizer_type,
+                                          ref_point=ref_point,
                                           history_bo_data=history_bo_data,
                                           task_id=task_id,
                                           output_dir=logging_dir,

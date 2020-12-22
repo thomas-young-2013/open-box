@@ -21,6 +21,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
                  surrogate_type=None,
                  acq_type=None,
                  acq_optimizer_type='local_random',
+                 ref_point=None,
                  output_dir='logs',
                  task_id=None,
                  random_state=None):
@@ -68,7 +69,9 @@ class Advisor(object, metaclass=abc.ABCMeta):
         if self.num_objs == 1:
             self.history_container = HistoryContainer(task_id)
         else:   # multi-objectives
-            self.history_container = MOHistoryContainer(task_id)
+            if ref_point is None:
+                ref_point = [0.0] * self.num_objs
+            self.history_container = MOHistoryContainer(task_id, ref_point)
 
         self.surrogate_model = None
         self.constraint_models = None
