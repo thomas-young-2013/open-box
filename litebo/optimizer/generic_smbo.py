@@ -5,7 +5,6 @@ from collections import OrderedDict
 from litebo.optimizer.base import BOBase
 from litebo.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
 from litebo.utils.limit import time_limit, TimeoutException
-from litebo.utils.multi_objective import Hypervolume
 from litebo.core.base import Observation
 
 
@@ -32,7 +31,8 @@ class SMBO(BOBase):
                  initial_configurations=None,
                  initial_runs=3,
                  task_id=None,
-                 random_state=1):
+                 random_state=1,
+                 options=None):
 
         self.task_info = {'num_constraints': num_constraints, 'num_objs': num_objs}
         self.FAILED_PERF = [MAXINT] * num_objs
@@ -55,7 +55,8 @@ class SMBO(BOBase):
                                           history_bo_data=history_bo_data,
                                           task_id=task_id,
                                           output_dir=logging_dir,
-                                          random_state=random_state)
+                                          random_state=random_state,
+                                          options=options)
         elif advisor_type == 'tpe':
             from litebo.core.tpe_advisor import TPE_Advisor
             self.config_advisor = TPE_Advisor(config_space)

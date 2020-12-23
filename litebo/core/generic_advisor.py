@@ -4,6 +4,7 @@ import numpy as np
 from litebo.utils.util_funcs import get_types
 from litebo.utils.logging_utils import get_logger
 from litebo.utils.history_container import HistoryContainer, MOHistoryContainer
+from litebo.utils.samplers import SobolSampler, LatinHypercubeSampler
 from litebo.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
 from litebo.config_space.util import convert_configurations_to_array
 from litebo.core.base import build_acq_func, build_optimizer, build_surrogate
@@ -24,7 +25,8 @@ class Advisor(object, metaclass=abc.ABCMeta):
                  ref_point=None,
                  output_dir='logs',
                  task_id=None,
-                 random_state=None):
+                 random_state=None,
+                 options=None):
 
         # Create output (logging) directory.
         # Init logging module.
@@ -36,6 +38,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
         self.output_dir = output_dir
         self.rng = np.random.RandomState(random_state)
         self.logger = get_logger(self.__class__.__name__)
+        self.options = dict() if options is None else options
 
         # Basic components in Advisor.
         self.optimization_strategy = optimization_strategy
@@ -137,16 +140,13 @@ class Advisor(object, metaclass=abc.ABCMeta):
                 self.acq_type = 'eic'
             assert self.acq_type in ['eic', 'ts']
             if self.surrogate_type is None:
-                if self.acq_type == 'ts':
-                    self.surrogate_type = 'gp'
-                else:
-                    self.surrogate_type = 'prf'
+                self.surrogate_type = 'prf'
             if self.constraint_surrogate_type is None:
                 self.constraint_surrogate_type = 'gp'
-            if self.acq_type == 'ts' and self.surrogate_type != 'gp':
-                self.surrogate_type = 'gp'
+            if self.acq_type == 'ts' and self.surrogate_type != 'gp_rbf':
+                self.surrogate_type = 'gp_rbf'
                 self.logger.warning('Surrogate model has changed to Gaussian Process '
-                                    'since TS is used. Surrogate_type should be set to \'gp\'.')
+                                    'since TS based on random Fourier features is used. Surrogate_type should be set to \'gp_rbf\'.')
 
     def setup_bo_basics(self):
         if self.num_objs == 1:
@@ -175,9 +175,9 @@ class Advisor(object, metaclass=abc.ABCMeta):
             self.acquisition_function = build_acq_func(func_str=self.acq_type, model=self.surrogate_model,
                                                        constraint_models=self.constraint_models)
         if self.acq_type == 'usemo':
-            acq_optimizer_type = 'usemo_optimizer'
+            self.acq_optimizer_type = 'usemo_optimizer'
         elif self.acq_type.startswith('mesmo'):
-            acq_optimizer_type = 'mesmo_optimizer'
+            self.acq_optimizer_type = 'mesmo_optimizer'
         self.optimizer = build_optimizer(func_str=self.acq_optimizer_type,
                                          acq_func=self.acquisition_function,
                                          config_space=self.config_space,
@@ -192,7 +192,14 @@ class Advisor(object, metaclass=abc.ABCMeta):
         elif init_strategy == 'random_explore_first':
             num_random_config = self.init_num - 1
             candidate_configs = self.sample_random_configs(100)
-            return self.max_min_distance(default_config,candidate_configs,num_random_config)
+            return self.max_min_distance(default_config, candidate_configs, num_random_config)
+        elif init_strategy == 'latin_hypercube':
+            lhs = LatinHypercubeSampler(self.config_space, self.init_num,
+                                        criterion=self.options.get('lh_criterion', 'maximin'))
+            return lhs.generate()
+        elif init_strategy == 'sobol':
+            sobol = SobolSampler(self.config_space, self.init_num)
+            return sobol.generate()
         else:
             raise ValueError('Unknown initial design strategy: %s.' % init_strategy)
 

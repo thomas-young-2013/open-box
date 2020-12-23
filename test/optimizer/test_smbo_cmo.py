@@ -19,8 +19,7 @@ def branin_currin(config):
     f1 = (px2 - 5.1/(4*np.pi**2) * px1**2 + 5/np.pi * px1 - 6)**2 + 10 * (1 - 1/(8*np.pi)) * np.cos(px1) + 10
     f2 = (1 - np.exp(-1/(2*x2))) * (2300 * x1**3 + 1900 * x1**2 + 2092 * x1 + 60) / (100 * x1**3 + 500 * x1**2 + 4*x1 + 20)
     res['objs'] = [f1, f2]
-    # res['constraints'] = [(px1 - 2.5)**2 + (px2 - 7.5)**2 - 50]
-    res['constraints'] = []
+    res['constraints'] = [(px1 - 2.5)**2 + (px2 - 7.5)**2 - 50]
     return res
 
 bc_params = {
@@ -70,7 +69,8 @@ c2dtlz2_ref_point = [1.1, 1.1]
 
 bo = SMBO(branin_currin, bc_cs,
           num_objs=2,
-          ref_point=[100, 30],
+          num_constraints=1,
+          ref_point=bc_ref_point,
           max_runs=100)
 bo.run()
 
