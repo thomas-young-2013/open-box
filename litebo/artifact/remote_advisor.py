@@ -136,7 +136,7 @@ class RemoteAdvisor(object):
                             data={'task_id': self.task_id})
         if res.status_code != 200:
             print('Get suggestion failed.')
-            raise Exception(f'Server error {res.status_code}')
+            raise Exception('Server error %d' % res.status_code)
         else:
             config_dict = res.json()
             return config_dict
