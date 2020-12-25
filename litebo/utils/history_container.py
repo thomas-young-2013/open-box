@@ -28,9 +28,9 @@ class HistoryContainer(object):
         self.config_counter += 1
 
         if len(self.incumbents) > 0:
-            if perf[0] < self.incumbent_value[0]:
+            if perf < self.incumbent_value:
                 self.incumbents.clear()
-            if perf[0] <= self.incumbent_value[0]:
+            if perf <= self.incumbent_value:
                 self.incumbents.append((config, perf))
                 self.incumbent_value = perf
         else:
