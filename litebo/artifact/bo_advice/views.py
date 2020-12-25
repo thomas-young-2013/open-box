@@ -141,7 +141,7 @@ def update_observation(request):
                 config_space = pickle.load(f)
             config = Configuration(config_space, vector=config_vector)
 
-            dic = {'user_id': user_id, 'config_space': config_space, 'perf': perf}
+            dic = {'user_id': user_id, 'config': config, 'perf': perf}
             print('--------------')
             print(dic)
             print('--------------')

@@ -79,7 +79,9 @@ class SMBO(BOBase):
                 trial_state, perf = FAILED, MAXINT
 
         self.iteration_id += 1
-        self.logger.info('In the %d-th iteration, the objective value: %.4f' % (self.iteration_id, perf))
+        # self.logger.info('In the %d-th iteration, the objective value: %.4f' % (self.iteration_id, perf))
+        self.logger.info('In the %d-th iteration, using config %s, result is: %.3f'
+                         % (self.iteration_id, str(config), perf))
         return config, trial_state, perf, trial_info
 
     def webservice_get_suggestion(self):
