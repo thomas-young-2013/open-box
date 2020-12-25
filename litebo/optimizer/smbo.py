@@ -7,6 +7,7 @@ from litebo.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
 from litebo.utils.limit import time_limit, TimeoutException
 
 
+@DeprecationWarning
 class SMBO(BOBase):
     def __init__(self, objective_function: callable, config_space,
                  sample_strategy: str = 'bo',

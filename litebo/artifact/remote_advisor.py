@@ -7,7 +7,7 @@ from litebo.config_space import Configuration
 from litebo.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
 
 
-class RemoteAdvisor:
+class RemoteAdvisor(object):
     def __init__(self, config_space,
                  server_ip, port,
                  task_id=None,
@@ -54,8 +54,8 @@ class RemoteAdvisor:
             'random_state': random_state
         }
 
-        # Construct base url
-        self.base_url = f'http://{server_ip}:{port}/bo_advice/'
+        # Construct base url.
+        self.base_url = 'http://%s:%d/bo_advice/' % (server_ip, port)
 
         # Register task
         requests.post(self.base_url + 'task_register/',
@@ -148,7 +148,7 @@ class RemoteAdvisor:
                                   'trial_state': trial_state})
         if res.status_code != 200:
             print('Update observation failed.')
-            raise Exception(f'Server error {res.status_code}')
+            raise Exception('Server error %s' % res.status_code)
 
     def get_result(self):
         res = requests.post(self.base_url + 'get_result/', data={'task_id': self.task_id})
