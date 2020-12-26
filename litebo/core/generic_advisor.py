@@ -1,10 +1,12 @@
 import abc
 import numpy as np
+from typing import Iterable
 
 from litebo.utils.util_funcs import get_types
 from litebo.utils.logging_utils import get_logger
 from litebo.utils.history_container import HistoryContainer, MOHistoryContainer
 from litebo.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
+from litebo.utils.samplers import SobolSampler, LatinHypercubeSampler
 from litebo.config_space.util import convert_configurations_to_array
 from litebo.core.base import build_acq_func, build_optimizer, build_surrogate
 from litebo.core.base import Observation
@@ -175,9 +177,9 @@ class Advisor(object, metaclass=abc.ABCMeta):
             self.acquisition_function = build_acq_func(func_str=self.acq_type, model=self.surrogate_model,
                                                        constraint_models=self.constraint_models)
         if self.acq_type == 'usemo':
-            acq_optimizer_type = 'usemo_optimizer'
+            self.acq_optimizer_type = 'usemo_optimizer'
         elif self.acq_type.startswith('mesmo'):
-            acq_optimizer_type = 'mesmo_optimizer'
+            self.acq_optimizer_type = 'mesmo_optimizer'
         self.optimizer = build_optimizer(func_str=self.acq_optimizer_type,
                                          acq_func=self.acquisition_function,
                                          config_space=self.config_space,
@@ -185,14 +187,21 @@ class Advisor(object, metaclass=abc.ABCMeta):
 
     def create_initial_design(self, init_strategy='random'):
         default_config = self.config_space.get_default_configuration()
+        num_random_config = self.init_num - 1
         if init_strategy == 'random':
-            num_random_config = self.init_num - 1
             initial_configs = [default_config] + self.sample_random_configs(num_random_config)
             return initial_configs
         elif init_strategy == 'random_explore_first':
-            num_random_config = self.init_num - 1
             candidate_configs = self.sample_random_configs(100)
-            return self.max_min_distance(default_config,candidate_configs,num_random_config)
+            return self.max_min_distance(default_config, candidate_configs, num_random_config)
+        elif init_strategy == 'sobol':
+            sobol = SobolSampler(self.config_space, num_random_config, random_state=self.rng)
+            initial_configs = [default_config] + sobol.generate(return_config=True)
+            return initial_configs
+        elif init_strategy == 'latin_hypercube':
+            lhs = LatinHypercubeSampler(self.config_space, num_random_config, criterion='maximin')
+            initial_configs = [default_config] + lhs.generate(return_config=True)
+            return initial_configs
         else:
             raise ValueError('Unknown initial design strategy: %s.' % init_strategy)
 
@@ -303,14 +312,18 @@ class Advisor(object, metaclass=abc.ABCMeta):
             if self.num_constraints > 0:
                 # If infeasible, set observation to the largest found objective value
                 if any(c > 0 for c in constraints):
-                    objs = tuple(np.max(self.perfs, axis=0)) if self.perfs else objs
+                    objs = np.max(self.perfs, axis=0) if self.perfs else objs
                 # Update constraint perfs regardless of feasibility
                 for i in range(self.num_constraints):
                     self.constraint_perfs[i].append(bilog(constraints[i]))
 
             self.configurations.append(config)
-            self.perfs.append(objs)
-            self.history_container.add(config, objs)
+            if self.num_objs == 1 and isinstance(objs, Iterable):
+                self.perfs.append(objs[0])
+                self.history_container.add(config, objs[0])
+            else:
+                self.perfs.append(objs)
+                self.history_container.add(config, objs)
 
             self.perc = np.percentile(self.perfs, self.scale_perc, axis=0)
             self.min_y = np.min(self.perfs, axis=0)
