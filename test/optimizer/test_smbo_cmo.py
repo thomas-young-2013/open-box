@@ -35,39 +35,6 @@ bc_max_hv = 59.36011874867746
 bc_ref_point = [18., 6.]
 
 
-def c2dtlz2(config):
-    """
-    Synthetic C2-DTLZ2 test.
-    d = 12 parameters, M = 2 objectives, V = 1 constraint.
-    """
-    X = np.array(list(config.get_dictionary().values()))
-    res = dict()
-
-    M = 2
-    r = 0.2
-
-    g = np.sum((X[M-1:] - 0.5)**2)
-    f1 = (1+g)*np.cos(np.pi/2*X[0])
-    f2 = (1+g)*np.sin(np.pi/2*X[0])
-    res['objs'] = [f1, f2]
-    m1 = (f1 - 1)**2 + f2**2 - r**2
-    m2 = (f2 - 1)**2 + f1**2 - r**2
-    m3 = (f1 - 1/np.sqrt(M))**2 + (f2 - 1/np.sqrt(M))**2 - 2*r**2
-    res['constraints'] = [np.min([m1, m2, m3])]
-    return res
-
-c2dtlz2_params = {
-    'float': {
-        'x1': (-2.25, 2.5, 0),
-        'x2': (-2.5, 1.75, 0)
-    }
-}
-c2dtlz2_cs = ConfigurationSpace()
-c2dtlz2_cs.add_hyperparameters([UniformFloatHyperparameter(e, *c2dtlz2_params['float'][e]) for e in c2dtlz2_params['float']])
-c2dtlz2_max_hv = 0.3996406303723544
-c2dtlz2_ref_point = [1.1, 1.1]
-
-
 bo = SMBO(branin_currin, bc_cs,
           num_objs=2,
           ref_point=[100, 30],
