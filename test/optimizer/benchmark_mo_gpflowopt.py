@@ -1,3 +1,9 @@
+"""
+example cmdline:
+
+python test/optimizer/benchmark_mo_gpflowopt.py --n 200 --rep 1 --start_id 0
+
+"""
 import os
 import sys
 import time

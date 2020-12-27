@@ -30,7 +30,6 @@ parser.add_argument('--rep', type=int, default=1)
 parser.add_argument('--start_id', type=int, default=0)
 parser.add_argument('--mth', type=str, default='mesmo')
 parser.add_argument('--datasets', type=str)     # todo one dataset only
-parser.add_argument('--time_limit', type=int)   # max time for phv calculation
 
 args = parser.parse_args()
 max_runs = args.n
@@ -41,7 +40,6 @@ opt_num_opt = args.opt_num_opt  # MESMO optimizer only
 rep = args.rep
 start_id = args.start_id
 mth = args.mth
-time_limit = args.time_limit
 
 seeds = [4774, 3711, 7238, 3203, 4254, 2137, 1188, 4356,  517, 5887,
          9082, 4702, 4801, 8242, 7391, 1893, 4400, 1192, 5553, 9039]
@@ -59,7 +57,7 @@ check_datasets(dataset_list, data_dir)
 dataset = dataset_list[0]   # todo one dataset only
 # set problem
 from mo_benchmark_function import get_setup_lightgbm
-setup = get_setup_lightgbm(dataset, time_limit=time_limit)  # if time_limit is None, use pre-set
+setup = get_setup_lightgbm(dataset)
 multi_objective_func = setup['multi_objective_func']
 cs = setup['cs']
 # run_nsgaii = setup['run_nsgaii']
