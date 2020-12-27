@@ -10,7 +10,8 @@ import numpy as np
 import pickle as pkl
 import matplotlib.pyplot as plt
 
-default_mths = 'mesmo-1,usemo-1,gpflowopt-hvpoi'
+# default_mths = 'mesmo-1,usemo-1,gpflowopt-hvpoi'
+default_mths = 'usemo-1,gpflowopt-hvpoi'
 parser = argparse.ArgumentParser()
 parser.add_argument('--n', type=int, default=100)
 parser.add_argument('--mths', type=str, default=default_mths)
@@ -18,19 +19,38 @@ parser.add_argument('--problem', type=str, default='bc')
 
 args = parser.parse_args()
 max_runs = args.n
-mths = args.mths.split(',')     # list of 'mth-sample_num'
+mths = args.mths.split(',')  # list of 'mth-sample_num'
+
+
+def get_mth_legend(mth):
+    mth = mth.lower()
+    if mth.startswith('mesmo'):
+        return 'MESMO'
+    elif mth.startswith('usemo'):
+        return 'USeMO'
+    elif mth == 'gpflowopt-hvpoi':
+        return 'GPflowOpt-HVPoI'
+    else:
+        return mth
+
 
 # set problem
 problem_str = args.problem
 if problem_str == 'bc':
-    title = 'branin-Currin'
+    title = 'Branin-Currin'
     log_phv = True
+    plt.ylim(11.9, 12.45)
+    plt.xlim(0, 111)
+    std_scale = 0.7
 elif problem_str.startswith('lightgbm'):
-    title = problem_str
+    # title = problem_str
+    title = 'LightGBM-Spambase'     # todo
     log_phv = False
+    plt.ylim(1.1, 1.8)
+    plt.xlim(0, 150)
+    std_scale = 0.4
 else:
     raise ValueError('Unknown problem:', problem_str)
-
 
 plot_list = []
 legend_list = []
@@ -55,17 +75,18 @@ for mth in mths:
 
     # plot
     x = np.arange(len(mean_res)) + 1
-    # p, = plt.plot(mean_res)
-    p = plt.errorbar(x, mean_res, yerr=std_res*0.5, fmt='', capthick=0.5, capsize=3, errorevery=max_runs//10)
+    p, = plt.plot(mean_res)
+    # p = plt.errorbar(x, mean_res, yerr=std_res*std_scale, fmt='', capthick=0.5, capsize=3, errorevery=max_runs//10)
+    plt.fill_between(x, mean_res - std_res*std_scale, mean_res + std_res*std_scale, alpha=0.2)
     plot_list.append(p)
-    legend_list.append(mth)
+    legend_list.append(get_mth_legend(mth))
     print(mean_res[-1], std_res[-1])
 
-plt.legend(plot_list, legend_list, loc='upper right')
-plt.title(title)
-plt.xlabel('Iteration')
+plt.legend(plot_list, legend_list, loc='upper right', fontsize=12)
+plt.title(title, fontsize=18)
+plt.xlabel('Iteration', fontsize=15)
 if log_phv:
-    plt.ylabel('Log Hypervolume Difference')
+    plt.ylabel('Log Hypervolume Difference', fontsize=15)
 else:
-    plt.ylabel('Hypervolume Difference')
+    plt.ylabel('Hypervolume Difference', fontsize=15)
 plt.show()
