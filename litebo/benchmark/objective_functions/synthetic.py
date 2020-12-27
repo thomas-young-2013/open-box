@@ -74,7 +74,7 @@ class Ackley(BaseTestProblem):
     :math:`f(x_{*}) = 0`.
     """
 
-    def __init__(self, dim=10, bounds=None, constrained=False,
+    def __init__(self, dim=2, bounds=None, constrained=False,
                  noise_std=0, random_state=None):
         self.constrained = constrained
         if bounds is None:
@@ -159,6 +159,152 @@ class Branin(BaseTestProblem):
         t2 = 10 * (1 - 1 / (8 * np.pi)) * np.cos(X[..., 0])
         result = dict()
         result['objs'] = [t1 ** 2 + t2 + 10]
+        return result
+
+
+class Bukin(BaseTestProblem):
+
+    def __init__(self, noise_std=0, random_state=None):
+        params = {'x1': (-15.0, -5.0, -10.0),
+                  'x2': (-3.0, 3.0, 0)}
+        config_space = ConfigurationSpace()
+        config_space.add_hyperparameters([UniformFloatHyperparameter(e, *params[e]) for e in params])
+        super().__init__(config_space, noise_std,
+                         optimal_value=0,
+                         optimal_point=[(-10.0, 1.0)],
+                         random_state=random_state)
+
+    def _evaluate(self, X):
+        part1 = 100.0 * np.sqrt(np.abs(X[..., 1] - 0.01 * X[..., 0] ** 2))
+        part2 = 0.01 * np.abs(X[..., 0] + 10.0)
+        result = dict()
+        result['objs'] = [part1 + part2]
+        return result
+
+
+class Rosenbrock(BaseTestProblem):
+    r"""Rosenbrock synthetic test function.
+
+    d-dimensional function (usually evaluated on `[-5, 10]^d`):
+
+        f(x) = sum_{i=1}^{d-1} (100 (x_{i+1} - x_i^2)^2 + (x_i - 1)^2)
+
+    f has one minimizer for its global minimum at `z_1 = (1, 1, ..., 1)` with
+    `f(z_i) = 0.0`.
+    """
+
+    def __init__(self, dim=2, constrained=False, noise_std=0, random_state=None):
+        self.dim = dim
+        self.constrained = constrained
+        params = {f'x{i}': (-5.0, 10.0, 2.5) for i in range(1, 1+self.dim)}
+        config_space = ConfigurationSpace()
+        config_space.add_hyperparameters([UniformFloatHyperparameter(e, *params[e]) for e in params])
+        super().__init__(config_space, noise_std,
+                         optimal_value=0,
+                         optimal_point=[tuple(1.0 for _ in range(self.dim))],
+                         random_state=random_state)
+
+    def _evaluate(self, X):
+        result = dict()
+        result['objs'] = [np.sum(100.0 * (X[..., 1:] - X[..., :-1] ** 2) ** 2
+                                 + (X[..., :-1] - 1) ** 2, axis=-1)]
+        if self.constrained:
+            result['constraints'] = [np.sum(X**2) - 2]
+        return result
+
+
+class Mishra(BaseTestProblem):
+    r"""Mishra's Bird function (constrained).
+    """
+
+    def __init__(self, noise_std=0, random_state=None):
+        params = {'x1': (-10, 0, -5), 'x2': (-6.5, 0, -3.25)}
+        config_space = ConfigurationSpace()
+        config_space.add_hyperparameters([UniformFloatHyperparameter(e, *params[e]) for e in params])
+        super().__init__(config_space, noise_std,
+                         optimal_value=-106.7645367,
+                         optimal_point=[(-3.1302468, -1.5821422)],
+                         random_state=random_state)
+
+    def _evaluate(self, X):
+        result = dict()
+        x, y = X[0], X[1]
+        t1 = np.sin(y) * np.exp((1 - np.cos(x))**2)
+        t2 = np.cos(x) * np.exp((1 - np.sin(y))**2)
+        t3 = (x - y)**2
+        result['objs'] = [t1 + t2 + t3]
+        result['constraints'] = [np.sum((X + 5)**2) - 25]
+        return result
+
+
+class Keane(BaseTestProblem):
+    r"""Keane test function.
+
+    d-dimensional function:
+
+    :math:``
+
+    f has one minimizer for its global minimum at :math:`x_{*} = (0, 0, ..., 0)` with
+    :math:`f(x_{*}) = 0`.
+    """
+
+    def __init__(self, dim=2, bounds=None,
+                 noise_std=0, random_state=None):
+        self.dim = dim
+        params = {f'x{i}': (0, 10, 5) for i in range(1, 1+self.dim)}
+        config_space = ConfigurationSpace()
+        config_space.add_hyperparameters([UniformFloatHyperparameter(e, *params[e]) for e in params])
+        super().__init__(config_space, noise_std, optimal_value=0, random_state=random_state)
+
+    def _evaluate(self, X):
+        result = dict()
+        cosX2 = np.cos(X)**2
+        up = np.abs(np.sum(cosX2**2) - 2*np.prod(cosX2))
+        down = np.sqrt(np.sum(np.arange(1, self.dim+1) * X**2))
+        result['objs'] = [-up/down]
+        result['constraints'] = [0.75 - np.prod(X), np.sum(X) - 7.5 * 30]
+        return result
+
+
+class Simionescu(BaseTestProblem):
+
+    def __init__(self, noise_std=0, random_state=None):
+        params = {f'x{i}': (-1.25, 1.25, 1) for i in [1, 2]}
+        config_space = ConfigurationSpace()
+        config_space.add_hyperparameters([UniformFloatHyperparameter(e, *params[e]) for e in params])
+        super().__init__(config_space, noise_std,
+                         optimal_value=-0.072,
+                         optimal_point=[(0.84852813, -0.84852813), (-0.84852813, 0.84852813)],
+                         random_state=random_state)
+
+    def _evaluate(self, X):
+        result = dict()
+        x, y = X[0], X[1]
+        result['objs'] = [0.1 * x * y]
+        result['constraints'] = [x**2 + y**2 - (1 + 0.2 * np.cos(8*np.arctan(x/y)))**2]
+        return result
+
+
+class Rao(BaseTestProblem):
+    r"""Mixed integer with constraints."""
+
+    def __init__(self, bounds=None, noise_std=0, random_state=None):
+        if bounds is None:
+            bounds = [0, 20]
+        lb, ub = bounds
+        config_space = ConfigurationSpace()
+        config_space.add_hyperparameter(UniformFloatHyperparameter('x1', lb, ub, 1))
+        config_space.add_hyperparameter(UniformIntegerHyperparameter('x2', lb, ub, 1))
+        super().__init__(config_space, noise_std,
+                         optimal_value=-31.9998,
+                         optimal_point=[(5.333, 4)],
+                         random_state=random_state)
+
+    def _evaluate(self, X):
+        result = dict()
+        x, y = X[0], X[1]
+        result['objs'] = [-(3*x + 4*y)]
+        result['constraints'] = [3*x - y - 12, 3*x + 11*y - 66]
         return result
 
 
