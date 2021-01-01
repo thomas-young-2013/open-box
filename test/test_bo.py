@@ -74,7 +74,7 @@ print("Default Value: %.2f" % (def_value))
 
 # Optimize, using a SMAC-object
 print("Optimizing! Depending on your machine, this might take a few minutes.")
-bo = BayesianOptimization(svm_from_cfg, cs, max_runs=30, time_limit_per_trial=30, logging_dir='test')
+bo = BayesianOptimization(svm_from_cfg, cs, max_runs=30, time_limit_per_trial=30, logging_dir='logs')
 bo.run()
 inc_value = bo.get_incumbent()
 
