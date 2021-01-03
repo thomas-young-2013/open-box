@@ -52,11 +52,11 @@ class Hypervolume:
         if pareto_Y.shape[-1] != self._ref_point.shape[0]:
             raise Exception(
                 "pareto_Y must have the same number of objectives as ref_point. "
-                f"Got {pareto_Y.shape[-1]}, expected {self._ref_point.shape[0]}."
+                "Got %d, expected %d." % (pareto_Y.shape[-1], self._ref_point.shape[0])
             )
         elif pareto_Y.ndim != 2:
             raise Exception(
-                f"pareto_Y must have exactly two dimensions, got {pareto_Y.ndim}."
+                "pareto_Y must have exactly two dimensions, got %d." % (pareto_Y.ndim)
             )
 
         better_than_ref = np.all(pareto_Y <= self._ref_point, axis=-1)

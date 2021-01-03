@@ -33,3 +33,8 @@ bo.run()
 inc_value = bo.get_incumbent()
 print('BO', '=' * 30)
 print(inc_value)
+
+
+# Execute the following command:
+# Step 1: `python test/visualization/visualize_smbo.py`
+# Step 2: `tensorboard --logdir logs/hp1`
