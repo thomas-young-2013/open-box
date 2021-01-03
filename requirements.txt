@@ -7,11 +7,7 @@ pyyaml
 lazy_import
 scikit-optimize
 emcee
-pyrfr>=0.5.0
-numpy>=1.7.1
 scipy>=0.18.1
-ConfigSpace>=0.4.6,<0.5
-scikit-learn==0.21.3
 platypus-opt==1.0.4
 pyrfr>=0.5.0
 numpy>=1.7.1
@@ -19,3 +15,4 @@ scipy>=0.18.1
 ConfigSpace>=0.4.6,<0.5
 scikit-learn==0.21.3
 tensorboardX
+django>=2.2.17

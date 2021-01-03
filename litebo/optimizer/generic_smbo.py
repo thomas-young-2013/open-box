@@ -34,6 +34,9 @@ class SMBO(BOBase):
                  task_id=None,
                  random_state=1):
 
+        if task_id is None:
+            raise ValueError('Task id is not SPECIFIED. Please input task id first.')
+
         self.task_info = {'num_constraints': num_constraints, 'num_objs': num_objs}
         self.FAILED_PERF = [MAXINT] * num_objs
         super().__init__(objective_function, config_space, task_id=task_id, output_dir=logging_dir,
@@ -104,5 +107,10 @@ class SMBO(BOBase):
                 trial_state, objs = FAILED, self.FAILED_PERF
 
         self.iteration_id += 1
+        # Logging.
         self.logger.info('In the %d-th iteration, the objective value: %s' % (self.iteration_id, str(objs)))
+        # Visualization.
+        for idx, obj in enumerate(objs):
+            if obj < self.FAILED_PERF:
+                self.writer.add_scalar('data/objective-%d' % (idx+1), obj, self.iteration_id)
         return config, trial_state, objs, trial_info
