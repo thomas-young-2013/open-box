@@ -79,7 +79,7 @@ for mth in mths:
 
     # plot
     x = np.arange(len(mean_res)) + 1
-    # p, = plt.plot(mean_res)
+    # p, = plt.plot(x, mean_res)
     p = plt.errorbar(x, mean_res, yerr=std_res*0.5, fmt='', capthick=0.5, capsize=3, errorevery=max_runs//10)
     plot_list.append(p)
     legend_list.append(mth)
