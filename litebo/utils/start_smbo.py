@@ -1,7 +1,8 @@
-import json
 from ConfigSpace import ConfigurationSpace, UniformIntegerHyperparameter, UniformFloatHyperparameter, \
     CategoricalHyperparameter
 from ConfigSpace import EqualsCondition, ForbiddenEqualsClause, ForbiddenAndConjunction
+
+from litebo.optimizer import _optimizers
 
 
 def parse_bool(input):
@@ -18,16 +19,9 @@ def parse_bool(input):
         ValueError("Expect a bool or str but %s received!" % type(input))
 
 
-def json_to_space(filepath):
-    with open(filepath, 'r') as f:
-        json_dict = json.load(f)
-    cs = dict_to_space(json_dict)
-    return cs
-
-
 def dict_to_space(dictionary):
     cs = ConfigurationSpace()
-    params_dict = dictionary['parameter']
+    params_dict = dictionary['parameters']
     for key in params_dict:
         param_dict = params_dict[key]
         param_type = param_dict['type']
@@ -58,3 +52,16 @@ def dict_to_space(dictionary):
 
         cs.add_hyperparameter(param)
     return cs
+
+
+def create_smbo(objective_func, **kwargs):
+    optimizer_name = kwargs['optimizer']
+    optimizer_class = _optimizers[optimizer_name]
+
+    config_space = dict_to_space(kwargs)
+
+    kwargs.pop('optimizer', None)
+    kwargs.pop('parameters', None)
+    kwargs.pop('conditions', None)
+
+    return optimizer_class(objective_func, config_space, **kwargs)

@@ -46,7 +46,7 @@ space_dict = {
     }
 }
 
-from litebo.utils.parse_space import json_to_space, dict_to_space
+from litebo.utils.start_smbo import dict_to_space
 
 cs = dict_to_space(space_dict)
 print(cs)
