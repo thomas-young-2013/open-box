@@ -6,7 +6,7 @@ from ConfigSpace.hyperparameters import UniformFloatHyperparameter
 
 sys.path.append(os.getcwd())
 from litebo.optimizer.generic_smbo import SMBO
-from litebo.utils.configspace import ConfigurationSpace
+from litebo.utils.config_space import ConfigurationSpace
 from litebo.utils.start_smbo import create_smbo
 
 
