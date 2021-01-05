@@ -5,7 +5,7 @@ import numpy as np
 from ConfigSpace.hyperparameters import UniformFloatHyperparameter
 sys.path.append(os.getcwd())
 from litebo.optimizer.smbo import SMBO
-from litebo.config_space import ConfigurationSpace
+from litebo.utils.config_space import ConfigurationSpace
 
 
 def branin(x):

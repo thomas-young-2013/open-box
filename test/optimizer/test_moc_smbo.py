@@ -8,7 +8,7 @@ from pygmo import hypervolume
 
 sys.path.insert(0, os.getcwd())
 from litebo.optimizer.generic_smbo import SMBO
-from litebo.config_space import Configuration
+from litebo.utils.config_space import Configuration
 from mo_benchmark_function import timeit
 
 # set problem

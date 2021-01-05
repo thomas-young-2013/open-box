@@ -1,7 +1,8 @@
+import json
 import collections
 from typing import List
 from litebo.utils.constants import MAXINT
-from litebo.config_space import Configuration
+from litebo.utils.config_space import Configuration, ConfigurationSpace
 from litebo.utils.logging_utils import get_logger
 from litebo.utils.multi_objective import Hypervolume
 
@@ -48,6 +49,48 @@ class HistoryContainer(object):
 
     def get_incumbents(self):
         return self.incumbents
+
+    def save_json(self, fn: str = "history_container.json"):
+        """
+        saves runhistory on disk
+
+        Parameters
+        ----------
+        fn : str
+            file name
+        """
+        data = [(k.get_dictionary(), list(v)) for k, v in self.data.items()]
+
+        with open(fn, "w") as fp:
+            json.dump({"data": data}, fp, indent=2)
+
+    @staticmethod
+    def load_history_from_json(self, fn: str, cs: ConfigurationSpace):
+        """Load and runhistory in json representation from disk.
+        Parameters
+        ----------
+        fn : str
+            file name to load from
+        cs : ConfigSpace
+            instance of configuration space
+        """
+        try:
+            with open(fn) as fp:
+                all_data = json.load(fp)
+        except Exception as e:
+            self.logger.warning(
+                'Encountered exception %s while reading runhistory from %s. '
+                'Not adding any runs!', e, fn,
+            )
+            return
+
+        _history_data = collections.OrderedDict()
+        # important to use add method to use all data structure correctly
+        for k, v in all_data["data"]:
+            config = None
+            perf = Perf(float(v[0]), float(v[1]), int(v[2]), v[3])
+            _history_data[config] = perf
+        return _history_data
 
 
 class MOHistoryContainer(object):

@@ -2,7 +2,7 @@ import numpy as np
 import math
 from copy import deepcopy
 
-from litebo.config_space import ConfigurationSpace, UniformFloatHyperparameter, UniformIntegerHyperparameter
+from litebo.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter
 from platypus import NSGAII, Problem, Real
 
 import contextlib

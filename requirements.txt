@@ -2,11 +2,13 @@ dill
 cython
 psutil
 setuptools
-
+requests
+statsmodels
 pyyaml
 lazy_import
 scikit-optimize
 emcee
+
 scipy>=0.18.1
 platypus-opt==1.0.4
 pyrfr>=0.5.0

@@ -4,8 +4,7 @@ import numpy as np
 sys.path.insert(0, os.getcwd())
 
 from litebo.optimizer.generic_smbo import SMBO
-from litebo.config_space import ConfigurationSpace, Configuration, \
-    UniformFloatHyperparameter, UniformIntegerHyperparameter
+from litebo.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter
 
 
 def branin_currin(config):

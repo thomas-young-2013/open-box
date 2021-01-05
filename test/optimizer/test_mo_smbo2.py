@@ -1,15 +1,13 @@
 import os
 import sys
 import numpy as np
-import math
-from copy import deepcopy
 import argparse
 
 import ConfigSpace.hyperparameters as CSH
 
 sys.path.insert(0, os.getcwd())
 from litebo.optimizer.generic_smbo import SMBO
-from litebo.config_space import ConfigurationSpace
+from litebo.utils.config_space import ConfigurationSpace
 
 from platypus import NSGAII, Problem, Real
 from pygmo import hypervolume

@@ -1,8 +1,8 @@
 import copy
 import numpy as np
 
-from litebo.config_space.util import convert_configurations_to_array
-from litebo.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
+from litebo.utils.configspace.util import convert_configurations_to_array
+from litebo.utils.constants import MAXINT, SUCCESS
 from litebo.core.advisor import Advisor
 
 

@@ -7,8 +7,8 @@ import numpy as np
 from scipy.stats import norm
 import math
 
-from litebo.config_space import Configuration
-from litebo.config_space.util import convert_configurations_to_array
+from litebo.utils.config_space import Configuration
+from litebo.utils.configspace.util import convert_configurations_to_array
 from litebo.surrogate.base.base_model import AbstractModel
 from litebo.surrogate.base.gp import GaussianProcess
 

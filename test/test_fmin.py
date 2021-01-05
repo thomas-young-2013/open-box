@@ -3,14 +3,10 @@ import sys
 import numpy as np
 
 # Import ConfigSpace and different types of parameters
-from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
-    UniformFloatHyperparameter, UniformIntegerHyperparameter
-from ConfigSpace.conditions import InCondition
 
 sys.path.append(os.getcwd())
 from litebo.facade.bo_facade import BayesianOptimization
 from litebo.facade.batch_bo import BatchBayesianOptimization
-from litebo.config_space import ConfigurationSpace
 
 
 def branin(x):
@@ -46,7 +42,7 @@ space_dict = {
     }
 }
 
-from litebo.utils.parse_space import json_to_space, dict_to_space
+from litebo.utils.configspace.parse_space import dict_to_space
 
 cs = dict_to_space(space_dict)
 print(cs)

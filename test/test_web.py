@@ -2,8 +2,8 @@ import time
 import numpy as np
 
 from litebo.artifact.remote_advisor import RemoteAdvisor
-from litebo.utils.constants import SUCCESS, FAILED, TIMEOUT
-from litebo.config_space import Configuration, ConfigurationSpace, UniformFloatHyperparameter
+from litebo.utils.constants import SUCCESS
+from litebo.utils.config_space import Configuration, ConfigurationSpace, UniformFloatHyperparameter
 
 
 def townsend(config):

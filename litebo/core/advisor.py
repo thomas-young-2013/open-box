@@ -4,8 +4,8 @@ import numpy as np
 from litebo.utils.util_funcs import get_rng
 from litebo.utils.logging_utils import get_logger
 from litebo.utils.history_container import HistoryContainer
-from litebo.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
-from litebo.config_space.util import convert_configurations_to_array
+from litebo.utils.constants import MAXINT, SUCCESS
+from litebo.utils.configspace.util import convert_configurations_to_array
 from litebo.core.base import build_acq_func, build_optimizer, build_surrogate
 
 

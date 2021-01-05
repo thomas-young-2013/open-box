@@ -1,7 +1,7 @@
 import numpy as np
 from skopt.sampler import Sobol, Lhs
 
-from litebo.config_space import ConfigurationSpace, Configuration
+from litebo.utils.config_space import ConfigurationSpace, Configuration
 from litebo.utils.util_funcs import get_types, check_random_state
 
 

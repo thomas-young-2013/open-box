@@ -1,6 +1,6 @@
 import numpy as np
 from litebo.core.distributed.worker import Worker
-from litebo.config_space import ConfigurationSpace
+from litebo.utils.config_space import ConfigurationSpace
 from ConfigSpace.hyperparameters import UniformFloatHyperparameter
 
 

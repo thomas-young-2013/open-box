@@ -1,8 +1,8 @@
 import json
 from django.http import HttpResponse
 
-from litebo.config_space import json as config_json
-from litebo.config_space import Configuration
+from litebo.utils.config_space import json as config_json
+from litebo.utils.config_space import Configuration
 from litebo.core.base import Observation
 
 

@@ -2,9 +2,9 @@ import time
 import json
 import requests
 
-from litebo.config_space import json as config_json
-from litebo.config_space import Configuration
-from litebo.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
+from litebo.utils.config_space import json as config_json
+from litebo.utils.config_space import Configuration
+from litebo.utils.constants import SUCCESS
 
 
 class RemoteAdvisor(object):
