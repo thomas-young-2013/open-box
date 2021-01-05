@@ -42,9 +42,8 @@ space_dict = {
     }
 }
 
-from litebo.utils.configspace.parse_space import dict_to_space
-
-cs = dict_to_space(space_dict)
+from litebo.utils.configspace.space_utils import get_config_space_from_dict
+cs = get_config_space_from_dict(space_dict)
 print(cs)
 
 bo = BayesianOptimization(branin, cs, max_runs=90, time_limit_per_trial=3, logging_dir='logs')
