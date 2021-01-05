@@ -9,7 +9,7 @@ import numpy as np
 from litebo.acquisition_function.acquisition import AbstractAcquisitionFunction
 from litebo.utils.config_space import get_one_exchange_neighbourhood, \
     Configuration, ConfigurationSpace
-from litebo.utils.configspace.util import convert_configurations_to_array
+from litebo.utils.config_space.util import convert_configurations_to_array
 from litebo.acq_maximizer.random_configuration_chooser import ChooserNoCoolDown, ChooserProb
 from litebo.utils.history_container import HistoryContainer
 from litebo.utils.util_funcs import get_types

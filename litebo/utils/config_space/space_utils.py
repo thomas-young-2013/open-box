@@ -1,9 +1,10 @@
 import numpy as np
 from typing import List
-from litebo.utils.configspace import Configuration, ConfigurationSpace
+from litebo.utils.config_space import Configuration, ConfigurationSpace
 from ConfigSpace import ConfigurationSpace, UniformIntegerHyperparameter, UniformFloatHyperparameter, \
     CategoricalHyperparameter
 from ConfigSpace import EqualsCondition, ForbiddenEqualsClause, ForbiddenAndConjunction
+from ConfigSpace.util import deactivate_inactive_hyperparameters
 
 
 def parse_bool(input_):
@@ -29,7 +30,9 @@ def string2config_space(space_desc: str):
 
 
 def get_config_from_dict(config_dict: dict, config_space: ConfigurationSpace):
-    pass
+    config = deactivate_inactive_hyperparameters(configuration_space=config_space,
+                                                 configuration=config_dict)
+    return config
 
 
 def get_config_space_from_dict(space_dict: dict):

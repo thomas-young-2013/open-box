@@ -7,7 +7,7 @@ from litebo.utils.logging_utils import get_logger
 from litebo.utils.history_container import HistoryContainer, MOHistoryContainer
 from litebo.utils.constants import MAXINT, SUCCESS
 from litebo.utils.samplers import SobolSampler, LatinHypercubeSampler
-from litebo.utils.configspace.util import convert_configurations_to_array
+from litebo.utils.config_space.util import convert_configurations_to_array
 from litebo.core.base import build_acq_func, build_optimizer, build_surrogate
 from litebo.core.base import Observation
 

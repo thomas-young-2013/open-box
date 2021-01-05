@@ -1,7 +1,7 @@
 import copy
 import numpy as np
 
-from litebo.utils.configspace.util import convert_configurations_to_array
+from litebo.utils.config_space.util import convert_configurations_to_array
 from litebo.core.advisor import Advisor
 
 

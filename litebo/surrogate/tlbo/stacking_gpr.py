@@ -1,7 +1,7 @@
 import numpy as np
 from litebo.surrogate.tlbo.base import BaseTLSurrogate
 from litebo.core.base import build_surrogate
-from litebo.utils.configspace.util import convert_configurations_to_array
+from litebo.utils.config_space.util import convert_configurations_to_array
 
 
 class SGPR(BaseTLSurrogate):

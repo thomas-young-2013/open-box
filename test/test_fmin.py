@@ -42,7 +42,7 @@ space_dict = {
     }
 }
 
-from litebo.utils.configspace.space_utils import get_config_space_from_dict
+from litebo.utils.config_space.space_utils import get_config_space_from_dict
 cs = get_config_space_from_dict(space_dict)
 print(cs)
 
