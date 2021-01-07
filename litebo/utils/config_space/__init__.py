@@ -1,4 +1,3 @@
-from ConfigSpace import Configuration, ConfigurationSpace
 from ConfigSpace import ConfigurationSpace, Configuration, Constant,\
      CategoricalHyperparameter, UniformFloatHyperparameter, \
      UniformIntegerHyperparameter, InCondition

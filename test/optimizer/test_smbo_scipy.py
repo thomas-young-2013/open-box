@@ -32,14 +32,15 @@ x1 = UniformFloatHyperparameter("x1", -5, 10, default_value=0)
 x2 = UniformFloatHyperparameter("x2", 0, 15, default_value=0)
 cs.add_hyperparameters([x1, x2])
 
-bo = SMBO(branin, cs, advisor_type='default',
-          acq_optimizer_type='local_random',
-          max_runs=50, time_limit_per_trial=3, logging_dir='logs')
+i = 0
+bo = SMBO(branin, cs, advisor_type='default', surrogate_type='gp',
+          acq_optimizer_type='local_random', initial_runs=3,
+          task_id=1, random_state=i, max_runs=31, time_limit_per_trial=3, logging_dir='logs')
 bo.run()
 
-bo2 = SMBO(branin, cs, advisor_type='default',
-           acq_optimizer_type='random_scipy',
-           max_runs=50, time_limit_per_trial=3, logging_dir='logs')
+bo2 = SMBO(branin, cs, advisor_type='default', surrogate_type='gp',
+           acq_optimizer_type='random_scipy', initial_runs=3,
+           task_id=2, random_state=i, max_runs=31, time_limit_per_trial=3, logging_dir='logs')
 bo2.run()
 
 print(bo.get_incumbent())

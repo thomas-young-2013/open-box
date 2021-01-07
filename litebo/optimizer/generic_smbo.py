@@ -5,7 +5,6 @@ from collections import OrderedDict
 from litebo.optimizer.base import BOBase
 from litebo.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
 from litebo.utils.limit import time_limit, TimeoutException
-from litebo.utils.multi_objective import Hypervolume
 from litebo.core.base import Observation
 
 
