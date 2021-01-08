@@ -1,9 +1,4 @@
 import numpy as np
-
-import os
-import sys
-sys.path.insert(0, os.getcwd())
-
 from litebo.optimizer.generic_smbo import SMBO
 from litebo.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter
 
@@ -39,5 +34,6 @@ bo = SMBO(townsend, townsend_cs,
           num_constraints=1,
           # initial_configurations=townsend_initial_configs,
           acq_optimizer_type='random_scipy',
-          max_runs=60)
+          max_runs=60,
+          task_id='smbo_eic')
 bo.run()

@@ -115,6 +115,8 @@ def update_observation(request):
             observation = Observation(config, trial_state, constraints, objs)
             config_advisor.update_observation(observation)
 
+            config_advisor.save_history()
+
             print('-'*21)
             print('Update observation')
             print(observation)

@@ -1,3 +1,4 @@
+import os
 import abc
 import numpy as np
 from typing import Iterable
@@ -38,6 +39,11 @@ class Advisor(object, metaclass=abc.ABCMeta):
         self.output_dir = output_dir
         self.rng = np.random.RandomState(random_state)
         self.logger = get_logger(self.__class__.__name__)
+
+        history_folder = os.path.join(self.output_dir, 'bo_history')
+        if not os.path.exists(history_folder):
+            os.makedirs(history_folder)
+        self.history_file = os.path.join(history_folder, 'bo_history_%s.json' % task_id)
 
         # Basic components in Advisor.
         self.optimization_strategy = optimization_strategy
@@ -346,6 +352,9 @@ class Advisor(object, metaclass=abc.ABCMeta):
                 configs.append(config)
                 sample_cnt = 0
         return configs
+
+    def save_history(self):
+        self.history_container.save_json(self.history_file)
 
     def get_suggestions(self):
         raise NotImplementedError

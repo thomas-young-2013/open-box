@@ -27,7 +27,7 @@ townsend_cs = ConfigurationSpace()
 townsend_cs.add_hyperparameters([UniformFloatHyperparameter(e, *townsend_params['float'][e]) for e in townsend_params['float']])
 
 # Create remote advisor
-config_advisor = RemoteAdvisor(townsend_cs, '127.0.0.1', 8001, num_constraints=1, random_state=1)
+config_advisor = RemoteAdvisor(townsend_cs, '127.0.0.1', 8000, num_constraints=1, random_state=1)
 
 # Simulate 50 iterations
 for _ in range(50):

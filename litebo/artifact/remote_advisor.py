@@ -10,7 +10,7 @@ from litebo.utils.constants import SUCCESS
 class RemoteAdvisor(object):
     def __init__(self, config_space,
                  server_ip, port,
-                 task_id=None,
+                 task_id='remote_bo',
                  num_constraints=0,
                  num_objs=1,
                  sample_strategy: str = 'bo',

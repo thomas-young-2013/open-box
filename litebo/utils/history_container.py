@@ -59,7 +59,7 @@ class HistoryContainer(object):
         fn : str
             file name
         """
-        data = [(k.get_dictionary(), list(v)) for k, v in self.data.items()]
+        data = [(k.get_dictionary(), float(v)) for k, v in self.data.items()]
 
         with open(fn, "w") as fp:
             json.dump({"data": data}, fp, indent=2)
