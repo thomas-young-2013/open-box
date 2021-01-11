@@ -111,6 +111,6 @@ class SMBO(BOBase):
         self.logger.info('In the %d-th iteration, the objective value: %s' % (self.iteration_id, str(objs)))
         # Visualization.
         for idx, obj in enumerate(objs):
-            if obj < self.FAILED_PERF:
+            if obj < self.FAILED_PERF[idx]:
                 self.writer.add_scalar('data/objective-%d' % (idx+1), obj, self.iteration_id)
         return config, trial_state, objs, trial_info
