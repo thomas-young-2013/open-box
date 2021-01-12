@@ -30,7 +30,7 @@ townsend_cs.add_hyperparameters([UniformFloatHyperparameter(e, *townsend_params[
 config_advisor = RemoteAdvisor(townsend_cs, '127.0.0.1', 8000, num_constraints=1, random_state=1)
 
 # Simulate 50 iterations
-for _ in range(50):
+for _ in range(20):
     config_dict = config_advisor.get_suggestion()
     config = Configuration(config_advisor.config_space, config_dict)
     obs = townsend(config)

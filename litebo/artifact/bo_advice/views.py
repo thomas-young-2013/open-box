@@ -116,6 +116,7 @@ def update_observation(request):
             config_advisor.update_observation(observation)
 
             config_advisor.save_history()
+            # print('config history', config_advisor.load_history_from_json())
 
             print('-'*21)
             print('Update observation')

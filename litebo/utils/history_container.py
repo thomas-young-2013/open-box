@@ -5,6 +5,7 @@ from litebo.utils.constants import MAXINT
 from litebo.utils.config_space import Configuration, ConfigurationSpace
 from litebo.utils.logging_utils import get_logger
 from litebo.utils.multi_objective import Hypervolume
+from litebo.utils.config_space.space_utils import get_config_from_dict
 
 
 Perf = collections.namedtuple(
@@ -64,8 +65,7 @@ class HistoryContainer(object):
         with open(fn, "w") as fp:
             json.dump({"data": data}, fp, indent=2)
 
-    @staticmethod
-    def load_history_from_json(self, fn: str, cs: ConfigurationSpace):
+    def load_history_from_json(self, cs: ConfigurationSpace, fn: str = "history_container.json"):
         """Load and runhistory in json representation from disk.
         Parameters
         ----------
@@ -83,12 +83,11 @@ class HistoryContainer(object):
                 'Not adding any runs!', e, fn,
             )
             return
-
         _history_data = collections.OrderedDict()
         # important to use add method to use all data structure correctly
         for k, v in all_data["data"]:
-            config = None
-            perf = Perf(float(v[0]), float(v[1]), int(v[2]), v[3])
+            config = get_config_from_dict(k, cs)
+            perf = float(v)
             _history_data[config] = perf
         return _history_data
 
@@ -158,6 +157,47 @@ class MOHistoryContainer(object):
         else:
             hv = 0
         self.hv_data.append(hv)
+
+    def save_json(self, fn: str = "history_container.json"):
+        """
+        saves runhistory on disk
+
+        Parameters
+        ----------
+        fn : str
+            file name
+        """
+        data = [(k.get_dictionary(), v) for k, v in self.data.items()]
+
+        with open(fn, "w") as fp:
+            json.dump({"data": data}, fp, indent=2)
+
+    def load_history_from_json(self, cs: ConfigurationSpace, fn: str = "history_container.json"):
+        """
+        Load and runhistory in json representation from disk.
+        Parameters
+        ----------
+        fn : str
+            file name to load from
+        cs : ConfigSpace
+            instance of configuration space
+        """
+        try:
+            with open(fn) as fp:
+                all_data = json.load(fp)
+        except Exception as e:
+            self.logger.warning(
+                'Encountered exception %s while reading runhistory from %s. '
+                'Not adding any runs!', e, fn,
+            )
+            return
+        _history_data = collections.OrderedDict()
+        # important to use add method to use all data structure correctly
+        for k, v in all_data["data"]:
+            config = get_config_from_dict(k, cs)
+            perf = v
+            _history_data[config] = perf
+        return _history_data
 
     def get_perf(self, config: Configuration):
         return self.data[config]
