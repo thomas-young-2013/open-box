@@ -583,8 +583,7 @@ class ScipyOptimizer(AcquisitionFunctionMaximizer):
     def maximize(
             self,
             runhistory: HistoryContainer,
-            num_points: int,
-            initial_configs=None,
+            initial_config=None,
             **kwargs
     ) -> List[Tuple[float, Configuration]]:
 
@@ -592,21 +591,19 @@ class ScipyOptimizer(AcquisitionFunctionMaximizer):
             # shape of x = (d,)
             return -self.acquisition_function(x, convert=False)[0]  # shape=(1,)
 
-        if initial_configs is None:
-            init_points = convert_configurations_to_array(self.config_space.sample_configuration(size=num_points))
+        if initial_config is None:
+            init_point = self.config_space.sample_configuration()
         else:
-            init_points = convert_configurations_to_array(initial_configs)
+            init_point = initial_config.get_array()
 
         results = []
-        for x0 in init_points:
-            result = scipy.optimize.minimize(fun=negative_acquisition,
-                                             x0=x0,
-                                             bounds=self.bounds,
-                                             **self.scipy_config)
-            if result.success:
-                results.append((result.fun, Configuration(self.config_space, vector=result.x)))
+        result = scipy.optimize.minimize(fun=negative_acquisition,
+                                         x0=init_point,
+                                         bounds=self.bounds,
+                                         **self.scipy_config)
+        if result.success:
+            results.append((result.fun, Configuration(self.config_space, vector=result.x)))
 
-        results.sort(reverse=True, key=lambda x: x[0])
         challengers = ChallengerList([config for _, config in results],
                                      self.config_space,
                                      self.random_chooser)
@@ -643,9 +640,9 @@ class RandomScipyOptimizer(AcquisitionFunctionMaximizer):
     ):
         super().__init__(acquisition_function, config_space, rng)
 
-        self.random_chooser = ChooserProb(prob=0.0, rng=rng)
+        self.random_chooser = ChooserProb(prob=0.2, rng=rng)
 
-        self.random_search = RandomSearch(
+        self.random_search = InterleavedLocalAndRandomSearch(
             acquisition_function=acquisition_function,
             config_space=config_space,
             rng=rng
@@ -663,8 +660,18 @@ class RandomScipyOptimizer(AcquisitionFunctionMaximizer):
             num_trials=10,
             **kwargs
     ) -> List[Tuple[float, Configuration]]:
-        scipy_initial_configs = [self.random_search.maximize(runhistory, num_points, **kwargs)[0] for _ in range(num_trials)]
-        return self.scipy_optimizer.maximize(runhistory, num_points, initial_configs=scipy_initial_configs)
+
+        results = []
+        initial_configs = self.random_search.maximize(runhistory, num_points, **kwargs).challengers[:num_trials]
+        for config in initial_configs:
+            result = self.scipy_optimizer.maximize(runhistory, initial_config=config).challengers
+            results.extend(result)
+
+        challengers = ChallengerList(results,
+                                     self.config_space,
+                                     self.random_chooser)
+        self.random_chooser.next_smbo_iteration()
+        return challengers
 
     def _maximize(
             self,
