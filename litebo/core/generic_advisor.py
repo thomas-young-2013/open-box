@@ -8,6 +8,7 @@ from litebo.utils.logging_utils import get_logger
 from litebo.utils.history_container import HistoryContainer, MOHistoryContainer
 from litebo.utils.constants import MAXINT, SUCCESS
 from litebo.utils.samplers import SobolSampler, LatinHypercubeSampler
+from litebo.utils.multi_objective import get_chebyshev_scalarization
 from litebo.utils.config_space.util import convert_configurations_to_array
 from litebo.core.base import build_acq_func, build_optimizer, build_surrogate
 from litebo.core.base import Observation
@@ -127,8 +128,8 @@ class Advisor(object, metaclass=abc.ABCMeta):
         # multi-objective no constraint
         elif self.num_objs > 1:
             if self.acq_type is None:
-                self.acq_type = 'mesmo'
-            assert self.acq_type in ['mesmo', 'usemo']
+                self.acq_type = 'parego'
+            assert self.acq_type in ['mesmo', 'usemo', 'parego']
             if self.surrogate_type is None:
                 if self.acq_type == 'mesmo':
                     self.surrogate_type = 'gp_rbf'
@@ -157,7 +158,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
                                     'since TS is used. Surrogate_type should be set to \'gp\'.')
 
     def setup_bo_basics(self):
-        if self.num_objs == 1:
+        if self.num_objs == 1 or self.acq_type == 'parego':
             self.surrogate_model = build_surrogate(func_str=self.surrogate_type,
                                                    config_space=self.config_space,
                                                    rng=self.rng,
@@ -255,6 +256,11 @@ class Advisor(object, metaclass=abc.ABCMeta):
             # train surrogate model
             if self.num_objs == 1:
                 self.surrogate_model.train(X, Y)
+            elif self.acq_type == 'parego':
+                weights = np.random.random_sample(self.num_objs)
+                weights = weights / np.sum(weights)
+                scalarized_obj = get_chebyshev_scalarization(weights, Y)
+                self.surrogate_model.train(X, scalarized_obj(Y))
             else:   # multi-objectives
                 for i in range(self.num_objs):
                     self.surrogate_model[i].train(X, Y[:, i])
@@ -279,12 +285,18 @@ class Advisor(object, metaclass=abc.ABCMeta):
                                                  num_data=num_config_evaluated)
             else:   # multi-objectives
                 mo_incumbent_value = self.history_container.get_mo_incumbent_value()
-                self.acquisition_function.update(model=self.surrogate_model,
-                                                 constraint_models=self.constraint_models,
-                                                 constraint_perfs=cX,   # for MESMOC
-                                                 eta=mo_incumbent_value,
-                                                 num_data=num_config_evaluated,
-                                                 X=X, Y=Y)
+                if self.acq_type == 'parego':
+                    self.acquisition_function.update(model=self.surrogate_model,
+                                                     constraint_models=self.constraint_models,
+                                                     eta=scalarized_obj(np.atleast_2d(mo_incumbent_value)),
+                                                     num_data=num_config_evaluated)
+                else:
+                    self.acquisition_function.update(model=self.surrogate_model,
+                                                     constraint_models=self.constraint_models,
+                                                     constraint_perfs=cX,   # for MESMOC
+                                                     eta=mo_incumbent_value,
+                                                     num_data=num_config_evaluated,
+                                                     X=X, Y=Y)
 
             # optimize acquisition function
             challengers = self.optimizer.maximize(runhistory=self.history_container,
