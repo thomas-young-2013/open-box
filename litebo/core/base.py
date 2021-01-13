@@ -1,5 +1,4 @@
-from litebo.acquisition_function.acquisition import *
-from litebo.acquisition_function.multi_objective_acquisition import *
+from litebo.acquisition_function import *
 from litebo.surrogate.base.rf_with_instances import RandomForestWithInstances
 from litebo.surrogate.base.build_gp import create_gp_model
 from litebo.utils.util_funcs import get_types
