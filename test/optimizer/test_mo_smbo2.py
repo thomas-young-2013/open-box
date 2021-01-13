@@ -61,7 +61,7 @@ cs.add_hyperparameters([x0, x1])
 # Evaluate MESMO
 bo = SMBO(multi_objective_func, cs, num_objs=num_objs, max_runs=max_runs,
           surrogate_type='gp_rbf', acq_type='mesmo',
-          time_limit_per_trial=60, logging_dir='logs')
+          time_limit_per_trial=60, task_id='mo')
 bo.config_advisor.optimizer.random_chooser.prob = rand_prob     # set rand_prob, default 0
 bo.config_advisor.acquisition_function.sample_num = sample_num  # set sample_num
 print('MESMO', '='*30)
@@ -75,7 +75,7 @@ for i in range(max_runs):
 
 # Evaluate the random search.
 bo_r = SMBO(multi_objective_func, cs, num_objs=num_objs, max_runs=max_runs,
-            time_limit_per_trial=60, sample_strategy='random', logging_dir='logs')
+            time_limit_per_trial=60, sample_strategy='random', task_id='mo_random')
 print('Random', '='*30)
 # bo.run()
 for i in range(max_runs):

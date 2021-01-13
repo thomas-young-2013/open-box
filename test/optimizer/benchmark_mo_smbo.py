@@ -14,7 +14,7 @@ from pygmo import hypervolume
 
 sys.path.insert(0, os.getcwd())
 from litebo.optimizer.generic_smbo import SMBO
-from litebo.config_space import Configuration
+from litebo.utils.config_space import Configuration
 from test_utils import timeit
 
 # set problem
@@ -76,7 +76,7 @@ with timeit('%s all' % (mth,)):
                           # surrogate_type='gp_rbf',    # use default
                           acq_type=mth,
                           initial_configurations=X_init, initial_runs=10,
-                          time_limit_per_trial=60, logging_dir='logs', random_state=seed)
+                          time_limit_per_trial=60, task_id='mo', random_state=seed)
                 bo.config_advisor.optimizer.random_chooser.prob = rand_prob     # set rand_prob, default 0
                 bo.config_advisor.acquisition_function.sample_num = sample_num  # set sample_num
                 bo.config_advisor.acquisition_function.random_state = seed      # set random_state
@@ -118,7 +118,7 @@ if rep == 1:
     import matplotlib.pyplot as plt
     # Evaluate the random search.
     bo_r = SMBO(multi_objective_func, cs, num_objs=num_objs, max_runs=max_runs,
-                time_limit_per_trial=60, sample_strategy='random', logging_dir='logs')
+                time_limit_per_trial=60, sample_strategy='random', task_id='mo_random')
     print('Random', '='*30)
     # bo.run()
     for i in range(max_runs):
