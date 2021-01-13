@@ -11,12 +11,12 @@ from litebo.acquisition_function.acquisition import Uncertainty
 from platypus import NSGAII, Problem, Real
 
 
-class MaxvalueEntropySearch(object):    # todo name min?
+class MaxvalueEntropySearch(object):  # todo name min?
     def __init__(self, model, X, Y, beta=1e6, random_state=1):
-        self.model = model      # GP model
+        self.model = model  # GP model
         self.X = X
         self.Y = Y
-        self.beta = beta     # todo what is beta?
+        self.beta = beta  # todo what is beta?
         self.rbf_features = None
         self.weights_mu = None
         self.L = None
@@ -25,7 +25,7 @@ class MaxvalueEntropySearch(object):    # todo name min?
 
     def Sampling_RFM(self):
         self.rbf_features = RBFSampler(gamma=1 / (2 * self.model.kernel.length_scale ** 2),
-                                       n_components=1000, random_state=self.random_state)   # todo length_scale
+                                       n_components=1000, random_state=self.random_state)  # todo length_scale
         X_train_features = self.rbf_features.fit_transform(np.asarray(self.X))
 
         A_inv = np.linalg.inv(
@@ -77,7 +77,6 @@ class MaxvalueEntropySearch(object):    # todo name min?
 
 
 class MESMO(AbstractAcquisitionFunction):
-
     r"""Computes MESMO for multi-objective optimization
 
     Syrine Belakaria, Aryan Deshwal, Janardhan Rao Doppa
@@ -200,7 +199,6 @@ class MESMO(AbstractAcquisitionFunction):
 
 
 class MESMOC(AbstractAcquisitionFunction):
-
     r"""Computes MESMOC for multi-objective optimization
 
     Syrine Belakaria, Aryan Deshwal, Janardhan Rao Doppa
@@ -314,7 +312,7 @@ class MESMOC(AbstractAcquisitionFunction):
             cheap_constraints_values = [list(solution.constraints) for solution in algorithm.result]
             # picking the min over the pareto: best case
             min_of_functions = [min(f) for f in list(zip(*cheap_pareto_front))]
-            min_of_constraints = [min(f) for f in list(zip(*cheap_constraints_values))] # todo confirm
+            min_of_constraints = [min(f) for f in list(zip(*cheap_constraints_values))]  # todo confirm
             self.min_samples.append(min_of_functions)
             self.min_samples_constraints.append(min_of_constraints)
 
@@ -361,6 +359,7 @@ class MESMOC(AbstractAcquisitionFunction):
 class MESMOC2(MESMO):
     r"""Computes MESMOC2 as acquisition value.
     """
+
     def __init__(self,
                  model: List[AbstractModel],
                  constraint_models: List[AbstractModel],
@@ -416,12 +415,11 @@ class MESMOC2(MESMO):
         for model in self.constraint_models:
             m, v = model.predict_marginalized_over_instances(X)
             s = np.sqrt(v)
-            f *= norm.cdf(-m/s)
+            f *= norm.cdf(-m / s)
         return f
 
 
 class USeMO(AbstractAcquisitionFunction):
-
     r"""Computes USeMO for multi-objective optimization
 
     Syrine Belakaria, Aryan Deshwal, Nitthilan Kannappan Jayakodi, Janardhan Rao Doppa
@@ -507,9 +505,9 @@ class USeMO(AbstractAcquisitionFunction):
 
         problem = Problem(self.X_dim, self.Y_dim)
         for k in range(self.X_dim):
-            problem.types[k] = Real(self.bounds[k][0], self.bounds[k][1])   # todo other types
+            problem.types[k] = Real(self.bounds[k][0], self.bounds[k][1])  # todo other types
         problem.function = CMO
-        algorithm = NSGAII(problem)    # todo population_size
+        algorithm = NSGAII(problem)  # todo population_size
         algorithm.run(2500)
         cheap_pareto_set = [solution.variables for solution in algorithm.result]
         # cheap_pareto_set_unique = []
@@ -519,14 +517,36 @@ class USeMO(AbstractAcquisitionFunction):
         cheap_pareto_set_unique = cheap_pareto_set
 
         single_uncertainty = np.array([self.uncertainty_acq[i](np.asarray(cheap_pareto_set_unique), convert=False)
-                                       for i in range(self.Y_dim)])      # shape=(Y_dim, N, 1)
+                                       for i in range(self.Y_dim)])  # shape=(Y_dim, N, 1)
         single_uncertainty = single_uncertainty.reshape(self.Y_dim, -1)  # shape=(Y_dim, N)
-        self.uncertainties = np.prod(single_uncertainty, axis=0)         # shape=(Y_dim,) todo normalize?
+        self.uncertainties = np.prod(single_uncertainty, axis=0)  # shape=(Y_dim,) todo normalize?
         self.candidates = np.array(cheap_pareto_set_unique)
 
     def _compute(self, X: np.ndarray, **kwargs):
-        raise NotImplementedError   # use USeMO_Optimizer
+        raise NotImplementedError  # use USeMO_Optimizer
 
+
+class qparEGO(AbstractAcquisitionFunction):
+    def __init__(self,
+                 model: List[AbstractModel],
+                 **kwargs):
+        super().__init__(model=model, **kwargs)
+        self.mc_times = kwargs.get('mc_times', 10)
+
+    def _compute(self, X: np.ndarray, **kwargs):
+        from litebo.utils.multi_objective import get_chebyshev_scalarization
+
+        mc_samples = np.zeros(shape=(self.mc_times, len(X), len(self.model)))
+        for idx in range(len(self.model)):
+            mc_samples[:, :, idx] = self.model[idx].sample_functions(X, n_funcs=self.mc_times).transpose()
+
+        samples = mc_samples.mean(axis=0)
+        weights = np.random.random_sample(len(self.model))
+        weights = weights / np.sum(weights)
+        scalarized_obj = get_chebyshev_scalarization(weights, samples)
+
+        # Maximize the acq function --> Minimize the objective function
+        return -scalarized_obj(samples)
 
 # class MaxvalueEntropySearch(object):
 #         def __init__(self, model, X, Y, beta=1e6, random_state=1):

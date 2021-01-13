@@ -8,7 +8,6 @@ from litebo.utils.limit import time_limit, TimeoutException
 from litebo.utils.multi_objective import Hypervolume
 from litebo.core.base import Observation
 
-
 """
     The objective function returns a dictionary that has --- config, constraints, objs ---.
 """
@@ -59,6 +58,21 @@ class SMBO(BOBase):
                                           task_id=task_id,
                                           output_dir=logging_dir,
                                           random_state=random_state)
+        elif advisor_type == 'qadvisor':
+            from litebo.core.q_advisor import qAdvisor
+            self.config_advisor = qAdvisor(config_space, self.task_info,
+                                           initial_trials=initial_runs,
+                                           init_strategy=init_strategy,
+                                           initial_configurations=initial_configurations,
+                                           optimization_strategy=sample_strategy,
+                                           surrogate_type=surrogate_type,
+                                           acq_type=acq_type,
+                                           acq_optimizer_type=acq_optimizer_type,
+                                           ref_point=ref_point,
+                                           history_bo_data=history_bo_data,
+                                           task_id=task_id,
+                                           output_dir=logging_dir,
+                                           random_state=random_state)
         elif advisor_type == 'tpe':
             from litebo.core.tpe_advisor import TPE_Advisor
             self.config_advisor = TPE_Advisor(config_space)
@@ -112,5 +126,5 @@ class SMBO(BOBase):
         # Visualization.
         for idx, obj in enumerate(objs):
             if obj < self.FAILED_PERF[idx]:
-                self.writer.add_scalar('data/objective-%d' % (idx+1), obj, self.iteration_id)
+                self.writer.add_scalar('data/objective-%d' % (idx + 1), obj, self.iteration_id)
         return config, trial_state, objs, trial_info

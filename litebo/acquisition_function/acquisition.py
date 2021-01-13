@@ -1,7 +1,7 @@
 # encoding=utf8
 import abc
 import logging
-from typing import List
+from typing import List, Union
 
 import numpy as np
 from scipy.stats import norm
@@ -25,7 +25,7 @@ class AbstractAcquisitionFunction(object, metaclass=abc.ABCMeta):
     def __str__(self):
         return type(self).__name__ + " (" + self.long_name + ")"
 
-    def __init__(self, model: AbstractModel, **kwargs):
+    def __init__(self, model: Union[AbstractModel, List[AbstractModel]], **kwargs):
         """Constructor
 
         Parameters
@@ -54,7 +54,7 @@ class AbstractAcquisitionFunction(object, metaclass=abc.ABCMeta):
         for key in kwargs:
             setattr(self, key, kwargs[key])
 
-    def __call__(self, configurations: List[Configuration], convert=True):
+    def __call__(self, configurations: List[Configuration], convert=True, **kwargs):
         """Computes the acquisition value for a given X
 
         Parameters
@@ -76,14 +76,14 @@ class AbstractAcquisitionFunction(object, metaclass=abc.ABCMeta):
         if len(X.shape) == 1:
             X = X[np.newaxis, :]
 
-        acq = self._compute(X)
+        acq = self._compute(X, **kwargs)
         if np.any(np.isnan(acq)):
             idx = np.where(np.isnan(acq))[0]
             acq[idx, :] = -np.finfo(np.float).max
         return acq
 
     @abc.abstractmethod
-    def _compute(self, X: np.ndarray):
+    def _compute(self, X: np.ndarray, **kwargs):
         """Computes the acquisition value for a given point X. This function has
         to be overwritten in a derived class.
 
@@ -104,7 +104,6 @@ class AbstractAcquisitionFunction(object, metaclass=abc.ABCMeta):
 
 
 class EI(AbstractAcquisitionFunction):
-
     r"""Computes for a given x the expected improvement as
     acquisition value.
 
@@ -114,7 +113,7 @@ class EI(AbstractAcquisitionFunction):
 
     def __init__(self,
                  model: AbstractModel,
-                 par: float=0.0,
+                 par: float = 0.0,
                  **kwargs):
         """Constructor
 
@@ -190,6 +189,7 @@ class EIC(EI):
     :math:`\text{EIC}(X) := \text{EI}(X)\prod_{k=1}^K\text{Pr}(c_k(x) \leq 0 | \mathcal{D}_t)`,
     with :math:`c_k \leq 0,\ 1 \leq k \leq K` the constraints, :math:`\mathcal{D}_t` the previous observations.
     """
+
     def __init__(self,
                  model: AbstractModel,
                  constraint_models: List[GaussianProcess],
@@ -235,14 +235,14 @@ class EIC(EI):
         for model in self.constraint_models:
             m, v = model.predict_marginalized_over_instances(X)
             s = np.sqrt(v)
-            f *= norm.cdf(-m/s)
+            f *= norm.cdf(-m / s)
         return f
 
 
 class EIPS(EI):
     def __init__(self,
                  model: AbstractModel,
-                 par: float=0.0,
+                 par: float = 0.0,
                  **kwargs):
         r"""Computes for a given x the expected improvement as
         acquisition value.
@@ -328,7 +328,7 @@ class LogEI(AbstractAcquisitionFunction):
 
     def __init__(self,
                  model: AbstractModel,
-                 par: float=0.0,
+                 par: float = 0.0,
                  **kwargs):
         r"""Computes for a given x the logarithm expected improvement as
         acquisition value.
@@ -378,7 +378,7 @@ class LogEI(AbstractAcquisitionFunction):
             f_min = self.eta - self.par
             v = (f_min - m) / std
             return (np.exp(f_min) * norm.cdf(v)) - \
-                (np.exp(0.5 * var_ + m) * norm.cdf(v - std))
+                   (np.exp(0.5 * var_ + m) * norm.cdf(v - std))
 
         if np.any(std == 0.0):
             # if std is zero, we have observed x on all instances
@@ -405,7 +405,7 @@ class LPEI(EI):
                  model: AbstractModel,
                  batch_configs=None,
                  par: float = 0.0,
-                 estimate_L:float=10.0,
+                 estimate_L: float = 10.0,
                  **kwargs):
         r"""This is EI with local penalizer, BBO_LP. Computes for a given x the expected improvement as
         acquisition value.
@@ -452,7 +452,7 @@ class LPEI(EI):
             var = v[0][0]
             sigma = math.sqrt(var)
             local_penalizer = np.apply_along_axis(self._local_penalizer, 1, X, config.get_array(),
-                                                   mu, sigma, self.eta).reshape(-1, 1)
+                                                  mu, sigma, self.eta).reshape(-1, 1)
             f += local_penalizer
         return f
 
@@ -467,7 +467,7 @@ class LPEI(EI):
 class PI(AbstractAcquisitionFunction):
     def __init__(self,
                  model: AbstractModel,
-                 par: float=0.0):
+                 par: float = 0.0):
 
         """Computes the probability of improvement for a given x over the best so far value as
         acquisition value.
@@ -518,7 +518,7 @@ class PI(AbstractAcquisitionFunction):
 class LCB(AbstractAcquisitionFunction):
     def __init__(self,
                  model: AbstractModel,
-                 par: float=1.0):
+                 par: float = 1.0):
 
         """Computes the lower confidence bound for a given x over the best so far value as
         acquisition value.
@@ -563,14 +563,14 @@ class LCB(AbstractAcquisitionFunction):
             X = X[:, np.newaxis]
         m, var_ = self.model.predict_marginalized_over_instances(X)
         std = np.sqrt(var_)
-        beta = 2*np.log((X.shape[1] * self.num_data**2) / self.par)
-        return -(m - np.sqrt(beta)*std)
+        beta = 2 * np.log((X.shape[1] * self.num_data ** 2) / self.par)
+        return -(m - np.sqrt(beta) * std)
 
 
 class Uncertainty(AbstractAcquisitionFunction):
     def __init__(self,
                  model: AbstractModel,
-                 par: float=1.0):
+                 par: float = 1.0):
 
         """Computes half of the difference between upper and lower confidence bound (Uncertainty).
 
@@ -614,8 +614,8 @@ class Uncertainty(AbstractAcquisitionFunction):
             X = X[:, np.newaxis]
         m, var_ = self.model.predict_marginalized_over_instances(X)
         std = np.sqrt(var_)
-        beta = 2*np.log((X.shape[1] * self.num_data**2) / self.par)
-        uncertainty = np.sqrt(beta)*std
+        beta = 2 * np.log((X.shape[1] * self.num_data ** 2) / self.par)
+        uncertainty = np.sqrt(beta) * std
         if np.any(np.isnan(uncertainty)):
             self.logger.warning('Uncertainty has nan-value. Set to 0.')
             uncertainty[np.isnan(uncertainty)] = 0

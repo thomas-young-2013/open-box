@@ -660,7 +660,6 @@ class RandomScipyOptimizer(AcquisitionFunctionMaximizer):
             num_trials=10,
             **kwargs
     ) -> List[Tuple[float, Configuration]]:
-
         results = []
         initial_configs = self.random_search.maximize(runhistory, num_points, **kwargs).challengers[:num_trials]
         for config in initial_configs:
@@ -711,7 +710,7 @@ class MESMO_Optimizer(AcquisitionFunctionMaximizer):
     def maximize(
             self,
             runhistory: HistoryContainer,
-            num_points: int,    # todo useless
+            num_points: int,  # todo useless
             **kwargs
     ) -> Iterable[Configuration]:
         """Maximize acquisition function using ``_maximize``.
@@ -757,7 +756,7 @@ class MESMO_Optimizer(AcquisitionFunctionMaximizer):
                 continue
             # convert array to Configuration todo
             config = Configuration(self.config_space, vector=result.x)
-            acq_val = self.acquisition_function(result.x, convert=False)    # [0]
+            acq_val = self.acquisition_function(result.x, convert=False)  # [0]
             configs_acq.append((acq_val, config))
 
         # shuffle for random tie-break
@@ -809,7 +808,7 @@ class USeMO_Optimizer(AcquisitionFunctionMaximizer):
     def maximize(
             self,
             runhistory: HistoryContainer,
-            num_points: int,    # useless in USeMO
+            num_points: int,  # useless in USeMO
             **kwargs
     ) -> Iterable[Configuration]:
         """Maximize acquisition function using ``_maximize``.
@@ -849,6 +848,78 @@ class USeMO_Optimizer(AcquisitionFunctionMaximizer):
         configs = [_[1] for _ in configs_acq]
 
         challengers = ChallengerList(configs,
+                                     self.config_space,
+                                     self.random_chooser)
+        self.random_chooser.next_smbo_iteration()
+        return challengers
+
+    def _maximize(
+            self,
+            runhistory: HistoryContainer,
+            num_points: int,
+            **kwargs
+    ) -> Iterable[Tuple[float, Configuration]]:
+        raise NotImplementedError()
+
+
+class qMCOptimizer(AcquisitionFunctionMaximizer):
+    def __init__(
+            self,
+            acquisition_function: AbstractAcquisitionFunction,
+            config_space: ConfigurationSpace,
+            rng: Union[bool, np.random.RandomState] = None,
+            batch_size=100,
+            rand_prob=0.0
+    ):
+        super().__init__(acquisition_function, config_space, rng)
+        self.batch_size = 100
+        self.random_chooser = ChooserProb(prob=rand_prob, rng=rng)
+
+    def maximize(
+            self,
+            runhistory: HistoryContainer,
+            num_points: int,
+            _sorted: bool = True,
+            **kwargs
+    ) -> List[Tuple[float, Configuration]]:
+        """Randomly sampled configurations
+
+        Parameters
+        ----------
+        runhistory: ~litebo.utils.history_container.HistoryContainer
+            runhistory object
+        num_points: int
+            number of points to be sampled
+        _sorted: bool
+            whether random configurations are sorted according to acquisition function
+        **kwargs
+            not used
+
+        Returns
+        -------
+        iterable
+            An iterable consistng of
+            tuple(acqusition_value, :class:`litebo.config_space.Configuration`).
+        """
+        from litebo.utils.samplers import SobolSampler
+
+        cur_idx = 0
+        config_acq = list()
+        weight_seed = self.rng.random_integers(0, int(1e8), 1)[0]  # The same weight each iteration
+
+        while cur_idx < num_points:
+            batch_size = min(self.batch_size, num_points - cur_idx)
+            sobol_sampler = SobolSampler(self.config_space, batch_size,
+                                         random_state=self.rng.random_integers(0, int(1e8), 1)[0])
+            _configs = sobol_sampler.generate(return_config=True)
+            _acq_values = self.acquisition_function(_configs, seed=weight_seed)
+            config_acq.extend([(_configs[idx], _acq_values[idx]) for idx in range(len(_configs))])
+
+            cur_idx += self.batch_size
+
+        config_acq.sort(reverse=True, key=lambda x: x[1])
+
+        challengers = ChallengerList([_[0] for _ in config_acq],
                                      self.config_space,
                                      self.random_chooser)
         self.random_chooser.next_smbo_iteration()
