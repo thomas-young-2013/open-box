@@ -8,7 +8,7 @@ from sklearn import svm, datasets
 from sklearn.model_selection import cross_val_score
 
 # Import ConfigSpace and different types of parameters
-from litebo.config_space import ConfigurationSpace
+from litebo.utils.config_space import ConfigurationSpace
 from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
     UniformFloatHyperparameter, UniformIntegerHyperparameter
 from ConfigSpace.conditions import InCondition
@@ -74,7 +74,7 @@ print("Default Value: %.2f" % (def_value))
 
 # Optimize, using a SMAC-object
 print("Optimizing! Depending on your machine, this might take a few minutes.")
-bo = BayesianOptimization(svm_from_cfg, cs, max_runs=30, time_limit_per_trial=30, logging_dir='test')
+bo = BayesianOptimization(svm_from_cfg, cs, max_runs=30, time_limit_per_trial=30, logging_dir='logs')
 bo.run()
 inc_value = bo.get_incumbent()
 

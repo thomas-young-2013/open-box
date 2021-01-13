@@ -5,8 +5,8 @@ from collections import OrderedDict
 from litebo.optimizer.base import BOBase
 from litebo.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
 from litebo.utils.limit import time_limit, TimeoutException
+from litebo.utils.multi_objective import Hypervolume
 from litebo.core.base import Observation
-
 
 """
     The objective function returns a dictionary that has --- config, constraints, objs ---.
@@ -23,6 +23,8 @@ class SMBO(BOBase):
                  advisor_type='default',
                  surrogate_type=None,
                  acq_type=None,
+                 acq_optimizer_type='local_random',
+                 ref_point=None,
                  history_bo_data: List[OrderedDict] = None,
                  logging_dir='logs',
                  init_strategy='random_explore_first',
@@ -31,12 +33,16 @@ class SMBO(BOBase):
                  task_id=None,
                  random_state=1):
 
+        if task_id is None:
+            raise ValueError('Task id is not SPECIFIED. Please input task id first.')
+
         self.task_info = {'num_constraints': num_constraints, 'num_objs': num_objs}
         self.FAILED_PERF = [MAXINT] * num_objs
         super().__init__(objective_function, config_space, task_id=task_id, output_dir=logging_dir,
                          random_state=random_state, initial_runs=initial_runs, max_runs=max_runs,
                          sample_strategy=sample_strategy, time_limit_per_trial=time_limit_per_trial,
                          history_bo_data=history_bo_data)
+
         if advisor_type == 'default':
             from litebo.core.generic_advisor import Advisor
             self.config_advisor = Advisor(config_space, self.task_info,
@@ -46,10 +52,27 @@ class SMBO(BOBase):
                                           optimization_strategy=sample_strategy,
                                           surrogate_type=surrogate_type,
                                           acq_type=acq_type,
+                                          acq_optimizer_type=acq_optimizer_type,
+                                          ref_point=ref_point,
                                           history_bo_data=history_bo_data,
                                           task_id=task_id,
                                           output_dir=logging_dir,
-                                          rng=self.rng)
+                                          random_state=random_state)
+        elif advisor_type == 'qadvisor':
+            from litebo.core.q_advisor import qAdvisor
+            self.config_advisor = qAdvisor(config_space, self.task_info,
+                                           initial_trials=initial_runs,
+                                           init_strategy=init_strategy,
+                                           initial_configurations=initial_configurations,
+                                           optimization_strategy=sample_strategy,
+                                           surrogate_type=surrogate_type,
+                                           acq_type=acq_type,
+                                           acq_optimizer_type=acq_optimizer_type,
+                                           ref_point=ref_point,
+                                           history_bo_data=history_bo_data,
+                                           task_id=task_id,
+                                           output_dir=logging_dir,
+                                           random_state=random_state)
         elif advisor_type == 'tpe':
             from litebo.core.tpe_advisor import TPE_Advisor
             self.config_advisor = TPE_Advisor(config_space)
@@ -76,7 +99,7 @@ class SMBO(BOBase):
                         'Timeout: time limit for this evaluation is %.1fs' % self.time_limit_per_trial)
                 else:
                     objs = _result['objs'] if _result['objs'] is not None else self.FAILED_PERF
-                    constraints = _result['constraints']
+                    constraints = _result.get('constraints', None)
             except Exception as e:
                 if isinstance(e, TimeoutException):
                     trial_state = TIMEOUT
@@ -98,5 +121,10 @@ class SMBO(BOBase):
                 trial_state, objs = FAILED, self.FAILED_PERF
 
         self.iteration_id += 1
+        # Logging.
         self.logger.info('In the %d-th iteration, the objective value: %s' % (self.iteration_id, str(objs)))
+        # Visualization.
+        for idx, obj in enumerate(objs):
+            if obj < self.FAILED_PERF[idx]:
+                self.writer.add_scalar('data/objective-%d' % (idx + 1), obj, self.iteration_id)
         return config, trial_state, objs, trial_info

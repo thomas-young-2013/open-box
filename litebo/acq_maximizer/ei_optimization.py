@@ -7,10 +7,10 @@ import scipy
 import numpy as np
 
 from litebo.acquisition_function.acquisition import AbstractAcquisitionFunction
-from litebo.config_space import get_one_exchange_neighbourhood, \
+from litebo.utils.config_space import get_one_exchange_neighbourhood, \
     Configuration, ConfigurationSpace
+from litebo.utils.config_space.util import convert_configurations_to_array
 from litebo.acq_maximizer.random_configuration_chooser import ChooserNoCoolDown, ChooserProb
-from litebo.utils.constants import MAXINT
 from litebo.utils.history_container import HistoryContainer
 from litebo.utils.util_funcs import get_types
 
@@ -551,6 +551,136 @@ class InterleavedLocalAndRandomSearch(AcquisitionFunctionMaximizer):
         raise NotImplementedError()
 
 
+class ScipyOptimizer(AcquisitionFunctionMaximizer):
+    """
+    Wraps scipy optimizer. Only on continuous dims.
+
+    Parameters
+    ----------
+    acquisition_function : ~litebo.acquisition_function.acquisition.AbstractAcquisitionFunction
+
+    config_space : ~litebo.config_space.ConfigurationSpace
+
+    rng : np.random.RandomState or int, optional
+    """
+
+    def __init__(
+            self,
+            acquisition_function: AbstractAcquisitionFunction,
+            config_space: ConfigurationSpace,
+            rng: Union[bool, np.random.RandomState] = None,
+    ):
+        super().__init__(acquisition_function, config_space, rng)
+        self.random_chooser = ChooserProb(prob=0.0, rng=rng)
+
+        types, bounds = get_types(self.config_space)
+        assert all(types == 0)
+        self.bounds = bounds
+
+        options = dict(disp=False, maxiter=1000)
+        self.scipy_config = dict(tol=None, method='L-BFGS-B', options=options)
+
+    def maximize(
+            self,
+            runhistory: HistoryContainer,
+            initial_config=None,
+            **kwargs
+    ) -> List[Tuple[float, Configuration]]:
+
+        def negative_acquisition(x):
+            # shape of x = (d,)
+            return -self.acquisition_function(x, convert=False)[0]  # shape=(1,)
+
+        if initial_config is None:
+            init_point = self.config_space.sample_configuration()
+        else:
+            init_point = initial_config.get_array()
+
+        results = []
+        result = scipy.optimize.minimize(fun=negative_acquisition,
+                                         x0=init_point,
+                                         bounds=self.bounds,
+                                         **self.scipy_config)
+        if result.success:
+            results.append((result.fun, Configuration(self.config_space, vector=result.x)))
+
+        challengers = ChallengerList([config for _, config in results],
+                                     self.config_space,
+                                     self.random_chooser)
+        self.random_chooser.next_smbo_iteration()
+        return challengers
+
+    def _maximize(
+            self,
+            runhistory: HistoryContainer,
+            num_points: int,
+            **kwargs
+    ) -> Iterable[Tuple[float, Configuration]]:
+        raise NotImplementedError()
+
+
+class RandomScipyOptimizer(AcquisitionFunctionMaximizer):
+    """
+    Use scipt.optimize with start points chosen by random search. Only on continuous dims.
+
+    Parameters
+    ----------
+    acquisition_function : ~litebo.acquisition_function.acquisition.AbstractAcquisitionFunction
+
+    config_space : ~litebo.config_space.ConfigurationSpace
+
+    rng : np.random.RandomState or int, optional
+    """
+
+    def __init__(
+            self,
+            acquisition_function: AbstractAcquisitionFunction,
+            config_space: ConfigurationSpace,
+            rng: Union[bool, np.random.RandomState] = None,
+    ):
+        super().__init__(acquisition_function, config_space, rng)
+
+        self.random_chooser = ChooserProb(prob=0.2, rng=rng)
+
+        self.random_search = InterleavedLocalAndRandomSearch(
+            acquisition_function=acquisition_function,
+            config_space=config_space,
+            rng=rng
+        )
+        self.scipy_optimizer = ScipyOptimizer(
+            acquisition_function=acquisition_function,
+            config_space=config_space,
+            rng=rng
+        )
+
+    def maximize(
+            self,
+            runhistory: HistoryContainer,
+            num_points: int,
+            num_trials=10,
+            **kwargs
+    ) -> List[Tuple[float, Configuration]]:
+        results = []
+        initial_configs = self.random_search.maximize(runhistory, num_points, **kwargs).challengers[:num_trials]
+        for config in initial_configs:
+            result = self.scipy_optimizer.maximize(runhistory, initial_config=config).challengers
+            results.extend(result)
+
+        challengers = ChallengerList(results,
+                                     self.config_space,
+                                     self.random_chooser)
+        self.random_chooser.next_smbo_iteration()
+        return challengers
+
+    def _maximize(
+            self,
+            runhistory: HistoryContainer,
+            num_points: int,
+            **kwargs
+    ) -> Iterable[Tuple[float, Configuration]]:
+        raise NotImplementedError()
+
+
 class MESMO_Optimizer(AcquisitionFunctionMaximizer):
     """Implements Scipy optimizer for MESMO. Only on continuous dims
 
@@ -582,7 +712,7 @@ class MESMO_Optimizer(AcquisitionFunctionMaximizer):
     def maximize(
             self,
             runhistory: HistoryContainer,
-            num_points: int,    # todo useless
+            num_points: int,  # todo useless
             **kwargs
     ) -> Iterable[Configuration]:
         """Maximize acquisition function using ``_maximize``.
@@ -628,7 +758,7 @@ class MESMO_Optimizer(AcquisitionFunctionMaximizer):
                 continue
             # convert array to Configuration todo
             config = Configuration(self.config_space, vector=result.x)
-            acq_val = self.acquisition_function(result.x, convert=False)    # [0]
+            acq_val = self.acquisition_function(result.x, convert=False)  # [0]
             configs_acq.append((acq_val, config))
 
         # shuffle for random tie-break
@@ -680,7 +810,7 @@ class USeMO_Optimizer(AcquisitionFunctionMaximizer):
     def maximize(
             self,
             runhistory: HistoryContainer,
-            num_points: int,    # useless in USeMO
+            num_points: int,  # useless in USeMO
             **kwargs
     ) -> Iterable[Configuration]:
         """Maximize acquisition function using ``_maximize``.
@@ -720,6 +850,78 @@ class USeMO_Optimizer(AcquisitionFunctionMaximizer):
         configs = [_[1] for _ in configs_acq]
 
         challengers = ChallengerList(configs,
+                                     self.config_space,
+                                     self.random_chooser)
+        self.random_chooser.next_smbo_iteration()
+        return challengers
+
+    def _maximize(
+            self,
+            runhistory: HistoryContainer,
+            num_points: int,
+            **kwargs
+    ) -> Iterable[Tuple[float, Configuration]]:
+        raise NotImplementedError()
+
+
+class qMCOptimizer(AcquisitionFunctionMaximizer):
+    def __init__(
+            self,
+            acquisition_function: AbstractAcquisitionFunction,
+            config_space: ConfigurationSpace,
+            rng: Union[bool, np.random.RandomState] = None,
+            batch_size=100,
+            rand_prob=0.0
+    ):
+        super().__init__(acquisition_function, config_space, rng)
+        self.batch_size = 100
+        self.random_chooser = ChooserProb(prob=rand_prob, rng=rng)
+
+    def maximize(
+            self,
+            runhistory: HistoryContainer,
+            num_points: int,
+            _sorted: bool = True,
+            **kwargs
+    ) -> List[Tuple[float, Configuration]]:
+        """Randomly sampled configurations
+
+        Parameters
+        ----------
+        runhistory: ~litebo.utils.history_container.HistoryContainer
+            runhistory object
+        num_points: int
+            number of points to be sampled
+        _sorted: bool
+            whether random configurations are sorted according to acquisition function
+        **kwargs
+            not used
+
+        Returns
+        -------
+        iterable
+            An iterable consistng of
+            tuple(acqusition_value, :class:`litebo.config_space.Configuration`).
+        """
+        from litebo.utils.samplers import SobolSampler
+
+        cur_idx = 0
+        config_acq = list()
+        weight_seed = self.rng.random_integers(0, int(1e8), 1)[0]  # The same weight each iteration
+
+        while cur_idx < num_points:
+            batch_size = min(self.batch_size, num_points - cur_idx)
+            sobol_sampler = SobolSampler(self.config_space, batch_size,
+                                         random_state=self.rng.random_integers(0, int(1e8), 1)[0])
+            _configs = sobol_sampler.generate(return_config=True)
+            _acq_values = self.acquisition_function(_configs, seed=weight_seed)
+            config_acq.extend([(_configs[idx], _acq_values[idx]) for idx in range(len(_configs))])
+
+            cur_idx += self.batch_size
+
+        config_acq.sort(reverse=True, key=lambda x: x[1])
+
+        challengers = ChallengerList([_[0] for _ in config_acq],
                                      self.config_space,
                                      self.random_chooser)
         self.random_chooser.next_smbo_iteration()

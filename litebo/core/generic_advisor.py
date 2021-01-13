@@ -1,11 +1,15 @@
+import os
 import abc
 import numpy as np
+from typing import Iterable
 
-from litebo.utils.util_funcs import get_rng, get_types
+from litebo.utils.util_funcs import get_types
 from litebo.utils.logging_utils import get_logger
 from litebo.utils.history_container import HistoryContainer, MOHistoryContainer
-from litebo.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
-from litebo.config_space.util import convert_configurations_to_array
+from litebo.utils.constants import MAXINT, SUCCESS
+from litebo.utils.samplers import SobolSampler, LatinHypercubeSampler
+from litebo.utils.multi_objective import get_chebyshev_scalarization
+from litebo.utils.config_space.util import convert_configurations_to_array
 from litebo.core.base import build_acq_func, build_optimizer, build_surrogate
 from litebo.core.base import Observation
 
@@ -20,9 +24,11 @@ class Advisor(object, metaclass=abc.ABCMeta):
                  optimization_strategy='bo',
                  surrogate_type=None,
                  acq_type=None,
+                 acq_optimizer_type='local_random',
+                 ref_point=None,
                  output_dir='logs',
                  task_id=None,
-                 rng=None):
+                 random_state=None):
 
         # Create output (logging) directory.
         # Init logging module.
@@ -32,10 +38,13 @@ class Advisor(object, metaclass=abc.ABCMeta):
         self.num_constraints = task_info['num_constraints']
         self.init_strategy = init_strategy
         self.output_dir = output_dir
-        if rng is None:
-            run_id, rng = get_rng()
-        self.rng = rng
+        self.rng = np.random.RandomState(random_state)
         self.logger = get_logger(self.__class__.__name__)
+
+        history_folder = os.path.join(self.output_dir, 'bo_history')
+        if not os.path.exists(history_folder):
+            os.makedirs(history_folder)
+        self.history_file = os.path.join(history_folder, 'bo_history_%s.json' % task_id)
 
         # Basic components in Advisor.
         self.optimization_strategy = optimization_strategy
@@ -55,9 +64,10 @@ class Advisor(object, metaclass=abc.ABCMeta):
         self.surrogate_type = surrogate_type
         self.constraint_surrogate_type = None
         self.acq_type = acq_type
+        self.acq_optimizer_type = acq_optimizer_type
         self.init_num = initial_trials
         self.config_space = config_space
-        self.config_space.seed(rng.randint(MAXINT))
+        self.config_space.seed(self.rng.randint(MAXINT))
 
         if initial_configurations is not None and len(initial_configurations) > 0:
             self.initial_configurations = initial_configurations
@@ -68,7 +78,9 @@ class Advisor(object, metaclass=abc.ABCMeta):
         if self.num_objs == 1:
             self.history_container = HistoryContainer(task_id)
         else:   # multi-objectives
-            self.history_container = MOHistoryContainer(task_id)
+            if ref_point is None:
+                ref_point = [0.0] * self.num_objs
+            self.history_container = MOHistoryContainer(task_id, ref_point)
 
         self.surrogate_model = None
         self.constraint_models = None
@@ -116,8 +128,8 @@ class Advisor(object, metaclass=abc.ABCMeta):
         # multi-objective no constraint
         elif self.num_objs > 1:
             if self.acq_type is None:
-                self.acq_type = 'mesmo'
-            assert self.acq_type in ['mesmo', 'usemo']
+                self.acq_type = 'parego'
+            assert self.acq_type in ['mesmo', 'usemo', 'parego']
             if self.surrogate_type is None:
                 if self.acq_type == 'mesmo':
                     self.surrogate_type = 'gp_rbf'
@@ -145,8 +157,8 @@ class Advisor(object, metaclass=abc.ABCMeta):
                 self.logger.warning('Surrogate model has changed to Gaussian Process '
                                     'since TS is used. Surrogate_type should be set to \'gp\'.')
 
-    def setup_bo_basics(self, acq_optimizer_type='local_random'):
-        if self.num_objs == 1:
+    def setup_bo_basics(self):
+        if self.num_objs == 1 or self.acq_type == 'parego':
             self.surrogate_model = build_surrogate(func_str=self.surrogate_type,
                                                    config_space=self.config_space,
                                                    rng=self.rng,
@@ -172,24 +184,31 @@ class Advisor(object, metaclass=abc.ABCMeta):
             self.acquisition_function = build_acq_func(func_str=self.acq_type, model=self.surrogate_model,
                                                        constraint_models=self.constraint_models)
         if self.acq_type == 'usemo':
-            acq_optimizer_type = 'usemo_optimizer'
+            self.acq_optimizer_type = 'usemo_optimizer'
         elif self.acq_type.startswith('mesmo'):
-            acq_optimizer_type = 'mesmo_optimizer'
-        self.optimizer = build_optimizer(func_str=acq_optimizer_type,
+            self.acq_optimizer_type = 'mesmo_optimizer'
+        self.optimizer = build_optimizer(func_str=self.acq_optimizer_type,
                                          acq_func=self.acquisition_function,
                                          config_space=self.config_space,
                                          rng=self.rng)
 
     def create_initial_design(self, init_strategy='random'):
         default_config = self.config_space.get_default_configuration()
+        num_random_config = self.init_num - 1
         if init_strategy == 'random':
-            num_random_config = self.init_num - 1
             initial_configs = [default_config] + self.sample_random_configs(num_random_config)
             return initial_configs
         elif init_strategy == 'random_explore_first':
-            num_random_config = self.init_num - 1
             candidate_configs = self.sample_random_configs(100)
-            return self.max_min_distance(default_config,candidate_configs,num_random_config)
+            return self.max_min_distance(default_config, candidate_configs, num_random_config)
+        elif init_strategy == 'sobol':
+            sobol = SobolSampler(self.config_space, num_random_config, random_state=self.rng)
+            initial_configs = [default_config] + sobol.generate(return_config=True)
+            return initial_configs
+        elif init_strategy == 'latin_hypercube':
+            lhs = LatinHypercubeSampler(self.config_space, num_random_config, criterion='maximin')
+            initial_configs = [default_config] + lhs.generate(return_config=True)
+            return initial_configs
         else:
             raise ValueError('Unknown initial design strategy: %s.' % init_strategy)
 
@@ -237,6 +256,11 @@ class Advisor(object, metaclass=abc.ABCMeta):
             # train surrogate model
             if self.num_objs == 1:
                 self.surrogate_model.train(X, Y)
+            elif self.acq_type == 'parego':
+                weights = np.random.random_sample(self.num_objs)
+                weights = weights / np.sum(weights)
+                scalarized_obj = get_chebyshev_scalarization(weights, Y)
+                self.surrogate_model.train(X, scalarized_obj(Y))
             else:   # multi-objectives
                 for i in range(self.num_objs):
                     self.surrogate_model[i].train(X, Y[:, i])
@@ -261,12 +285,18 @@ class Advisor(object, metaclass=abc.ABCMeta):
                                                  num_data=num_config_evaluated)
             else:   # multi-objectives
                 mo_incumbent_value = self.history_container.get_mo_incumbent_value()
-                self.acquisition_function.update(model=self.surrogate_model,
-                                                 constraint_models=self.constraint_models,
-                                                 constraint_perfs=cX,   # for MESMOC
-                                                 eta=mo_incumbent_value,
-                                                 num_data=num_config_evaluated,
-                                                 X=X, Y=Y)
+                if self.acq_type == 'parego':
+                    self.acquisition_function.update(model=self.surrogate_model,
+                                                     constraint_models=self.constraint_models,
+                                                     eta=scalarized_obj(np.atleast_2d(mo_incumbent_value)),
+                                                     num_data=num_config_evaluated)
+                else:
+                    self.acquisition_function.update(model=self.surrogate_model,
+                                                     constraint_models=self.constraint_models,
+                                                     constraint_perfs=cX,   # for MESMOC
+                                                     eta=mo_incumbent_value,
+                                                     num_data=num_config_evaluated,
+                                                     X=X, Y=Y)
 
             # optimize acquisition function
             challengers = self.optimizer.maximize(runhistory=self.history_container,
@@ -306,8 +336,12 @@ class Advisor(object, metaclass=abc.ABCMeta):
                     self.constraint_perfs[i].append(bilog(constraints[i]))
 
             self.configurations.append(config)
-            self.perfs.append(objs)
-            self.history_container.add(config, objs)
+            if self.num_objs == 1 and isinstance(objs, Iterable):
+                self.perfs.append(objs[0])
+                self.history_container.add(config, objs[0])
+            else:
+                self.perfs.append(objs)
+                self.history_container.add(config, objs)
 
             self.perc = np.percentile(self.perfs, self.scale_perc, axis=0)
             self.min_y = np.min(self.perfs, axis=0)
@@ -330,6 +364,12 @@ class Advisor(object, metaclass=abc.ABCMeta):
                 configs.append(config)
                 sample_cnt = 0
         return configs
+
+    def save_history(self):
+        self.history_container.save_json(self.history_file)
+
+    def load_history_from_json(self):
+        return self.history_container.load_history_from_json(self.config_space, self.history_file)
 
     def get_suggestions(self):
         raise NotImplementedError

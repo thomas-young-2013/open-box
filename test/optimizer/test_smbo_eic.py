@@ -1,44 +1,39 @@
 import numpy as np
-
-import os
-import sys
-sys.path.insert(0, os.getcwd())
-
 from litebo.optimizer.generic_smbo import SMBO
-from litebo.config_space import ConfigurationSpace, Configuration, \
-    UniformFloatHyperparameter, UniformIntegerHyperparameter
+from litebo.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter
 
 
-def rosenbrock(config):
+def townsend(config):
     X = np.array(list(config.get_dictionary().values()))
     res = dict()
-    res['objs'] = ((1-X[0])**2 + 100*(X[1]-X[0]**2)**2, )
-    res['constraints'] = ((X[0] - 1)**3 - X[1] + 1, X[0] + X[1] - 2)
+    res['objs'] = (-(np.cos((X[0]-0.1)*X[1])**2 + X[0] * np.sin(3*X[0]+X[1])), )
+    res['constraints'] = (-(-np.cos(1.5*X[0]+np.pi)*np.cos(1.5*X[1])+np.sin(1.5*X[0]+np.pi)*np.sin(1.5*X[1])), )
     return res
-rosenbrock_params = {
+
+townsend_params = {
     'float': {
-        'x1': (-1.5, 1.5, 0),
-        'x2': (-0.5, 2.5, 0.5)
+        'x1': (-2.25, 2.5, 0),
+        'x2': (-2.5, 1.75, 0)
     }
 }
-rosenbrock_cs = ConfigurationSpace()
-rosenbrock_cs.add_hyperparameters([UniformFloatHyperparameter(e, *rosenbrock_params['float'][e]) for e in rosenbrock_params['float']])
+townsend_cs = ConfigurationSpace()
+townsend_cs.add_hyperparameters([UniformFloatHyperparameter(e, *townsend_params['float'][e]) for e in townsend_params['float']])
+# X = np.array([[ 0.91666667, -1.08333333],
+#               [-0.66666667,  0.33333333],
+#               [-1.19444444, -1.55555556],
+#               [ 1.44444444,  0.80555556],
+#               [ 0.38888889, -2.5       ],
+#               [-2.25      , -0.13888889],
+#               [ 2.5       , -0.61111111],
+#               [-0.13888889,  1.75      ],
+#               [ 1.97222222, -2.02777778],
+#               [-1.72222222,  1.27777778]])
+# townsend_initial_configs = [Configuration(townsend_cs, {'x1': X[i, 0], 'x2': X[i, 1]}) for i in range(X.shape[0])]
 
-
-def rao(config):
-    X = np.array(list(config.get_dictionary().values()))
-    res = dict()
-    res['objs'] = (-3*X[0]-4*X[1], )
-    res['constraints'] = (3*X[0] - X[1] - 12,
-                          3*X[0] + 11*X[1] - 66)
-    return res
-rao_cs = ConfigurationSpace()
-rao_cs.add_hyperparameter(UniformFloatHyperparameter('x1', 0, 10, 1))
-rao_cs.add_hyperparameter(UniformIntegerHyperparameter('x2', 0, 10, 1))
-
-
-bo = SMBO(rao, rao_cs,
-          num_constraints=2,
-          max_runs=200)
+bo = SMBO(townsend, townsend_cs,
+          num_constraints=1,
+          # initial_configurations=townsend_initial_configs,
+          acq_optimizer_type='random_scipy',
+          max_runs=60,
+          task_id='smbo_eic')
 bo.run()
-
