@@ -17,7 +17,7 @@ import gpflow
 import gpflowopt
 
 sys.path.insert(0, os.getcwd())
-from mo_benchmark_function import timeit
+from test_utils import timeit
 from test_utils import check_datasets, load_data
 from mo_benchmark_function import LightGBM
 from sklearn.model_selection import train_test_split

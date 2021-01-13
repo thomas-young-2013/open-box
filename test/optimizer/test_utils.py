@@ -1,6 +1,20 @@
 import os
 import pandas as pd
 import numpy as np
+import contextlib
+import time
+
+
+# timer tool
+@contextlib.contextmanager
+def timeit(name=''):
+    print("[%s]Start." % name)
+    start = time.time()
+    yield
+    end = time.time()
+    m, s = divmod(end - start, 60)
+    h, m = divmod(m, 60)
+    print("[%s]Total time = %d hours, %d minutes, %d seconds." % (name, h, m, s))
 
 
 def check_datasets(datasets, data_dir):

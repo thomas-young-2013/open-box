@@ -15,7 +15,7 @@ import gpflow
 import gpflowopt
 
 sys.path.insert(0, os.getcwd())
-from mo_benchmark_function import timeit
+from test_utils import timeit
 
 # set problem
 from mo_benchmark_function import get_setup_bc, branin, Currin

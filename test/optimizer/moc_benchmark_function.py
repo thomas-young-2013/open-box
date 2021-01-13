@@ -5,21 +5,6 @@ from copy import deepcopy
 from litebo.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter
 from platypus import NSGAII, Problem, Real
 
-import contextlib
-import time
-
-
-# timer tool
-@contextlib.contextmanager
-def timeit(name=''):
-    print("[%s]Start." % name)
-    start = time.time()
-    yield
-    end = time.time()
-    m, s = divmod(end - start, 60)
-    h, m = divmod(m, 60)
-    print("[%s]Total time = %d hours, %d minutes, %d seconds." % (name, h, m, s))
-
 
 # === benchmark 1: bc with constraints
 def branin(x1):
