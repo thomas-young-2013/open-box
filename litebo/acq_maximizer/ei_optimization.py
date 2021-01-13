@@ -864,7 +864,7 @@ class USeMO_Optimizer(AcquisitionFunctionMaximizer):
         raise NotImplementedError()
 
 
-class qMCOptimizer(AcquisitionFunctionMaximizer):
+class batchMCOptimizer(AcquisitionFunctionMaximizer):
     def __init__(
             self,
             acquisition_function: AbstractAcquisitionFunction,
@@ -874,7 +874,7 @@ class qMCOptimizer(AcquisitionFunctionMaximizer):
             rand_prob=0.0
     ):
         super().__init__(acquisition_function, config_space, rng)
-        self.batch_size = 100
+        self.batch_size = batch_size
         self.random_chooser = ChooserProb(prob=rand_prob, rng=rng)
 
     def maximize(

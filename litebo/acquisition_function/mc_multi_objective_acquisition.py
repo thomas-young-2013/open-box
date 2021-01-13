@@ -6,7 +6,7 @@ from litebo.acquisition_function.acquisition import AbstractAcquisitionFunction
 from litebo.surrogate.base.base_model import AbstractModel
 
 
-class qparEGO(AbstractAcquisitionFunction):
+class MCparEGO(AbstractAcquisitionFunction):
     def __init__(self,
                  model: List[AbstractModel],
                  **kwargs):

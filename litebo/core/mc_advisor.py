@@ -15,7 +15,7 @@ from litebo.core.base import Observation
 from litebo.core.generic_advisor import Advisor
 
 
-class qAdvisor(Advisor):
+class MCAdvisor(Advisor):
     def __init__(self, config_space, task_info,
                  initial_trials=10,
                  initial_configurations=None,
@@ -24,7 +24,7 @@ class qAdvisor(Advisor):
                  optimization_strategy='bo',
                  surrogate_type=None,
                  acq_type=None,
-                 acq_optimizer_type='qMC',
+                 acq_optimizer_type='batchmc',
                  ref_point=None,
                  output_dir='logs',
                  task_id=None,
@@ -38,7 +38,7 @@ class qAdvisor(Advisor):
                          optimization_strategy=optimization_strategy,
                          surrogate_type=surrogate_type,
                          acq_type=acq_type,
-                         acq_optimizer_type='qMC',
+                         acq_optimizer_type='batchmc',
                          ref_point=ref_point,
                          output_dir=output_dir,
                          task_id=task_id,
@@ -54,16 +54,16 @@ class qAdvisor(Advisor):
         # single objective no constraint
         if self.num_objs == 1 and self.num_constraints == 0:
             if self.acq_type is None:
-                self.acq_type = 'qei'
-            assert self.acq_type in ['qei']
+                self.acq_type = 'mcei'
+            assert self.acq_type in ['mcei']
             if self.surrogate_type is None:
                 self.surrogate_type = 'prf'
 
         # multi-objective with constraints
         elif self.num_objs > 1 and self.num_constraints > 0:
             if self.acq_type is None:
-                self.acq_type = 'qparego'
-            assert self.acq_type in ['qparego']
+                self.acq_type = 'mcparego'
+            assert self.acq_type in ['mcparego']
             if self.surrogate_type is None:
                 self.surrogate_type = 'gp'
             if self.constraint_surrogate_type is None:
@@ -72,18 +72,18 @@ class qAdvisor(Advisor):
         # multi-objective no constraint
         elif self.num_objs > 1:
             if self.acq_type is None:
-                self.acq_type = 'qparego'
-            assert self.acq_type in ['qparego']
+                self.acq_type = 'mcparego'
+            assert self.acq_type in ['mcparego']
             if self.surrogate_type is None:
                 self.surrogate_type = 'gp'
 
         # single objective with constraints
         elif self.num_constraints > 0:
             if self.acq_type is None:
-                self.acq_type = 'qeic'
-            assert self.acq_type in ['qeic']
+                self.acq_type = 'mceic'
+            assert self.acq_type in ['mceic']
             if self.surrogate_type is None:
-                if self.acq_type == 'qeic':
+                if self.acq_type == 'mceic':
                     self.surrogate_type = 'gp'
                 else:
                     self.surrogate_type = 'prf'

@@ -17,10 +17,12 @@ from litebo.acquisition_function.multi_objective_acquisition import (
     USeMO,
 )
 
-from litebo.acquisition_function.mc_acquisition import *
+from litebo.acquisition_function.mc_acquisition import (
+    MCEI,
+)
 
 from litebo.acquisition_function.mc_multi_objective_acquisition import (
-    qparEGO,
+    MCparEGO,
 )
 
 __all__ = [
@@ -39,5 +41,7 @@ __all__ = [
     'MESMOC2',
     'USeMO',
 
-    'qparEGO',
+    'MCEI',
+
+    'MCparEGO',
 ]

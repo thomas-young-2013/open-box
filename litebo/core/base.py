@@ -27,10 +27,12 @@ def build_acq_func(func_str='ei', model=None, constraint_models=None, **kwargs):
             acq_func = MESMO
         elif func_str == 'usemo':  # todo single acq type
             acq_func = USeMO
+        elif func_str == 'mcei':
+            acq_func = MCEI
         elif func_str == 'parego':
             acq_func = EI
-        elif func_str == 'qparego':
-            acq_func = qparEGO
+        elif func_str == 'mcparego':
+            acq_func = MCparEGO
         else:
             raise ValueError('Invalid string %s for acquisition function!' % func_str)
         return acq_func(model=model, **kwargs)
@@ -65,9 +67,9 @@ def build_optimizer(func_str='local_random', acq_func=None, config_space=None, r
     elif func_str == 'cma_es':
         from litebo.acq_maximizer.ei_optimization import CMAESOptimizer
         optimizer = CMAESOptimizer
-    elif func_str == 'qmc':
-        from litebo.acq_maximizer.ei_optimization import qMCOptimizer
-        optimizer = qMCOptimizer
+    elif func_str == 'batchmc':
+        from litebo.acq_maximizer.ei_optimization import batchMCOptimizer
+        optimizer = batchMCOptimizer
     else:
         raise ValueError('Invalid string %s for acq_maximizer!' % func_str)
 

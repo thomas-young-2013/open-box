@@ -37,10 +37,10 @@ bc_max_hv = 59.36011874867746
 bc_ref_point = [18., 6.]
 
 bo = SMBO(branin_currin, bc_cs,
-          advisor_type='qadvisor',
-          task_id='qparego',
+          advisor_type='mcadvisor',
+          task_id='mcparego',
           num_objs=2,
-          acq_type='qparego',
+          acq_type='mcparego',
           ref_point=bc_ref_point,
           max_runs=100, random_state=2)
 bo.run()
