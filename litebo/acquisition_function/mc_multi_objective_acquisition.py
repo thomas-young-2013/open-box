@@ -6,7 +6,7 @@ from litebo.acquisition_function.acquisition import AbstractAcquisitionFunction
 from litebo.surrogate.base.base_model import AbstractModel
 
 
-class MCparEGO(AbstractAcquisitionFunction):
+class MCParEGO(AbstractAcquisitionFunction):
     def __init__(self,
                  model: List[AbstractModel],
                  **kwargs):
@@ -16,7 +16,7 @@ class MCparEGO(AbstractAcquisitionFunction):
     def _compute(self, X: np.ndarray, **kwargs):
         from litebo.utils.multi_objective import get_chebyshev_scalarization
 
-        mc_samples = np.zeros(shape=(self.mc_times, len(X), len(self.model)))
+        mc_samples = np.zeros(shape=(self.mc_times, X.shape[0], len(self.model)))
         for idx in range(len(self.model)):
             mc_samples[:, :, idx] = self.model[idx].sample_functions(X, n_funcs=self.mc_times).transpose()
 
@@ -26,4 +26,6 @@ class MCparEGO(AbstractAcquisitionFunction):
         scalarized_obj = get_chebyshev_scalarization(weights, samples)
 
         # Maximize the acq function --> Minimize the objective function
-        return -scalarized_obj(samples)
+        acq = -scalarized_obj(samples)
+        acq = acq.reshape(-1, 1)
+        return acq

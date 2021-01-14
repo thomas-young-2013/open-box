@@ -31,7 +31,8 @@ class SMBO(BOBase):
                  initial_configurations=None,
                  initial_runs=3,
                  task_id=None,
-                 random_state=1):
+                 random_state=1,
+                 **kwargs):
 
         if task_id is None:
             raise ValueError('Task id is not SPECIFIED. Please input task id first.')
@@ -61,6 +62,7 @@ class SMBO(BOBase):
         elif advisor_type == 'mcadvisor':
             from litebo.core.mc_advisor import MCAdvisor
             self.config_advisor = MCAdvisor(config_space, self.task_info,
+                                            mc_times=kwargs.get('mc_times', 10),
                                             initial_trials=initial_runs,
                                             init_strategy=init_strategy,
                                             initial_configurations=initial_configurations,

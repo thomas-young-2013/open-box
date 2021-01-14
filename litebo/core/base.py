@@ -7,44 +7,33 @@ from collections import namedtuple
 
 Observation = namedtuple('Observation', ['config', 'trial_state', 'constraints', 'objectives'])
 
+acq_dict = {
+    'ei': EI,
+    'eips': EIPS,
+    'logei': LogEI,
+    'pi': PI,
+    'lcb': LCB,
+    'lpei': LPEI,
+    'mesmo': MESMO,
+    'usemo': USeMO,     # todo single acq type
+    'mcei': MCEI,
+    'parego': EI,
+    'mcparego': MCParEGO,
+    'eic': EIC,
+    'mesmoc': MESMOC,
+    'mesmoc2': MESMOC2,
+    'mceic': MCEIC,
+}
+
 
 def build_acq_func(func_str='ei', model=None, constraint_models=None, **kwargs):
     func_str = func_str.lower()
+    acq_func = acq_dict.get(func_str)
+    if acq_func is None:
+        raise ValueError('Invalid string %s for acquisition function!' % func_str)
     if constraint_models is None:
-        if func_str == 'ei':
-            acq_func = EI
-        elif func_str == 'eips':
-            acq_func = EIPS
-        elif func_str == 'logei':
-            acq_func = LogEI
-        elif func_str == 'pi':
-            acq_func = PI
-        elif func_str == 'lcb':
-            acq_func = LCB
-        elif func_str == 'lpei':
-            acq_func = LPEI
-        elif func_str == 'mesmo':
-            acq_func = MESMO
-        elif func_str == 'usemo':  # todo single acq type
-            acq_func = USeMO
-        elif func_str == 'mcei':
-            acq_func = MCEI
-        elif func_str == 'parego':
-            acq_func = EI
-        elif func_str == 'mcparego':
-            acq_func = MCparEGO
-        else:
-            raise ValueError('Invalid string %s for acquisition function!' % func_str)
         return acq_func(model=model, **kwargs)
     else:
-        if func_str == 'eic':
-            acq_func = EIC
-        elif func_str == 'mesmoc':
-            acq_func = MESMOC
-        elif func_str == 'mesmoc2':
-            acq_func = MESMOC2
-        else:
-            raise ValueError('Invalid string %s for acquisition function!' % func_str)
         return acq_func(model=model, constraint_models=constraint_models, **kwargs)
 
 

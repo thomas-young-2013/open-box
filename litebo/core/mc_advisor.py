@@ -17,6 +17,7 @@ from litebo.core.generic_advisor import Advisor
 
 class MCAdvisor(Advisor):
     def __init__(self, config_space, task_info,
+                 mc_times=10,
                  initial_trials=10,
                  initial_configurations=None,
                  init_strategy='random_explore_first',
@@ -30,6 +31,7 @@ class MCAdvisor(Advisor):
                  task_id=None,
                  random_state=None):
 
+        self.mc_times = mc_times
         super().__init__(config_space, task_info,
                          initial_trials=initial_trials,
                          initial_configurations=initial_configurations,
@@ -51,44 +53,39 @@ class MCAdvisor(Advisor):
         assert isinstance(self.num_objs, int) and self.num_objs >= 1
         assert isinstance(self.num_constraints, int) and self.num_constraints >= 0
 
+        if self.surrogate_type is None:
+            self.surrogate_type = 'gp'
+        assert self.surrogate_type in ['gp', ]  # MC sample method
+
         # single objective no constraint
         if self.num_objs == 1 and self.num_constraints == 0:
             if self.acq_type is None:
                 self.acq_type = 'mcei'
             assert self.acq_type in ['mcei']
-            if self.surrogate_type is None:
-                self.surrogate_type = 'prf'
 
         # multi-objective with constraints
         elif self.num_objs > 1 and self.num_constraints > 0:
             if self.acq_type is None:
                 self.acq_type = 'mcparego'
             assert self.acq_type in ['mcparego']
-            if self.surrogate_type is None:
-                self.surrogate_type = 'gp'
             if self.constraint_surrogate_type is None:
                 self.constraint_surrogate_type = 'gp'
+            assert self.constraint_surrogate_type in ['gp', ]   # MC sample method
 
         # multi-objective no constraint
         elif self.num_objs > 1:
             if self.acq_type is None:
                 self.acq_type = 'mcparego'
             assert self.acq_type in ['mcparego']
-            if self.surrogate_type is None:
-                self.surrogate_type = 'gp'
 
         # single objective with constraints
         elif self.num_constraints > 0:
             if self.acq_type is None:
                 self.acq_type = 'mceic'
             assert self.acq_type in ['mceic']
-            if self.surrogate_type is None:
-                if self.acq_type == 'mceic':
-                    self.surrogate_type = 'gp'
-                else:
-                    self.surrogate_type = 'prf'
             if self.constraint_surrogate_type is None:
                 self.constraint_surrogate_type = 'gp'
+            assert self.constraint_surrogate_type in ['gp', ]   # MC sample method
 
     def setup_bo_basics(self):
         if self.num_objs == 1:
@@ -109,7 +106,7 @@ class MCAdvisor(Advisor):
                                                       rng=self.rng) for _ in range(self.num_constraints)]
 
         self.acquisition_function = build_acq_func(func_str=self.acq_type, model=self.surrogate_model,
-                                                   constraint_models=self.constraint_models)
+                                                   constraint_models=self.constraint_models, mc_times=self.mc_times)
 
         self.optimizer = build_optimizer(func_str=self.acq_optimizer_type,
                                          acq_func=self.acquisition_function,
