@@ -699,12 +699,14 @@ class MESMO_Optimizer(AcquisitionFunctionMaximizer):
             acquisition_function: AbstractAcquisitionFunction,
             config_space: ConfigurationSpace,
             rng: Union[bool, np.random.RandomState] = None,
-            num_starts=1000,
+            num_mc=1000,
+            num_opt=1000,
             rand_prob=0.0
     ):
         super().__init__(acquisition_function, config_space, rng)
         self.random_chooser = ChooserProb(prob=rand_prob, rng=rng)
-        self.num_starts = num_starts
+        self.num_mc = num_mc
+        self.num_opt = num_opt
         self.minimizer = scipy.optimize.minimize
 
     def maximize(
@@ -740,7 +742,7 @@ class MESMO_Optimizer(AcquisitionFunctionMaximizer):
         configs_acq = []
 
         # MC
-        x_tries = self.rng.uniform(bound[0], bound[1], size=(self.num_starts, d))
+        x_tries = self.rng.uniform(bound[0], bound[1], size=(self.num_mc, d))
         acq_tries = self.acquisition_function(x_tries, convert=False)
         for i in range(x_tries.shape[0]):
             # convert array to Configuration todo
@@ -748,7 +750,7 @@ class MESMO_Optimizer(AcquisitionFunctionMaximizer):
             configs_acq.append((acq_tries[i], config))
 
         # L-BFGS-B
-        x_seed = self.rng.uniform(low=bound[0], high=bound[1], size=(self.num_starts, d))
+        x_seed = self.rng.uniform(low=bound[0], high=bound[1], size=(self.num_opt, d))
         for i in range(x_seed.shape[0]):
             x0 = x_seed[i].reshape(1, -1)
             result = self.minimizer(inverse_acquisition, x0=x0, method='L-BFGS-B', bounds=bounds)
@@ -862,7 +864,7 @@ class USeMO_Optimizer(AcquisitionFunctionMaximizer):
         raise NotImplementedError()
 
 
-class qMCOptimizer(AcquisitionFunctionMaximizer):
+class batchMCOptimizer(AcquisitionFunctionMaximizer):
     def __init__(
             self,
             acquisition_function: AbstractAcquisitionFunction,
@@ -872,7 +874,7 @@ class qMCOptimizer(AcquisitionFunctionMaximizer):
             rand_prob=0.0
     ):
         super().__init__(acquisition_function, config_space, rng)
-        self.batch_size = 100
+        self.batch_size = batch_size
         self.random_chooser = ChooserProb(prob=rand_prob, rng=rng)
 
     def maximize(

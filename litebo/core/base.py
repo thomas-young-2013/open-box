@@ -1,5 +1,4 @@
-from litebo.acquisition_function.acquisition import *
-from litebo.acquisition_function.multi_objective_acquisition import *
+from litebo.acquisition_function import *
 from litebo.surrogate.base.rf_with_instances import RandomForestWithInstances
 from litebo.surrogate.base.build_gp import create_gp_model
 from litebo.utils.util_funcs import get_types
@@ -8,42 +7,33 @@ from collections import namedtuple
 
 Observation = namedtuple('Observation', ['config', 'trial_state', 'constraints', 'objectives'])
 
+acq_dict = {
+    'ei': EI,
+    'eips': EIPS,
+    'logei': LogEI,
+    'pi': PI,
+    'lcb': LCB,
+    'lpei': LPEI,
+    'mesmo': MESMO,
+    'usemo': USeMO,     # todo single acq type
+    'mcei': MCEI,
+    'parego': EI,
+    'mcparego': MCParEGO,
+    'eic': EIC,
+    'mesmoc': MESMOC,
+    'mesmoc2': MESMOC2,
+    'mceic': MCEIC,
+}
+
 
 def build_acq_func(func_str='ei', model=None, constraint_models=None, **kwargs):
     func_str = func_str.lower()
+    acq_func = acq_dict.get(func_str)
+    if acq_func is None:
+        raise ValueError('Invalid string %s for acquisition function!' % func_str)
     if constraint_models is None:
-        if func_str == 'ei':
-            acq_func = EI
-        elif func_str == 'eips':
-            acq_func = EIPS
-        elif func_str == 'logei':
-            acq_func = LogEI
-        elif func_str == 'pi':
-            acq_func = PI
-        elif func_str == 'lcb':
-            acq_func = LCB
-        elif func_str == 'lpei':
-            acq_func = LPEI
-        elif func_str == 'mesmo':
-            acq_func = MESMO
-        elif func_str == 'usemo':  # todo single acq type
-            acq_func = USeMO
-        elif func_str == 'parego':
-            acq_func = EI
-        elif func_str == 'qparego':
-            acq_func = qparEGO
-        else:
-            raise ValueError('Invalid string %s for acquisition function!' % func_str)
         return acq_func(model=model, **kwargs)
     else:
-        if func_str == 'eic':
-            acq_func = EIC
-        elif func_str == 'mesmoc':
-            acq_func = MESMOC
-        elif func_str == 'mesmoc2':
-            acq_func = MESMOC2
-        else:
-            raise ValueError('Invalid string %s for acquisition function!' % func_str)
         return acq_func(model=model, constraint_models=constraint_models, **kwargs)
 
 
@@ -66,9 +56,9 @@ def build_optimizer(func_str='local_random', acq_func=None, config_space=None, r
     elif func_str == 'cma_es':
         from litebo.acq_maximizer.ei_optimization import CMAESOptimizer
         optimizer = CMAESOptimizer
-    elif func_str == 'qmc':
-        from litebo.acq_maximizer.ei_optimization import qMCOptimizer
-        optimizer = qMCOptimizer
+    elif func_str == 'batchmc':
+        from litebo.acq_maximizer.ei_optimization import batchMCOptimizer
+        optimizer = batchMCOptimizer
     else:
         raise ValueError('Invalid string %s for acq_maximizer!' % func_str)
 

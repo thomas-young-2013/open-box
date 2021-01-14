@@ -1,3 +1,9 @@
+"""
+example cmdline:
+
+python test/optimizer/benchmark_mo_smbo.py --mth mesmo --sample_num 1 --n 110 --rep 1 --start_id 0
+
+"""
 import os
 import sys
 import time
@@ -12,15 +18,14 @@ from litebo.utils.config_space import Configuration
 from test_utils import timeit
 
 # set problem
-from moc_benchmark_function import get_setup_bc_c
-setup = get_setup_bc_c()
+from mo_benchmark_function import get_setup_bc
+setup = get_setup_bc()
 multi_objective_func = setup['multi_objective_func']
 cs = setup['cs']
 run_nsgaii = setup['run_nsgaii']
 problem_str = setup['problem_str']
 num_inputs = setup['num_inputs']
 num_objs = setup['num_objs']
-num_constraints = setup['num_constraints']
 referencePoint = setup['referencePoint']
 real_hv = setup['real_hv']
 
@@ -28,14 +33,18 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--n', type=int, default=100)
 parser.add_argument('--rand_prob', type=float, default=0)
 parser.add_argument('--sample_num', type=int, default=1)
+parser.add_argument('--opt_num_mc', type=int, default=1000)
+parser.add_argument('--opt_num_opt', type=int, default=1000)
 parser.add_argument('--rep', type=int, default=1)
 parser.add_argument('--start_id', type=int, default=0)
-parser.add_argument('--mth', type=str, default='mesmoc2')
+parser.add_argument('--mth', type=str, default='mesmo')
 
 args = parser.parse_args()
 max_runs = args.n
 rand_prob = args.rand_prob
 sample_num = args.sample_num
+opt_num_mc = args.opt_num_mc    # MESMO optimizer only
+opt_num_opt = args.opt_num_opt  # MESMO optimizer only
 rep = args.rep
 start_id = args.start_id
 mth = args.mth
@@ -55,7 +64,7 @@ X_init = np.array([
     [ 4.44444444e-01,  1.00000000e+00],
     [ 8.88888889e-01,  1.11111111e-01],
     [ 1.11111111e-01,  8.88888889e-01],
-])
+])  # use latin hypercube
 X_init = [Configuration(cs, vector=X_init[i]) for i in range(X_init.shape[0])]
 
 with timeit('%s all' % (mth,)):
@@ -64,15 +73,16 @@ with timeit('%s all' % (mth,)):
         with timeit('%s %d %d' % (mth, run_i, seed)):
             try:
                 bo = SMBO(multi_objective_func, cs, num_objs=num_objs, max_runs=max_runs,
-                          num_constraints=num_constraints,
                           # surrogate_type='gp_rbf',    # use default
                           acq_type=mth,
-                          initial_configurations=X_init, initial_runs=10,   # use latin hypercube from gpflowopt
+                          initial_configurations=X_init, initial_runs=10,
                           time_limit_per_trial=60, task_id='mo', random_state=seed)
                 bo.config_advisor.optimizer.random_chooser.prob = rand_prob     # set rand_prob, default 0
                 bo.config_advisor.acquisition_function.sample_num = sample_num  # set sample_num
                 bo.config_advisor.acquisition_function.random_state = seed      # set random_state
-                print(seed, mth, 'start ='*30)
+                bo.config_advisor.optimizer.num_mc = opt_num_mc     # MESMO optimizer only
+                bo.config_advisor.optimizer.num_opt = opt_num_opt   # MESMO optimizer only
+                print(seed, mth, '===== start =====')
                 # bo.run()
                 hv_diffs = []
                 for i in range(max_runs):
@@ -124,7 +134,7 @@ if rep == 1:
     print('random pareto num:', pf_r.shape[0])
 
     # Run NSGA-II to get 'real' pareto front
-    cheap_pareto_front, cheap_constraints_values = run_nsgaii()
+    cheap_pareto_front = run_nsgaii()
 
     # Plot pareto front
     plt.scatter(pf[:, 0], pf[:, 1], label=mth)

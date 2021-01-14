@@ -193,9 +193,7 @@ class EIC(EI):
     def __init__(self,
                  model: AbstractModel,
                  constraint_models: List[GaussianProcess],
-                 batch_configs=None,
                  par: float = 0.0,
-                 estimate_L: float = 10.0,
                  **kwargs):
         """Constructor
 
@@ -210,10 +208,6 @@ class EIC(EI):
         """
         super(EIC, self).__init__(model, par=par)
         self.constraint_models = constraint_models
-        self.estimate_L = estimate_L
-        if batch_configs is None:
-            batch_configs = []
-        self.batch_configs = batch_configs
         self.long_name = 'Expected Constrained Improvement'
 
     def _compute(self, X: np.ndarray, **kwargs):
@@ -343,7 +337,7 @@ class LogEI(AbstractAcquisitionFunction):
             acquisition function.
         """
         super(LogEI, self).__init__(model)
-        self.long_name = 'Expected Improvement'
+        self.long_name = 'Log Expected Improvement'
         self.par = par
         self.eta = None
 
@@ -490,7 +484,7 @@ class PI(AbstractAcquisitionFunction):
         self.par = par
         self.eta = None
 
-    def _compute(self, X: np.ndarray):
+    def _compute(self, X: np.ndarray, **kwargs):
         """Computes the PI value.
 
         Parameters
@@ -542,7 +536,7 @@ class LCB(AbstractAcquisitionFunction):
         self.eta = None  # to be compatible with the existing update calls in SMBO
         self.num_data = None
 
-    def _compute(self, X: np.ndarray):
+    def _compute(self, X: np.ndarray, **kwargs):
         """Computes the LCB value.
 
         Parameters
@@ -593,7 +587,7 @@ class Uncertainty(AbstractAcquisitionFunction):
         self.eta = None  # to be compatible with the existing update calls in SMBO
         self.num_data = None
 
-    def _compute(self, X: np.ndarray):
+    def _compute(self, X: np.ndarray, **kwargs):
         """Computes the Uncertainty value.
 
         Parameters

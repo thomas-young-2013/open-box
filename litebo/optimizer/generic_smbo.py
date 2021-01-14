@@ -31,7 +31,8 @@ class SMBO(BOBase):
                  initial_configurations=None,
                  initial_runs=3,
                  task_id=None,
-                 random_state=1):
+                 random_state=1,
+                 **kwargs):
 
         if task_id is None:
             raise ValueError('Task id is not SPECIFIED. Please input task id first.')
@@ -58,21 +59,22 @@ class SMBO(BOBase):
                                           task_id=task_id,
                                           output_dir=logging_dir,
                                           random_state=random_state)
-        elif advisor_type == 'qadvisor':
-            from litebo.core.q_advisor import qAdvisor
-            self.config_advisor = qAdvisor(config_space, self.task_info,
-                                           initial_trials=initial_runs,
-                                           init_strategy=init_strategy,
-                                           initial_configurations=initial_configurations,
-                                           optimization_strategy=sample_strategy,
-                                           surrogate_type=surrogate_type,
-                                           acq_type=acq_type,
-                                           acq_optimizer_type=acq_optimizer_type,
-                                           ref_point=ref_point,
-                                           history_bo_data=history_bo_data,
-                                           task_id=task_id,
-                                           output_dir=logging_dir,
-                                           random_state=random_state)
+        elif advisor_type == 'mcadvisor':
+            from litebo.core.mc_advisor import MCAdvisor
+            self.config_advisor = MCAdvisor(config_space, self.task_info,
+                                            mc_times=kwargs.get('mc_times', 10),
+                                            initial_trials=initial_runs,
+                                            init_strategy=init_strategy,
+                                            initial_configurations=initial_configurations,
+                                            optimization_strategy=sample_strategy,
+                                            surrogate_type=surrogate_type,
+                                            acq_type=acq_type,
+                                            acq_optimizer_type=acq_optimizer_type,
+                                            ref_point=ref_point,
+                                            history_bo_data=history_bo_data,
+                                            task_id=task_id,
+                                            output_dir=logging_dir,
+                                            random_state=random_state)
         elif advisor_type == 'tpe':
             from litebo.core.tpe_advisor import TPE_Advisor
             self.config_advisor = TPE_Advisor(config_space)
