@@ -1,7 +1,7 @@
 """
 example cmdline:
 
-python test/optimizer/benchmark_mo_gpflowopt.py --n 200 --rep 1 --start_id 0
+python test/optimizer/mo/benchmark_mo_gpflowopt_bc.py --n 200 --rep 1 --start_id 0
 
 """
 import os
@@ -15,7 +15,7 @@ import gpflow
 import gpflowopt
 
 sys.path.insert(0, os.getcwd())
-from test_utils import timeit
+from test.test_utils import timeit
 
 # set problem
 from mo_benchmark_function import get_setup_bc, branin, Currin

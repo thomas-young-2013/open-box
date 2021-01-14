@@ -41,6 +41,9 @@ class BaseTestProblem(object):
                 "hypervolume."
             )
 
+    def __call__(self, config: Configuration):
+        return self.evaluate(config)
+
     def evaluate(self, config: Configuration):
         X = np.array(list(config.get_dictionary().values()))
         result = self._evaluate(X)
@@ -353,7 +356,7 @@ class DTLZ1(DTLZ):
     def __init__(self, dim, num_objs=2, constrained=False,
                  noise_std=0, random_state=None):
         self.constrained = constrained
-        super().__init__(dim, num_objs, noise_std=noise_std, random_state=None)
+        super().__init__(dim, num_objs, noise_std=noise_std, random_state=random_state)
 
     @property
     def _max_hv(self) -> float:
@@ -399,7 +402,7 @@ class DTLZ2(DTLZ):
                  noise_std=0, random_state=None):
         self.constrained = constrained
         num_constraints = 1 if constrained else 0
-        super().__init__(dim, num_objs, num_constraints, noise_std=noise_std, random_state=None)
+        super().__init__(dim, num_objs, num_constraints, noise_std=noise_std, random_state=random_state)
 
     @property
     def _max_hv(self) -> float:

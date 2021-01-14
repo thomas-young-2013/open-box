@@ -1,7 +1,7 @@
 """
 example cmdline:
 
-python test/optimizer/mo_plot.py --mths mesmo-1,usemo-1,gpflowopt-hvpoi --problem bc --n 110
+python test/optimizer/mo/mo_plot.py --mths mesmo-1,usemo-1,gpflowopt-hvpoi --problem bc --n 110
 
 """
 import os

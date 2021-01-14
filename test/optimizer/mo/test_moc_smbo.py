@@ -9,7 +9,7 @@ from pygmo import hypervolume
 sys.path.insert(0, os.getcwd())
 from litebo.optimizer.generic_smbo import SMBO
 from litebo.utils.config_space import Configuration
-from test_utils import timeit
+from test.test_utils import timeit
 
 # set problem
 from moc_benchmark_function import get_setup_bc_c

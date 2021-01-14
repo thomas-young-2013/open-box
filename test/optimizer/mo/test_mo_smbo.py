@@ -1,7 +1,7 @@
 """
 example cmdline:
 
-python test/optimizer/test_mo_smbo.py --mth mesmo --sample_num 1 --n 100
+python test/optimizer/mo/test_mo_smbo.py --mth mesmo --sample_num 1 --n 100
 
 """
 import os

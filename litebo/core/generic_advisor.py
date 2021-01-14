@@ -78,8 +78,6 @@ class Advisor(object, metaclass=abc.ABCMeta):
         if self.num_objs == 1:
             self.history_container = HistoryContainer(task_id)
         else:   # multi-objectives
-            if ref_point is None:
-                ref_point = [0.0] * self.num_objs
             self.history_container = MOHistoryContainer(task_id, ref_point)
 
         self.surrogate_model = None

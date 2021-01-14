@@ -96,7 +96,7 @@ class MOHistoryContainer(object):
     """
     Multi-Objective History Container
     """
-    def __init__(self, task_id, ref_point):
+    def __init__(self, task_id, ref_point=None):
         self.task_id = task_id
         self.data = collections.OrderedDict()
         self.config_counter = 0
@@ -104,7 +104,7 @@ class MOHistoryContainer(object):
         self.num_objs = None
         self.mo_incumbent_value = None
         self.mo_incumbents = None
-        self.hypervolume = Hypervolume(ref_point=ref_point)
+        self.ref_point = ref_point
         self.hv_data = list()
         self.logger = get_logger(self.__class__.__name__)
 
@@ -113,6 +113,8 @@ class MOHistoryContainer(object):
             self.num_objs = len(perf)
             self.mo_incumbent_value = [MAXINT] * self.num_objs
             self.mo_incumbents = [list()] * self.num_objs
+            if self.ref_point is None:
+                self.ref_point = [0.0] * self.num_objs
 
         assert self.num_objs == len(perf)
 
@@ -153,7 +155,7 @@ class MOHistoryContainer(object):
         # calculate current hypervolume
         pareto_front = self.get_pareto_front()
         if pareto_front:
-            hv = self.hypervolume.compute(pareto_front)
+            hv = Hypervolume(ref_point=self.ref_point).compute(pareto_front)
         else:
             hv = 0
         self.hv_data.append(hv)
@@ -228,3 +230,13 @@ class MOHistoryContainer(object):
 
     def get_pareto_front(self):
         return list(self.pareto.values())
+
+    def compute_hypervolume(self, ref_point=None):
+        if ref_point is None:
+            ref_point = self.ref_point
+        pareto_front = self.get_pareto_front()
+        if pareto_front:
+            hv = Hypervolume(ref_point=ref_point).compute(pareto_front)
+        else:
+            hv = 0
+        return hv

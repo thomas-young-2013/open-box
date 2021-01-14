@@ -1,7 +1,7 @@
 """
 example cmdline:
 
-python test/optimizer/test_mo_smbo_lightgbm.py --datasets spambase --mth mesmo --sample_num 1 --time_limit 20 --n 200
+python test/optimizer/mo/test_mo_smbo_lightgbm.py --datasets spambase --mth mesmo --sample_num 1 --time_limit 20 --n 200
 
 """
 import os
@@ -15,7 +15,7 @@ from pygmo import hypervolume
 sys.path.insert(0, os.getcwd())
 from litebo.optimizer.generic_smbo import SMBO
 from litebo.utils.config_space import Configuration
-from test_utils import check_datasets, load_data
+from test.test_utils import check_datasets, load_data
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--n', type=int, default=200)
@@ -35,7 +35,7 @@ seed = 123
 
 dataset_str = args.datasets
 dataset_list = dataset_str.split(',')
-data_dir = './test/optimizer/data/'
+data_dir = './test/data/'
 check_datasets(dataset_list, data_dir)
 
 for dataset in dataset_list:

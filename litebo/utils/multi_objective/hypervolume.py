@@ -28,7 +28,7 @@ class Hypervolume:
         Returns:
             A `m`-dim numpy array containing the reference point.
         """
-        return -self._ref_point
+        return self._ref_point
 
     @ref_point.setter
     def ref_point(self, ref_point) -> None:
