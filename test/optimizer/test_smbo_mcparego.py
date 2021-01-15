@@ -50,4 +50,5 @@ log_hv_diff = np.log10(bc_max_hv - np.asarray(hvs))
 
 import matplotlib.pyplot as plt
 plt.plot(log_hv_diff)
-plt.savefig('plt.pdf')
+# plt.savefig('plt.pdf')
+plt.show()

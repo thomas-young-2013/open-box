@@ -1,18 +1,9 @@
-import os
-import abc
 import numpy as np
-from typing import Iterable
 
-from litebo.utils.util_funcs import get_types
-from litebo.utils.logging_utils import get_logger
-from litebo.utils.history_container import HistoryContainer, MOHistoryContainer
-from litebo.utils.constants import MAXINT, SUCCESS
-from litebo.utils.samplers import SobolSampler, LatinHypercubeSampler
-from litebo.utils.multi_objective import get_chebyshev_scalarization
 from litebo.utils.config_space.util import convert_configurations_to_array
 from litebo.core.base import build_acq_func, build_optimizer, build_surrogate
-from litebo.core.base import Observation
 from litebo.core.generic_advisor import Advisor
+from litebo.utils.multi_objective import NondominatedPartitioning
 
 
 class MCAdvisor(Advisor):
@@ -56,36 +47,33 @@ class MCAdvisor(Advisor):
         if self.surrogate_type is None:
             self.surrogate_type = 'gp'
         assert self.surrogate_type in ['gp', ]  # MC sample method
+        self.constraint_surrogate_type = 'gp'
 
-        # single objective no constraint
-        if self.num_objs == 1 and self.num_constraints == 0:
-            if self.acq_type is None:
-                self.acq_type = 'mcei'
-            assert self.acq_type in ['mcei']
+        # Single objective
+        if self.num_objs == 1:
+            if self.num_constraints == 0:
+                if self.acq_type is None:
+                    self.acq_type = 'mcei'
+                assert self.acq_type in ['mcei']
+            else:
+                if self.acq_type is None:
+                    self.acq_type = 'mceic'
+                assert self.acq_type in ['mceic']
 
-        # multi-objective with constraints
-        elif self.num_objs > 1 and self.num_constraints > 0:
-            if self.acq_type is None:
-                self.acq_type = 'mcparego'
-            assert self.acq_type in ['mcparego']
-            if self.constraint_surrogate_type is None:
-                self.constraint_surrogate_type = 'gp'
-            assert self.constraint_surrogate_type in ['gp', ]   # MC sample method
+        # Multi objective
+        else:
+            if self.num_constraints == 0:
+                if self.acq_type is None:
+                    self.acq_type = 'mcehvi'
+                assert self.acq_type in ['mcparego', 'mcehvi']
+            else:
+                if self.acq_type is None:
+                    self.acq_type = 'mcehvic'
+                assert self.acq_type in ['mcparegoc', 'mcehvic']
 
-        # multi-objective no constraint
-        elif self.num_objs > 1:
-            if self.acq_type is None:
-                self.acq_type = 'mcparego'
-            assert self.acq_type in ['mcparego']
-
-        # single objective with constraints
-        elif self.num_constraints > 0:
-            if self.acq_type is None:
-                self.acq_type = 'mceic'
-            assert self.acq_type in ['mceic']
-            if self.constraint_surrogate_type is None:
-                self.constraint_surrogate_type = 'gp'
-            assert self.constraint_surrogate_type in ['gp', ]   # MC sample method
+            # Check reference point is provided for EHVI methods
+            if 'ehvi' in self.acq_type and self.ref_point is None:
+                raise ValueError('Must provide reference point to use EHVI method!')
 
     def setup_bo_basics(self):
         if self.num_objs == 1:
@@ -106,7 +94,8 @@ class MCAdvisor(Advisor):
                                                       rng=self.rng) for _ in range(self.num_constraints)]
 
         self.acquisition_function = build_acq_func(func_str=self.acq_type, model=self.surrogate_model,
-                                                   constraint_models=self.constraint_models, mc_times=self.mc_times)
+                                                   constraint_models=self.constraint_models,
+                                                   mc_times=self.mc_times, ref_point=self.ref_point)
 
         self.optimizer = build_optimizer(func_str=self.acq_optimizer_type,
                                          acq_func=self.acquisition_function,
@@ -154,21 +143,22 @@ class MCAdvisor(Advisor):
                 incumbent_value = self.history_container.get_incumbents()[0][1]
                 self.acquisition_function.update(model=self.surrogate_model,
                                                  constraint_models=self.constraint_models,
-                                                 eta=incumbent_value,
-                                                 num_data=num_config_evaluated)
+                                                 eta=incumbent_value)
             else:  # multi-objectives
-                mo_incumbent_value = self.history_container.get_mo_incumbent_value()
-                self.acquisition_function.update(model=self.surrogate_model,
-                                                 constraint_models=self.constraint_models,
-                                                 constraint_perfs=cX,  # for MESMOC
-                                                 eta=mo_incumbent_value,
-                                                 num_data=num_config_evaluated,
-                                                 X=X, Y=Y)
+                if self.acq_type.startswith('mcparego'):
+                    self.acquisition_function.update(model=self.surrogate_model,
+                                                     constraint_models=self.constraint_models)
+                elif self.acq_type.startswith('mcehvi'):
+                    partitioning = NondominatedPartitioning(self.num_objs, Y)
+                    cell_bounds = partitioning.get_hypercell_bounds(ref_point=self.ref_point)
+                    self.acquisition_function.update(model=self.surrogate_model,
+                                                     constraint_models=self.constraint_models,
+                                                     cell_lower_bounds=cell_bounds[0],
+                                                     cell_upper_bounds=cell_bounds[1])
 
             # optimize acquisition function
-            # TODO: Sobol sampler is so slow，here we use only a batch of points
             challengers = self.optimizer.maximize(runhistory=self.history_container,
-                                                  num_points=100)
+                                                  num_points=5000)
             is_repeated_config = True
             repeated_time = 0
             cur_config = None

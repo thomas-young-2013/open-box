@@ -68,6 +68,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
         self.init_num = initial_trials
         self.config_space = config_space
         self.config_space.seed(self.rng.randint(MAXINT))
+        self.ref_point = ref_point
 
         if initial_configurations is not None and len(initial_configurations) > 0:
             self.initial_configurations = initial_configurations
@@ -78,8 +79,6 @@ class Advisor(object, metaclass=abc.ABCMeta):
         if self.num_objs == 1:
             self.history_container = HistoryContainer(task_id)
         else:   # multi-objectives
-            if ref_point is None:
-                ref_point = [0.0] * self.num_objs
             self.history_container = MOHistoryContainer(task_id, ref_point)
 
         self.surrogate_model = None
@@ -96,66 +95,57 @@ class Advisor(object, metaclass=abc.ABCMeta):
         assert isinstance(self.num_objs, int) and self.num_objs >= 1
         assert isinstance(self.num_constraints, int) and self.num_constraints >= 0
 
-        # single objective no constraint
-        if self.num_objs == 1 and self.num_constraints == 0:
-            if self.acq_type is None:
-                self.acq_type = 'ei'
-            assert self.acq_type in ['ei', 'eips', 'logei', 'pi', 'lcb', 'lpei', ]
-            if self.surrogate_type is None:
-                self.surrogate_type = 'prf'
+        # Single objective
+        if self.num_objs == 1:
+            if self.num_constraints == 0:
+                if self.acq_type is None:
+                    self.acq_type = 'ei'
+                assert self.acq_type in ['ei', 'eips', 'logei', 'pi', 'lcb', 'lpei', ]
+                if self.surrogate_type is None:
+                    self.surrogate_type = 'prf'
+            else:
+                if self.acq_type is None:
+                    self.acq_type = 'eic'
+                assert self.acq_type in ['eic', ]
+                if self.surrogate_type is None:
+                    self.surrogate_type = 'prf'
+                if self.constraint_surrogate_type is None:
+                    self.constraint_surrogate_type = 'gp'
 
         # multi-objective with constraints
-        elif self.num_objs > 1 and self.num_constraints > 0:
-            if self.acq_type is None:
-                self.acq_type = 'mesmoc2'
-            assert self.acq_type in ['mesmoc', 'mesmoc2']
-            if self.surrogate_type is None:
-                self.surrogate_type = 'gp_rbf'
-            if self.constraint_surrogate_type is None:
-                if self.acq_type == 'mesmoc2':
-                    self.constraint_surrogate_type = 'gp'
-                else:
-                    self.constraint_surrogate_type = 'gp_rbf'
-            if self.acq_type == 'mesmoc' and self.surrogate_type != 'gp_rbf':
-                self.surrogate_type = 'gp_rbf'
-                self.logger.warning('Surrogate model has changed to Gaussian Process with RBF kernel '
-                                    'since MESMOC is used. Surrogate_type should be set to \'gp_rbf\'.')
-            if self.acq_type == 'mesmoc' and self.constraint_surrogate_type != 'gp_rbf':
-                self.surrogate_type = 'gp_rbf'
-                self.logger.warning('Constraint surrogate model has changed to Gaussian Process with RBF kernel '
-                                    'since MESMOC is used. Surrogate_type should be set to \'gp_rbf\'.')
-
-        # multi-objective no constraint
-        elif self.num_objs > 1:
-            if self.acq_type is None:
-                self.acq_type = 'parego'
-            assert self.acq_type in ['mesmo', 'usemo', 'parego']
-            if self.surrogate_type is None:
-                if self.acq_type == 'mesmo':
+        else:
+            if self.num_constraints == 0:
+                if self.acq_type is None:
+                    self.acq_type = 'parego'
+                assert self.acq_type in ['mesmo', 'usemo', 'parego']
+                if self.surrogate_type is None:
+                    if self.acq_type == 'mesmo':
+                        self.surrogate_type = 'gp_rbf'
+                    else:
+                        self.surrogate_type = 'gp'
+                if self.acq_type == 'mesmo' and self.surrogate_type != 'gp_rbf':
                     self.surrogate_type = 'gp_rbf'
-                else:
-                    self.surrogate_type = 'gp'
-            if self.acq_type == 'mesmo' and self.surrogate_type != 'gp_rbf':
-                self.surrogate_type = 'gp_rbf'
-                self.logger.warning('Surrogate model has changed to Gaussian Process with RBF kernel '
-                                    'since MESMO is used. Surrogate_type should be set to \'gp_rbf\'.')
-
-        # single objective with constraints
-        elif self.num_constraints > 0:
-            if self.acq_type is None:
-                self.acq_type = 'eic'
-            assert self.acq_type in ['eic', 'ts']
-            if self.surrogate_type is None:
-                if self.acq_type == 'ts':
-                    self.surrogate_type = 'gp'
-                else:
-                    self.surrogate_type = 'prf'
-            if self.constraint_surrogate_type is None:
-                self.constraint_surrogate_type = 'gp'
-            if self.acq_type == 'ts' and self.surrogate_type != 'gp':
-                self.surrogate_type = 'gp'
-                self.logger.warning('Surrogate model has changed to Gaussian Process '
-                                    'since TS is used. Surrogate_type should be set to \'gp\'.')
+                    self.logger.warning('Surrogate model has changed to Gaussian Process with RBF kernel '
+                                        'since MESMO is used. Surrogate_type should be set to \'gp_rbf\'.')
+            else:
+                if self.acq_type is None:
+                    self.acq_type = 'mesmoc2'
+                assert self.acq_type in ['mesmoc', 'mesmoc2']
+                if self.surrogate_type is None:
+                    self.surrogate_type = 'gp_rbf'
+                if self.constraint_surrogate_type is None:
+                    if self.acq_type == 'mesmoc2':
+                        self.constraint_surrogate_type = 'gp'
+                    else:
+                        self.constraint_surrogate_type = 'gp_rbf'
+                if self.acq_type == 'mesmoc' and self.surrogate_type != 'gp_rbf':
+                    self.surrogate_type = 'gp_rbf'
+                    self.logger.warning('Surrogate model has changed to Gaussian Process with RBF kernel '
+                                        'since MESMOC is used. Surrogate_type should be set to \'gp_rbf\'.')
+                if self.acq_type == 'mesmoc' and self.constraint_surrogate_type != 'gp_rbf':
+                    self.surrogate_type = 'gp_rbf'
+                    self.logger.warning('Constraint surrogate model has changed to Gaussian Process with RBF kernel '
+                                        'since MESMOC is used. Surrogate_type should be set to \'gp_rbf\'.')
 
     def setup_bo_basics(self):
         if self.num_objs == 1 or self.acq_type == 'parego':
