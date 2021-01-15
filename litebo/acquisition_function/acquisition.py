@@ -144,7 +144,7 @@ class EI(AbstractAcquisitionFunction):
 
         Returns
         -------
-        np.ndarray(N,1)
+        np.ndarray(N, 1)
             Expected Improvement of X
         """
         if len(X.shape) == 1:
@@ -222,7 +222,7 @@ class EIC(EI):
 
         Returns
         -------
-        np.ndarray(N,1)
+        np.ndarray(N, 1)
             Expected Constrained Improvement of X
         """
         f = super()._compute(X)
@@ -353,7 +353,7 @@ class LogEI(AbstractAcquisitionFunction):
 
         Returns
         -------
-        np.ndarray(N,1)
+        np.ndarray(N, 1)
             Expected Improvement of X
         """
         if self.eta is None:
@@ -435,7 +435,7 @@ class LPEI(EI):
 
         Returns
         -------
-        np.ndarray(N,1)
+        np.ndarray(N, 1)
             Expected Improvement per Second of X in log space
         """
         f = super()._compute(X)  # N*1
@@ -494,7 +494,7 @@ class PI(AbstractAcquisitionFunction):
 
         Returns
         -------
-        np.ndarray(N,1)
+        np.ndarray(N, 1)
             Expected Improvement of X
         """
         if self.eta is None:
@@ -546,7 +546,7 @@ class LCB(AbstractAcquisitionFunction):
 
         Returns
         -------
-        np.ndarray(N,1)
+        np.ndarray(N, 1)
             (Negative) Lower Confidence Bound of X
         """
         if self.num_data is None:
@@ -597,7 +597,7 @@ class Uncertainty(AbstractAcquisitionFunction):
 
         Returns
         -------
-        tuple(np.ndarray(N,1), np.ndarray(N,1))
+        tuple(np.ndarray(N, 1), np.ndarray(N, 1))
             Uncertainty of X
         """
         if self.num_data is None:

@@ -47,6 +47,7 @@ class MCAdvisor(Advisor):
         if self.surrogate_type is None:
             self.surrogate_type = 'gp'
         assert self.surrogate_type in ['gp', ]  # MC sample method
+        self.constraint_surrogate_type = 'gp'
 
         # Single objective
         if self.num_objs == 1:
@@ -58,16 +59,9 @@ class MCAdvisor(Advisor):
                 if self.acq_type is None:
                     self.acq_type = 'mceic'
                 assert self.acq_type in ['mceic']
-                if self.constraint_surrogate_type is None:
-                    self.constraint_surrogate_type = 'gp'
-                assert self.constraint_surrogate_type in ['gp', ]
 
         # Multi objective
         else:
-            # Check reference point is provided for EHVI methods
-            if 'ehvi' in self.acq_type and self.ref_point is None:
-                raise ValueError('Must provide reference point to use EHVI method!')
-
             if self.num_constraints == 0:
                 if self.acq_type is None:
                     self.acq_type = 'mcehvi'
@@ -76,6 +70,10 @@ class MCAdvisor(Advisor):
                 if self.acq_type is None:
                     self.acq_type = 'mcehvic'
                 assert self.acq_type in ['mcparegoc', 'mcehvic']
+
+            # Check reference point is provided for EHVI methods
+            if 'ehvi' in self.acq_type and self.ref_point is None:
+                raise ValueError('Must provide reference point to use EHVI method!')
 
     def setup_bo_basics(self):
         if self.num_objs == 1:
@@ -147,14 +145,15 @@ class MCAdvisor(Advisor):
                                                  constraint_models=self.constraint_models,
                                                  eta=incumbent_value)
             else:  # multi-objectives
-                # mo_incumbent_value = self.history_container.get_mo_incumbent_value()
-                if self.acq_type == 'mcparego':
+                if self.acq_type.startswith('mcparego'):
                     self.acquisition_function.update(model=self.surrogate_model,
                                                      constraint_models=self.constraint_models)
-                elif self.acq_type == 'mcehvi':
+                elif self.acq_type.startswith('mcehvi'):
                     partitioning = NondominatedPartitioning(self.num_objs, Y)
                     cell_bounds = partitioning.get_hypercell_bounds(ref_point=self.ref_point)
-                    self.acquisition_function.update(cell_lower_bounds=cell_bounds[0],
+                    self.acquisition_function.update(model=self.surrogate_model,
+                                                     constraint_models=self.constraint_models,
+                                                     cell_lower_bounds=cell_bounds[0],
                                                      cell_upper_bounds=cell_bounds[1])
 
             # optimize acquisition function
