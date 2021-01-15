@@ -14,6 +14,7 @@ acq_dict = {
     'pi': PI,
     'lcb': LCB,
     'lpei': LPEI,
+    'ehvi': EHVI,
     'mesmo': MESMO,
     'usemo': USeMO,     # todo single acq type
     'mcei': MCEI,
