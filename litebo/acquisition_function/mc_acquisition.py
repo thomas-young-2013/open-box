@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List
 
 import numpy as np
 
@@ -24,10 +24,10 @@ class MCEI(AbstractAcquisitionFunction):
                              'eta=<int>) to inform the acquisition function '
                              'about the current best value.')
 
-        mc_samples = np.zeros(shape=(self.mc_times, len(X)))
-        mc_samples[:, :] = self.model.sample_functions(X, n_funcs=self.mc_times).transpose()
+        Y_samples = np.zeros(shape=(self.mc_times, len(X)))
+        Y_samples[:, :] = self.model.sample_functions(X, n_funcs=self.mc_times).transpose()
 
-        mc_ei = np.maximum(self.eta - mc_samples - self.par, 0)
+        mc_ei = np.maximum(self.eta - Y_samples - self.par, 0)
         ei = mc_ei.mean(axis=0)
         ei = ei.reshape(-1, 1)
         return ei
@@ -52,15 +52,14 @@ class MCEIC(AbstractAcquisitionFunction):
                              'eta=<int>) to inform the acquisition function '
                              'about the current best value.')
 
-        mc_samples = np.zeros(shape=(self.mc_times, X.shape[0]))
-        mc_samples[:, :] = self.model.sample_functions(X, n_funcs=self.mc_times).transpose()
+        Y_samples = np.zeros(shape=(self.mc_times, X.shape[0]))
+        Y_samples[:, :] = self.model.sample_functions(X, n_funcs=self.mc_times).transpose()
 
-        mc_ei = np.maximum(self.eta - mc_samples - self.par, 0)
+        mc_ei = np.maximum(self.eta - Y_samples - self.par, 0)
         for c_model in self.constraint_models:
-            constraint_mc_samples = np.zeros(shape=(self.mc_times, X.shape[0]))
-            constraint_mc_samples[:, :] = c_model.sample_functions(X, n_funcs=self.mc_times).transpose()
-            constraint_mc_samples = (constraint_mc_samples <= 0)
-            mc_ei *= constraint_mc_samples
+            constraint_samples = np.zeros(shape=(self.mc_times, X.shape[0]))
+            constraint_samples[:, :] = c_model.sample_functions(X, n_funcs=self.mc_times).transpose()
+            mc_ei[constraint_samples <= 0] = 0
         ei = mc_ei.mean(axis=0)
         ei = ei.reshape(-1, 1)
         return ei

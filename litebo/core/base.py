@@ -19,6 +19,7 @@ acq_dict = {
     'mcei': MCEI,
     'parego': EI,
     'mcparego': MCParEGO,
+    'mcehvi': MCEHVI,
     'eic': EIC,
     'mesmoc': MESMOC,
     'mesmoc2': MESMOC2,

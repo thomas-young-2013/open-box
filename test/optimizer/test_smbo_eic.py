@@ -18,21 +18,9 @@ townsend_params = {
 }
 townsend_cs = ConfigurationSpace()
 townsend_cs.add_hyperparameters([UniformFloatHyperparameter(e, *townsend_params['float'][e]) for e in townsend_params['float']])
-# X = np.array([[ 0.91666667, -1.08333333],
-#               [-0.66666667,  0.33333333],
-#               [-1.19444444, -1.55555556],
-#               [ 1.44444444,  0.80555556],
-#               [ 0.38888889, -2.5       ],
-#               [-2.25      , -0.13888889],
-#               [ 2.5       , -0.61111111],
-#               [-0.13888889,  1.75      ],
-#               [ 1.97222222, -2.02777778],
-#               [-1.72222222,  1.27777778]])
-# townsend_initial_configs = [Configuration(townsend_cs, {'x1': X[i, 0], 'x2': X[i, 1]}) for i in range(X.shape[0])]
 
 bo = SMBO(townsend, townsend_cs,
           num_constraints=1,
-          # initial_configurations=townsend_initial_configs,
           acq_optimizer_type='random_scipy',
           max_runs=60,
           task_id='smbo_eic')

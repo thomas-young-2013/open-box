@@ -68,6 +68,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
         self.init_num = initial_trials
         self.config_space = config_space
         self.config_space.seed(self.rng.randint(MAXINT))
+        self.ref_point = ref_point
 
         if initial_configurations is not None and len(initial_configurations) > 0:
             self.initial_configurations = initial_configurations
@@ -78,8 +79,6 @@ class Advisor(object, metaclass=abc.ABCMeta):
         if self.num_objs == 1:
             self.history_container = HistoryContainer(task_id)
         else:   # multi-objectives
-            if ref_point is None:
-                ref_point = [0.0] * self.num_objs
             self.history_container = MOHistoryContainer(task_id, ref_point)
 
         self.surrogate_model = None

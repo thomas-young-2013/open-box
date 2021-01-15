@@ -24,6 +24,7 @@ from litebo.acquisition_function.mc_acquisition import (
 
 from litebo.acquisition_function.mc_multi_objective_acquisition import (
     MCParEGO,
+    MCEHVI
 )
 
 __all__ = [
@@ -46,4 +47,5 @@ __all__ = [
     'MCEIC',
 
     'MCParEGO',
+    'MCEHVI'
 ]
