@@ -1,4 +1,5 @@
 from typing import List, Tuple
+from itertools import product
 
 import numpy as np
 from scipy.stats import norm
@@ -8,6 +9,139 @@ from litebo.acquisition_function.acquisition import AbstractAcquisitionFunction,
 from litebo.surrogate.base.base_model import AbstractModel
 
 from platypus import NSGAII, Problem, Real
+
+
+class EHVI(AbstractAcquisitionFunction):
+    r"""Analytical Expected Hypervolume Improvement supporting m>=2 outcomes.
+
+    This assumes minimization.
+
+    Code is adapted from botorch. See [Daulton2020qehvi]_ for details.
+    """
+
+    def __init__(
+        self,
+        model: List[AbstractModel],
+        ref_point,
+        **kwargs
+    ):
+        """Constructor
+
+        Parameters
+        ----------
+        model: A fitted model.
+        ref_point: A list with `m` elements representing the reference point (in the
+            outcome space) w.r.t. to which compute the hypervolume. This is a
+            reference point for the objective values (i.e. after applying
+            `objective` to the samples).
+        """
+        super().__init__(model=model, **kwargs)
+        self.long_name = 'Expected Hypervolume Improvement'
+        ref_point = np.asarray(ref_point)
+        self.ref_point = ref_point
+        self._cross_product_indices = np.array(
+            list(product(*[[0, 1] for _ in range(ref_point.shape[0])]))
+        )
+
+    def psi(self, lower: np.ndarray, upper: np.ndarray, mu: np.ndarray, sigma: np.ndarray) -> None:
+        r"""Compute Psi function for minimization.
+
+        For each cell i and outcome k:
+
+            Psi(lower_{i,k}, upper_{i,k}, mu_k, sigma_k) = (
+            sigma_k * PDF((upper_{i,k} - mu_k) / sigma_k) + (
+            mu_k - lower_{i,k}
+            ) * (1-CDF(upper_{i,k} - mu_k) / sigma_k)
+
+        See Equation 19 in [Yang2019]_ for more details.
+
+        Args:
+            lower: A `num_cells x m`-dim array of lower cell bounds
+            upper: A `num_cells x m`-dim array of upper cell bounds
+            mu: A `batch_shape x 1 x m`-dim array of means
+            sigma: A `batch_shape x 1 x m`-dim array of standard deviations (clamped).
+
+        Returns:
+            A `batch_shape x num_cells x m`-dim array of values.
+        """
+        u = (upper - mu) / sigma
+        return sigma * norm.pdf(u) + (mu - lower) * (1 - norm.cdf(u))
+
+    def nu(self, lower: np.ndarray, upper: np.ndarray, mu: np.ndarray, sigma: np.ndarray) -> None:
+        r"""Compute Nu function for minimization.
+
+        For each cell i and outcome k:
+
+            nu(lower_{i,k}, upper_{i,k}, mu_k, sigma_k) = (
+            upper_{i,k} - lower_{i,k}
+            ) * (1-CDF((upper_{i,k} - mu_k) / sigma_k))
+
+        See Equation 25 in [Yang2019]_ for more details.
+
+        Args:
+            lower: A `num_cells x m`-dim array of lower cell bounds
+            upper: A `num_cells x m`-dim array of upper cell bounds
+            mu: A `batch_shape x 1 x m`-dim array of means
+            sigma: A `batch_shape x 1 x m`-dim array of standard deviations (clamped).
+
+        Returns:
+            A `batch_shape x num_cells x m`-dim array of values.
+        """
+        return (upper - lower) * (1 - norm.cdf((upper - mu) / sigma))
+
+    def _compute(self, X: np.ndarray, **kwargs):
+        num_objs = len(self.model)
+        mu = np.zeros((X.shape[0], 1, num_objs))
+        sigma = np.zeros((X.shape[0], 1, num_objs))
+        for i in range(num_objs):
+            mean, variance = self.model[i].predict_marginalized_over_instances(X)
+            sigma[:, :, i] = np.sqrt(variance)
+            mu[:, :, i] = -mean
+
+        cell_upper_bounds = np.clip(-self.cell_lower_bounds, -1e8, 1e8)
+
+        psi_lu = self.psi(
+            lower=-self.cell_upper_bounds,
+            upper=cell_upper_bounds,
+            mu=mu,
+            sigma=sigma
+        )
+        psi_ll = self.psi(
+            lower=-self.cell_upper_bounds,
+            upper=-self.cell_upper_bounds,
+            mu=mu,
+            sigma=sigma
+        )
+        nu = self.nu(
+            lower=-self.cell_upper_bounds,
+            upper=cell_upper_bounds,
+            mu=mu,
+            sigma=sigma
+        )
+        psi_diff = psi_ll - psi_lu
+
+        # This is batch_shape x num_cells x 2 x m
+        stacked_factors = np.stack([psi_diff, nu], axis=-2)
+
+        def gather(arr, index, axis):
+            data_swaped = np.swapaxes(arr, 0, axis)
+            index_swaped = np.swapaxes(index, 0, axis)
+            gathered = np.choose(index_swaped, data_swaped)
+            return np.swapaxes(gathered, 0, axis)
+
+        # Take the cross product of psi_diff and nu across all outcomes
+        # e.g. for m = 2
+        # for each batch and cell, compute
+        # [psi_diff_0, psi_diff_1]
+        # [nu_0, psi_diff_1]
+        # [psi_diff_0, nu_1]
+        # [nu_0, nu_1]
+        # This array has shape: `batch_shape x num_cells x 2^m x m`
+        indexer = np.broadcast_to(self._cross_product_indices, stacked_factors.shape[:-2] + self._cross_product_indices.shape)
+        all_factors_up_to_last = gather(stacked_factors, indexer, axis=-2)
+
+        # Compute product for all 2^m terms, and sum across all terms and hypercells
+        return all_factors_up_to_last.prod(axis=-1).sum(axis=-1).sum(axis=-1).reshape(-1, 1)
 
 
 class MaxvalueEntropySearch(object):  # todo name min?

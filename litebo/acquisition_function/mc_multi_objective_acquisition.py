@@ -40,7 +40,6 @@ class MCEHVI(AbstractAcquisitionFunction):
     This assumes minimization.
 
     Code is adapted from botorch. See [Daulton2020qehvi]_ for details.
-
     """
 
     def __init__(
