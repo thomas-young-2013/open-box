@@ -108,13 +108,11 @@ class MOHistoryContainer(object):
         self.hv_data = list()
         self.logger = get_logger(self.__class__.__name__)
 
-    def add(self, config: Configuration, perf: List[Perf], hv=0):
+    def add(self, config: Configuration, perf: List[Perf]):
         if self.num_objs is None:
             self.num_objs = len(perf)
             self.mo_incumbent_value = [MAXINT] * self.num_objs
             self.mo_incumbents = [list()] * self.num_objs
-            if self.ref_point is None:
-                self.ref_point = [0.0] * self.num_objs
 
         assert self.num_objs == len(perf)
 
@@ -152,13 +150,14 @@ class MOHistoryContainer(object):
                 self.mo_incumbent_value[i] = perf[i]
                 self.mo_incumbents[i].append((config, perf[i], perf))
 
-        # calculate current hypervolume
-        pareto_front = self.get_pareto_front()
-        if pareto_front:
-            hv = Hypervolume(ref_point=self.ref_point).compute(pareto_front)
-        else:
-            hv = 0
-        self.hv_data.append(hv)
+        # Calculate current hypervolume if reference point is provided
+        if self.ref_point is not None:
+            pareto_front = self.get_pareto_front()
+            if pareto_front:
+                hv = Hypervolume(ref_point=self.ref_point).compute(pareto_front)
+            else:
+                hv = 0
+            self.hv_data.append(hv)
 
     def save_json(self, fn: str = "history_container.json"):
         """
@@ -234,6 +233,7 @@ class MOHistoryContainer(object):
     def compute_hypervolume(self, ref_point=None):
         if ref_point is None:
             ref_point = self.ref_point
+        assert ref_point is not None
         pareto_front = self.get_pareto_front()
         if pareto_front:
             hv = Hypervolume(ref_point=ref_point).compute(pareto_front)

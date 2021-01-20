@@ -20,8 +20,9 @@ townsend_cs = ConfigurationSpace()
 townsend_cs.add_hyperparameters([UniformFloatHyperparameter(e, *townsend_params['float'][e]) for e in townsend_params['float']])
 
 bo = SMBO(townsend, townsend_cs,
+          advisor_type='mcadvisor',
+          acq_type='mceic',
           num_constraints=1,
-          acq_optimizer_type='random_scipy',
           max_runs=60,
-          task_id='smbo_eic')
+          task_id='mceic')
 bo.run()

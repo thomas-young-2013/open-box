@@ -11,6 +11,7 @@ from litebo.acquisition_function.acquisition import (
 )
 
 from litebo.acquisition_function.multi_objective_acquisition import (
+    EHVI,
     MESMO,
     MESMOC,
     MESMOC2,
@@ -24,6 +25,9 @@ from litebo.acquisition_function.mc_acquisition import (
 
 from litebo.acquisition_function.mc_multi_objective_acquisition import (
     MCParEGO,
+    MCParEGOC,
+    MCEHVI,
+    MCEHVIC
 )
 
 __all__ = [
@@ -37,6 +41,7 @@ __all__ = [
     'LCB',
     'Uncertainty',
 
+    'EHVI',
     'MESMO',
     'MESMOC',
     'MESMOC2',
@@ -46,4 +51,7 @@ __all__ = [
     'MCEIC',
 
     'MCParEGO',
+    'MCParEGOC',
+    'MCEHVI',
+    'MCEHVIC'
 ]

@@ -19,6 +19,7 @@ class Hypervolume:
             ref_point: `m`-dim numpy array containing the reference point.
 
         """
+        assert ref_point is not None
         self.ref_point = np.asarray(ref_point)
 
     @property
@@ -37,6 +38,7 @@ class Hypervolume:
         Args:
             ref_point:  A `m`-dim numpy array containing the reference point.
         """
+        assert ref_point is not None
         self._ref_point = np.asarray(ref_point)
 
     def compute(self, pareto_Y) -> float:

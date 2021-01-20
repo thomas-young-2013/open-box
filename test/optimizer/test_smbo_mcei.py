@@ -35,7 +35,7 @@ bo = SMBO(branin, cs,
           advisor_type='mcadvisor',
           acq_type='mcei',
           mc_times=10,
-          max_runs=100,
+          max_runs=50,
           task_id='mcei', random_state=seed)
 bo.run()
 inc_value = bo.get_incumbent()

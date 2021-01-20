@@ -8,7 +8,7 @@ from litebo.utils.logging_utils import get_logger
 from litebo.utils.history_container import HistoryContainer, MOHistoryContainer
 from litebo.utils.constants import MAXINT, SUCCESS
 from litebo.utils.samplers import SobolSampler, LatinHypercubeSampler
-from litebo.utils.multi_objective import get_chebyshev_scalarization
+from litebo.utils.multi_objective import get_chebyshev_scalarization, NondominatedPartitioning
 from litebo.utils.config_space.util import convert_configurations_to_array
 from litebo.core.base import build_acq_func, build_optimizer, build_surrogate
 from litebo.core.base import Observation
@@ -68,6 +68,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
         self.init_num = initial_trials
         self.config_space = config_space
         self.config_space.seed(self.rng.randint(MAXINT))
+        self.ref_point = ref_point
 
         if initial_configurations is not None and len(initial_configurations) > 0:
             self.initial_configurations = initial_configurations
@@ -94,66 +95,61 @@ class Advisor(object, metaclass=abc.ABCMeta):
         assert isinstance(self.num_objs, int) and self.num_objs >= 1
         assert isinstance(self.num_constraints, int) and self.num_constraints >= 0
 
-        # single objective no constraint
-        if self.num_objs == 1 and self.num_constraints == 0:
-            if self.acq_type is None:
-                self.acq_type = 'ei'
-            assert self.acq_type in ['ei', 'eips', 'logei', 'pi', 'lcb', 'lpei', ]
-            if self.surrogate_type is None:
-                self.surrogate_type = 'prf'
+        # Single objective
+        if self.num_objs == 1:
+            if self.num_constraints == 0:
+                if self.acq_type is None:
+                    self.acq_type = 'ei'
+                assert self.acq_type in ['ei', 'eips', 'logei', 'pi', 'lcb', 'lpei', ]
+                if self.surrogate_type is None:
+                    self.surrogate_type = 'prf'
+            else:
+                if self.acq_type is None:
+                    self.acq_type = 'eic'
+                assert self.acq_type in ['eic', ]
+                if self.surrogate_type is None:
+                    self.surrogate_type = 'prf'
+                if self.constraint_surrogate_type is None:
+                    self.constraint_surrogate_type = 'gp'
 
         # multi-objective with constraints
-        elif self.num_objs > 1 and self.num_constraints > 0:
-            if self.acq_type is None:
-                self.acq_type = 'mesmoc2'
-            assert self.acq_type in ['mesmoc', 'mesmoc2']
-            if self.surrogate_type is None:
-                self.surrogate_type = 'gp_rbf'
-            if self.constraint_surrogate_type is None:
-                if self.acq_type == 'mesmoc2':
-                    self.constraint_surrogate_type = 'gp'
-                else:
-                    self.constraint_surrogate_type = 'gp_rbf'
-            if self.acq_type == 'mesmoc' and self.surrogate_type != 'gp_rbf':
-                self.surrogate_type = 'gp_rbf'
-                self.logger.warning('Surrogate model has changed to Gaussian Process with RBF kernel '
-                                    'since MESMOC is used. Surrogate_type should be set to \'gp_rbf\'.')
-            if self.acq_type == 'mesmoc' and self.constraint_surrogate_type != 'gp_rbf':
-                self.surrogate_type = 'gp_rbf'
-                self.logger.warning('Constraint surrogate model has changed to Gaussian Process with RBF kernel '
-                                    'since MESMOC is used. Surrogate_type should be set to \'gp_rbf\'.')
-
-        # multi-objective no constraint
-        elif self.num_objs > 1:
-            if self.acq_type is None:
-                self.acq_type = 'parego'
-            assert self.acq_type in ['mesmo', 'usemo', 'parego']
-            if self.surrogate_type is None:
-                if self.acq_type == 'mesmo':
+        else:
+            if self.num_constraints == 0:
+                if self.acq_type is None:
+                    self.acq_type = 'ehvi'
+                assert self.acq_type in ['ehvi', 'mesmo', 'usemo', 'parego']
+                if self.surrogate_type is None:
+                    if self.acq_type == 'mesmo':
+                        self.surrogate_type = 'gp_rbf'
+                    else:
+                        self.surrogate_type = 'gp'
+                if self.acq_type == 'mesmo' and self.surrogate_type != 'gp_rbf':
                     self.surrogate_type = 'gp_rbf'
-                else:
-                    self.surrogate_type = 'gp'
-            if self.acq_type == 'mesmo' and self.surrogate_type != 'gp_rbf':
-                self.surrogate_type = 'gp_rbf'
-                self.logger.warning('Surrogate model has changed to Gaussian Process with RBF kernel '
-                                    'since MESMO is used. Surrogate_type should be set to \'gp_rbf\'.')
+                    self.logger.warning('Surrogate model has changed to Gaussian Process with RBF kernel '
+                                        'since MESMO is used. Surrogate_type should be set to \'gp_rbf\'.')
+            else:
+                if self.acq_type is None:
+                    self.acq_type = 'mesmoc2'
+                assert self.acq_type in ['mesmoc', 'mesmoc2']
+                if self.surrogate_type is None:
+                    self.surrogate_type = 'gp_rbf'
+                if self.constraint_surrogate_type is None:
+                    if self.acq_type == 'mesmoc2':
+                        self.constraint_surrogate_type = 'gp'
+                    else:
+                        self.constraint_surrogate_type = 'gp_rbf'
+                if self.acq_type == 'mesmoc' and self.surrogate_type != 'gp_rbf':
+                    self.surrogate_type = 'gp_rbf'
+                    self.logger.warning('Surrogate model has changed to Gaussian Process with RBF kernel '
+                                        'since MESMOC is used. Surrogate_type should be set to \'gp_rbf\'.')
+                if self.acq_type == 'mesmoc' and self.constraint_surrogate_type != 'gp_rbf':
+                    self.surrogate_type = 'gp_rbf'
+                    self.logger.warning('Constraint surrogate model has changed to Gaussian Process with RBF kernel '
+                                        'since MESMOC is used. Surrogate_type should be set to \'gp_rbf\'.')
 
-        # single objective with constraints
-        elif self.num_constraints > 0:
-            if self.acq_type is None:
-                self.acq_type = 'eic'
-            assert self.acq_type in ['eic', 'ts']
-            if self.surrogate_type is None:
-                if self.acq_type == 'ts':
-                    self.surrogate_type = 'gp'
-                else:
-                    self.surrogate_type = 'prf'
-            if self.constraint_surrogate_type is None:
-                self.constraint_surrogate_type = 'gp'
-            if self.acq_type == 'ts' and self.surrogate_type != 'gp':
-                self.surrogate_type = 'gp'
-                self.logger.warning('Surrogate model has changed to Gaussian Process '
-                                    'since TS is used. Surrogate_type should be set to \'gp\'.')
+                # Check reference point is provided for EHVI methods
+                if 'ehvi' in self.acq_type and self.ref_point is None:
+                    raise ValueError('Must provide reference point to use EHVI method!')
 
     def setup_bo_basics(self):
         if self.num_objs == 1 or self.acq_type == 'parego':
@@ -175,12 +171,16 @@ class Advisor(object, metaclass=abc.ABCMeta):
 
         if self.acq_type in ['mesmo', 'mesmoc', 'mesmoc2', 'usemo']:
             types, bounds = get_types(self.config_space)
-            self.acquisition_function = build_acq_func(func_str=self.acq_type, model=self.surrogate_model,
+            self.acquisition_function = build_acq_func(func_str=self.acq_type,
+                                                       model=self.surrogate_model,
                                                        constraint_models=self.constraint_models,
-                                                       types=types, bounds=bounds)
+                                                       types=types,
+                                                       bounds=bounds)
         else:
-            self.acquisition_function = build_acq_func(func_str=self.acq_type, model=self.surrogate_model,
-                                                       constraint_models=self.constraint_models)
+            self.acquisition_function = build_acq_func(func_str=self.acq_type,
+                                                       model=self.surrogate_model,
+                                                       constraint_models=self.constraint_models,
+                                                       ref_point=self.ref_point)
         if self.acq_type == 'usemo':
             self.acq_optimizer_type = 'usemo_optimizer'
         elif self.acq_type.startswith('mesmo'):
@@ -283,11 +283,18 @@ class Advisor(object, metaclass=abc.ABCMeta):
                                                  num_data=num_config_evaluated)
             else:   # multi-objectives
                 mo_incumbent_value = self.history_container.get_mo_incumbent_value()
-                if self.acq_type == 'parego':
+                if self.acq_type.startswith('parego'):
                     self.acquisition_function.update(model=self.surrogate_model,
                                                      constraint_models=self.constraint_models,
                                                      eta=scalarized_obj(np.atleast_2d(mo_incumbent_value)),
                                                      num_data=num_config_evaluated)
+                elif self.acq_type.startswith('ehvi'):
+                    partitioning = NondominatedPartitioning(self.num_objs, Y)
+                    cell_bounds = partitioning.get_hypercell_bounds(ref_point=self.ref_point)
+                    self.acquisition_function.update(model=self.surrogate_model,
+                                                     constraint_models=self.constraint_models,
+                                                     cell_lower_bounds=cell_bounds[0],
+                                                     cell_upper_bounds=cell_bounds[1])
                 else:
                     self.acquisition_function.update(model=self.surrogate_model,
                                                      constraint_models=self.constraint_models,

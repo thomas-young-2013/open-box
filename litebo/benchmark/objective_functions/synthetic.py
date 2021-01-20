@@ -15,6 +15,8 @@ class BaseTestProblem(object):
 
     def __init__(self, config_space: ConfigurationSpace,
                  noise_std=0,
+                 num_objs=1,
+                 num_constraints=0,
                  optimal_value=None,
                  optimal_point=None,
                  random_state=None):
@@ -25,10 +27,20 @@ class BaseTestProblem(object):
 
         noise_std : Standard deviation of the observation noise.
 
+        num_objs : Number of objectives of the test problem.
+
+        num_constraints : Number of constraints of the test problem.
+
         optimal_value : Optimal value of the test problem.
+
+        optimal_point :
+
+        random_state :
         """
         self.config_space = config_space
         self.noise_std = noise_std
+        self.num_objs = num_objs
+        self.num_constraints = num_constraints
         self.optimal_value = optimal_value
         self.optimal_point = optimal_point
         self.rng = check_random_state(random_state)
@@ -327,16 +339,14 @@ class DTLZ(BaseTestProblem):
             raise ValueError(
                 "dim must be > num_objs, but got %s and %s" % (dim, num_objs)
             )
-        self.num_objs = num_objs
-        self.num_constraints = num_constraints
         self.dim = dim
-        self.k = self.dim - self.num_objs + 1
+        self.k = self.dim - num_objs + 1
         self.bounds = [(0.0, 1.0) for _ in range(self.dim)]
-        self.ref_point = [self._ref_val for _ in range(self.num_objs)]
-        params = {f'x{i}': (0, 1, 0.5) for i in range(1, dim+1)}
+        self.ref_point = [self._ref_val for _ in range(num_objs)]
+        params = {f'x{i}': (0, 1, i/dim) for i in range(1, dim+1)}
         config_space = ConfigurationSpace()
         config_space.add_hyperparameters([UniformFloatHyperparameter(e, *params[e]) for e in params])
-        super().__init__(config_space, noise_std, random_state=random_state)
+        super().__init__(config_space, noise_std, num_objs, num_constraints, random_state=random_state)
 
 
 class DTLZ1(DTLZ):
@@ -361,7 +371,7 @@ class DTLZ1(DTLZ):
     def __init__(self, dim, num_objs=2, constrained=False,
                  noise_std=0, random_state=None):
         self.constrained = constrained
-        super().__init__(dim, num_objs, noise_std=noise_std, random_state=random_state)
+        super().__init__(dim, num_objs, num_constraints=0, noise_std=noise_std, random_state=random_state)
 
     @property
     def _max_hv(self) -> float:
@@ -376,7 +386,7 @@ class DTLZ1(DTLZ):
         fs = []
         for i in range(self.num_objs):
             idx = self.num_objs - 1 - i
-            f_i = g_X_m_term * X[..., :idx].prod(dim=-1)
+            f_i = g_X_m_term * X[..., :idx].prod(axis=-1)
             if i > 0:
                 f_i *= 1 - X[..., idx]
             fs.append(f_i)
@@ -404,7 +414,7 @@ class DTLZ2(DTLZ):
     #_ref_val = 1.5  # todo
     _r = 0.2
 
-    def __init__(self, dim, num_objs=2, constrained=False,
+    def __init__(self, dim=10, num_objs=2, constrained=False,
                  noise_std=0, random_state=None):
         self.constrained = constrained
         num_constraints = 1 if constrained else 0
@@ -454,4 +464,55 @@ class DTLZ2(DTLZ):
             min2 = ((f_X - 1 / np.sqrt(f_X.shape[-1]))**2 - self._r ** 2).sum(axis=-1)
             result['constraints'] = np.minimum(min1, min2).tolist()
 
+        return result
+
+
+class BraninCurrin(BaseTestProblem):
+    r"""Two objective problem composed of the Branin and Currin functions.
+
+    Branin (rescaled):
+
+        f(x) = (
+        15*x_1 - 5.1 * (15 * x_0 - 5) ** 2 / (4 * pi ** 2) + 5 * (15 * x_0 - 5)
+        / pi - 5
+        ) ** 2 + (10 - 10 / (8 * pi)) * cos(15 * x_0 - 5))
+
+    Currin:
+
+        f(x) = (1 - exp(-1 / (2 * x_1))) * (
+        2300 * x_0 ** 3 + 1900 * x_0 ** 2 + 2092 * x_0 + 60
+        ) / 100 * x_0 ** 3 + 500 * x_0 ** 2 + 4 * x_0 + 20
+
+    """
+
+    _max_hv = 59.36011874867746  # this is approximated using NSGA-II
+
+    def __init__(self, constrained=False, noise_std=0, random_state=None):
+        self.ref_point = [18.0, 6.0]
+        self.constrained = constrained
+        num_constraints = 1 if self.constrained else 0
+
+        params = {'x1': (0, 1, 0.5),
+                  'x2': (0, 1, 0.5)}
+        config_space = ConfigurationSpace()
+        config_space.add_hyperparameters([UniformFloatHyperparameter(e, *params[e]) for e in params])
+        super().__init__(config_space, noise_std,
+                         num_objs=2,
+                         num_constraints=num_constraints,
+                         random_state=random_state,)
+
+    def _evaluate(self, X):
+        x1 = X[..., 0]
+        x2 = X[..., 1]
+        px1 = 15 * x1 - 5
+        px2 = 15 * x2
+
+        f1 = (px2 - 5.1 / (4 * np.pi ** 2) * px1 ** 2 + 5 / np.pi * px1 - 6) ** 2 \
+             + 10 * (1 - 1 / (8 * np.pi)) * np.cos(px1) + 10
+        f2 = (1 - np.exp(-1 / (2 * x2))) * (2300 * x1 ** 3 + 1900 * x1 ** 2 + 2092 * x1 + 60) \
+             / (100 * x1 ** 3 + 500 * x1 ** 2 + 4 * x1 + 20)
+        result = dict()
+        result['objs'] = [f1, f2]
+        if self.constrained:
+            result['constraints'] = [(px1 - 2.5)**2 + (px2 - 7.5)**2 - 50]
         return result
