@@ -10,12 +10,12 @@ import numpy as np
 import argparse
 import matplotlib.pyplot as plt
 from functools import partial
-from pygmo import hypervolume
 
 sys.path.insert(0, os.getcwd())
 from litebo.optimizer.generic_smbo import SMBO
 from litebo.utils.config_space import Configuration
 from test.test_utils import check_datasets, load_data
+from litebo.utils.multi_objective import Hypervolume
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--n', type=int, default=200)
@@ -72,9 +72,8 @@ for dataset in dataset_list:
     for i in range(max_runs):
         config, trial_state, objs, trial_info = bo.iterate()
         print(i, objs, config)
-        hv = hypervolume(bo.get_history().get_pareto_front()).compute(referencePoint)
-        hv2 = hypervolume(bo.get_history().get_all_perfs()).compute(referencePoint)
-        print(i, 'hypervolume =', hv, hv2)
+        hv = Hypervolume(referencePoint).compute(bo.get_history().get_pareto_front())
+        print(i, 'hypervolume =', hv)
         hv_diff = real_hv - hv
         hv_diffs.append(hv_diff)
         print(i, 'hv diff =', hv_diff)
@@ -89,14 +88,13 @@ for dataset in dataset_list:
     bo_r = SMBO(multi_objective_func, cs, num_objs=num_objs, max_runs=max_runs,
                 time_limit_per_trial=60, sample_strategy='random', task_id='mo_random')
     print('Random', '='*30)
-    # bo.run()
+    # bo_r.run()
     hv_diffs_r = []
     for i in range(max_runs):
         config, trial_state, objs, trial_info = bo_r.iterate()
         print(objs, config)
-        hv = hypervolume(bo_r.get_history().get_all_perfs()).compute(referencePoint)
-        hv2 = hypervolume(bo_r.get_history().get_pareto_front()).compute(referencePoint)
-        print('hypervolume =', hv, hv2)
+        hv = Hypervolume(referencePoint).compute(bo_r.get_history().get_pareto_front())
+        print('hypervolume =', hv)
         hv_diff = real_hv - hv
         hv_diffs_r.append(hv_diff)
         print('hv diff =', hv_diff)

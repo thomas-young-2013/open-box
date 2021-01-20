@@ -12,13 +12,13 @@ from functools import partial
 import numpy as np
 import argparse
 import pickle as pkl
-from pygmo import hypervolume
 
 sys.path.insert(0, os.getcwd())
 from litebo.optimizer.generic_smbo import SMBO
 from litebo.utils.config_space import Configuration
 from test.test_utils import timeit
 from test.test_utils import check_datasets, load_data
+from litebo.utils.multi_objective import Hypervolume
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--n', type=int, default=200)
@@ -92,9 +92,8 @@ with timeit('%s %s all' % (mth, problem_str)):
                 for i in range(max_runs):
                     config, trial_state, objs, trial_info = bo.iterate()
                     print(seed, i, objs, config)
-                    hv = hypervolume(bo.get_history().get_pareto_front()).compute(referencePoint)
-                    hv2 = hypervolume(bo.get_history().get_all_perfs()).compute(referencePoint)
-                    print(seed, i, 'hypervolume =', hv, hv2)
+                    hv = Hypervolume(referencePoint).compute(bo.get_history().get_pareto_front())
+                    print(seed, i, 'hypervolume =', hv)
                     hv_diff = real_hv - hv
                     hv_diffs.append(hv_diff)
                     print(seed, i, 'hv diff =', hv_diff)

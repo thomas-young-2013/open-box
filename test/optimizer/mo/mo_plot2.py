@@ -8,10 +8,10 @@ import argparse
 import numpy as np
 import pickle as pkl
 import matplotlib.pyplot as plt
-from pygmo import hypervolume
 
 sys.path.insert(0, os.getcwd())
 from litebo.utils.history_container import MOHistoryContainer
+from litebo.utils.multi_objective import Hypervolume
 
 default_mths = 'mesmo-1,usemo-1,gpflowopt-hvpoi'
 parser = argparse.ArgumentParser()
@@ -31,6 +31,10 @@ referencePoint = [301, 200]
 real_hv = 301*200
 
 problem_str = 'bc'
+title = 'branin-Currin'
+
+log_phv = True
+log_func = np.log10
 
 plot_list = []
 legend_list = []
@@ -45,35 +49,36 @@ for mth in mths:
             if recalc == 1:
                 if mth.startswith('gpflowopt'):
                     y = data[1]
-                else:
+                else:   # todo
                     y = np.array(list(data.values()))
                 hv_diffs = []
                 history_container = MOHistoryContainer(None)
                 for i in range(y.shape[0]):
                     history_container.add(i, y[i].tolist())
                     pf = history_container.get_pareto_front()   # avoid greater than referencePoint
-                    hv = hypervolume(pf).compute(referencePoint)
+                    hv = Hypervolume(referencePoint).compute(pf)
                     hv_diff = real_hv - hv
                     hv_diffs.append(hv_diff)
             elif recalc == 2:   # only calculate final result
                 if mth.startswith('gpflowopt'):
                     y = data[1]
-                else:
+                else:   # todo
                     y = np.array(list(data.values()))
                 history_container = MOHistoryContainer(None)
                 for i in range(y.shape[0]):
                     history_container.add(i, y[i].tolist())
                 pf = history_container.get_pareto_front()
-                hv = hypervolume(pf).compute(referencePoint)
+                hv = Hypervolume(referencePoint).compute(pf)
                 hv_diff = real_hv - hv
                 hv_diffs = [hv_diff] * max_runs
             if len(hv_diffs) != max_runs:
                 print('Error len: ', file, len(hv_diffs))
                 continue
             result.append(hv_diffs)
-            print(hv_diffs[-1])
-    print('result rep=', len(result))
-    result = np.log(result)     # log
+            print('last hv_diff =', hv_diffs[-1])
+    print('result rep=', len(result), mth)
+    if log_phv:
+        result = log_func(result)  # log
     mean_res = np.mean(result, axis=0)
     std_res = np.std(result, axis=0)
 
@@ -83,10 +88,13 @@ for mth in mths:
     p = plt.errorbar(x, mean_res, yerr=std_res*0.5, fmt='', capthick=0.5, capsize=3, errorevery=max_runs//10)
     plot_list.append(p)
     legend_list.append(mth)
-    print(mean_res[-1], std_res[-1])
+    print('last mean,std:', mean_res[-1], std_res[-1])
 
-plt.legend(plot_list, legend_list, loc='upper right')
-plt.title('branin-Currin')
-plt.xlabel('Iteration')
-plt.ylabel('Log Hypervolume Difference')
+plt.legend(plot_list, legend_list, loc='upper right', fontsize=12)
+plt.title(title, fontsize=18)
+plt.xlabel('Iteration', fontsize=15)
+if log_phv:
+    plt.ylabel('Log Hypervolume Difference', fontsize=15)
+else:
+    plt.ylabel('Hypervolume Difference', fontsize=15)
 plt.show()

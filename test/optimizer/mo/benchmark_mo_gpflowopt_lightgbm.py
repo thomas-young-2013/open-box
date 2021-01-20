@@ -22,6 +22,7 @@ from test.test_utils import check_datasets, load_data
 from mo_benchmark_function import LightGBM
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import balanced_accuracy_score, f1_score, accuracy_score
+from litebo.utils.multi_objective import Hypervolume
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--n', type=int, default=200)
@@ -146,7 +147,8 @@ with timeit('%s all' % (mth,)):
             data = optimizer.acquisition.data  # data=(X, Y)
             hv_diffs = []
             for i in range(data[1].shape[0]):
-                hv = gpflowopt.pareto.Pareto(data[1][:i + 1]).hypervolume(referencePoint)
+                # hv = gpflowopt.pareto.Pareto(data[1][:i+1]).hypervolume(referencePoint)    # ref_point problem
+                hv = Hypervolume(referencePoint).compute(data[1][:i + 1])
                 hv_diff = real_hv - hv
                 hv_diffs.append(hv_diff)
             print(seed, mth, 'pareto num:', pf.shape[0])

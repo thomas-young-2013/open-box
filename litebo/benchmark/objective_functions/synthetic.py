@@ -1,3 +1,5 @@
+from typing import Union
+
 import numpy as np
 from scipy.special import gamma
 
@@ -41,11 +43,14 @@ class BaseTestProblem(object):
                 "hypervolume."
             )
 
-    def __call__(self, config: Configuration):
-        return self.evaluate(config)
+    def __call__(self, config: Union[Configuration, np.ndarray], convert=True):
+        return self.evaluate(config, convert)
 
-    def evaluate(self, config: Configuration):
-        X = np.array(list(config.get_dictionary().values()))
+    def evaluate(self, config: Union[Configuration, np.ndarray], convert=True):
+        if convert:
+            X = np.array(list(config.get_dictionary().values()))
+        else:
+            X = config
         result = self._evaluate(X)
         result['objs'] = [e + self.noise_std*self.rng.randn() for e in result['objs']]
         if 'constraint' in result:
@@ -396,6 +401,7 @@ class DTLZ2(DTLZ):
     """
 
     _ref_val = 1.1
+    #_ref_val = 1.5  # todo
     _r = 0.2
 
     def __init__(self, dim, num_objs=2, constrained=False,
