@@ -47,6 +47,8 @@ class BaseTestProblem(object):
 
     @property
     def max_hv(self) -> float:
+        if hasattr(self, '_set_max_hv'):
+            return self._set_max_hv
         try:
             return self._max_hv
         except AttributeError:
@@ -54,6 +56,10 @@ class BaseTestProblem(object):
                 f"Problem {self.__class__.__name__} does not specify maximal "
                 "hypervolume."
             )
+
+    @max_hv.setter
+    def max_hv(self, max_hv):
+        self._set_max_hv = max_hv
 
     def __call__(self, config: Union[Configuration, np.ndarray], convert=True):
         return self.evaluate(config, convert)
@@ -414,7 +420,7 @@ class DTLZ2(DTLZ):
     #_ref_val = 1.5  # todo
     _r = 0.2
 
-    def __init__(self, dim=10, num_objs=2, constrained=False,
+    def __init__(self, dim=12, num_objs=2, constrained=False,
                  noise_std=0, random_state=None):
         self.constrained = constrained
         num_constraints = 1 if constrained else 0

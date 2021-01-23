@@ -15,7 +15,7 @@ import gpflow
 import gpflowopt
 
 sys.path.insert(0, os.getcwd())
-from test.test_utils import timeit
+from test.test_utils import timeit, seeds
 from litebo.utils.multi_objective import Hypervolume
 
 parser = argparse.ArgumentParser()
@@ -32,9 +32,6 @@ num_objs = args.y
 rep = args.rep
 start_id = args.start_id
 mth = 'gpflowopt-hvpoi'
-
-seeds = [4774, 3711, 7238, 3203, 4254, 2137, 1188, 4356,  517, 5887,
-         9082, 4702, 4801, 8242, 7391, 1893, 4400, 1192, 5553, 9039]
 
 # set problem
 from litebo.benchmark.objective_functions.synthetic import DTLZ2

@@ -13,8 +13,10 @@ import pickle as pkl
 
 import torch
 
+sys.path.insert(0, '../botorch/')   # for dev
+
 sys.path.insert(0, os.getcwd())
-from test.test_utils import timeit
+from test.test_utils import timeit, seeds
 from litebo.utils.multi_objective import Hypervolume
 
 parser = argparse.ArgumentParser()
@@ -33,9 +35,6 @@ BATCH_SIZE = args.q     # parallel q
 rep = args.rep
 start_id = args.start_id
 mth = 'botorch-qehvi'
-
-seeds = [4774, 3711, 7238, 3203, 4254, 2137, 1188, 4356,  517, 5887,
-         9082, 4702, 4801, 8242, 7391, 1893, 4400, 1192, 5553, 9039]
 
 # set problem
 from litebo.benchmark.objective_functions.synthetic import DTLZ2
@@ -147,6 +146,7 @@ with timeit('%s all' % (mth,)):
             X_init = train_x_qehvi.numpy()
             Y_init = -1 * train_obj_qehvi.numpy()   # for plot
 
+            # calculate hypervolume of init data
             for i in range(init_num):
                 train_obj_i = train_obj_qehvi[:init_num+1]
                 # compute pareto front
@@ -158,7 +158,7 @@ with timeit('%s all' % (mth,)):
                 hv_diff = problem.max_hv - volume
                 hv_diffs.append(hv_diff)
 
-            # run N_BATCH rounds of BayesOpt after the initial random batch
+            # run (max_runs - init_num) rounds of BayesOpt after the initial random batch
             for iteration in range(init_num + 1, max_runs + 1):
                 print('\n===start iter', iteration)
 

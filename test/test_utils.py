@@ -5,6 +5,10 @@ import contextlib
 import time
 
 
+seeds = [4774, 3711, 7238, 3203, 4254, 2137, 1188, 4356,  517, 5887,
+         9082, 4702, 4801, 8242, 7391, 1893, 4400, 1192, 5553, 9039]
+
+
 # timer tool
 @contextlib.contextmanager
 def timeit(name=''):

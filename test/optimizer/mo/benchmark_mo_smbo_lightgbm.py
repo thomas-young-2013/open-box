@@ -16,7 +16,7 @@ import pickle as pkl
 sys.path.insert(0, os.getcwd())
 from litebo.optimizer.generic_smbo import SMBO
 from litebo.utils.config_space import Configuration
-from test.test_utils import timeit
+from test.test_utils import timeit, seeds
 from test.test_utils import check_datasets, load_data
 from litebo.utils.multi_objective import Hypervolume
 
@@ -40,9 +40,6 @@ opt_num_opt = args.opt_num_opt  # MESMO optimizer only
 rep = args.rep
 start_id = args.start_id
 mth = args.mth
-
-seeds = [4774, 3711, 7238, 3203, 4254, 2137, 1188, 4356,  517, 5887,
-         9082, 4702, 4801, 8242, 7391, 1893, 4400, 1192, 5553, 9039]
 
 # Evaluate mth
 # X_init = np.array([

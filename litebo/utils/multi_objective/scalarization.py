@@ -42,7 +42,7 @@ def get_chebyshev_scalarization(
 
     Example:
         >>> weights = np.array([0.75, 0.25])
-        >>> transform = get_aug_chebyshev_scalarization(weights, Y)
+        >>> transform = get_chebyshev_scalarization(weights, Y)
     """
     if weights.shape != Y.shape[-1:]:
         raise Exception(
