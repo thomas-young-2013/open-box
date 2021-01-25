@@ -14,7 +14,7 @@ from sklearn.metrics import balanced_accuracy_score
 sys.path.append(os.getcwd())
 from litebo.optimizer.smbo import SMBO
 from litebo.optimizer.parallel_smbo import pSMBO
-from test_utils import check_datasets, load_data
+from test.test_utils import check_datasets, load_data
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--datasets', type=str)
@@ -25,7 +25,7 @@ dataset_str = args.datasets
 run_count = args.n
 
 dataset_list = dataset_str.split(',')
-data_dir = './test/optimizer/data/'
+data_dir = './test/data/'
 
 
 def get_cs():

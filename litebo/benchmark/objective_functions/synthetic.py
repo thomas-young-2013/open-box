@@ -1,3 +1,5 @@
+from typing import Union
+
 import numpy as np
 from scipy.special import gamma
 
@@ -13,10 +15,11 @@ class BaseTestProblem(object):
 
     def __init__(self, config_space: ConfigurationSpace,
                  noise_std=0,
+                 num_objs=1,
+                 num_constraints=0,
                  optimal_value=None,
                  optimal_point=None,
-                 random_state=None,
-                 **kwargs):
+                 random_state=None):
         """
         Parameters
         ----------
@@ -24,18 +27,28 @@ class BaseTestProblem(object):
 
         noise_std : Standard deviation of the observation noise.
 
+        num_objs : Number of objectives of the test problem.
+
+        num_constraints : Number of constraints of the test problem.
+
         optimal_value : Optimal value of the test problem.
+
+        optimal_point :
+
+        random_state :
         """
-        self.num_constraints = kwargs.get('num_constraints', 0)
-        self.num_objs = kwargs.get('num_objs', 1)
         self.config_space = config_space
         self.noise_std = noise_std
+        self.num_objs = num_objs
+        self.num_constraints = num_constraints
         self.optimal_value = optimal_value
         self.optimal_point = optimal_point
         self.rng = check_random_state(random_state)
 
     @property
     def max_hv(self) -> float:
+        if hasattr(self, '_set_max_hv'):
+            return self._set_max_hv
         try:
             return self._max_hv
         except AttributeError:
@@ -44,8 +57,18 @@ class BaseTestProblem(object):
                 "hypervolume."
             )
 
-    def evaluate(self, config: Configuration):
-        X = np.array(list(config.get_dictionary().values()))
+    @max_hv.setter
+    def max_hv(self, max_hv):
+        self._set_max_hv = max_hv
+
+    def __call__(self, config: Union[Configuration, np.ndarray], convert=True):
+        return self.evaluate(config, convert)
+
+    def evaluate(self, config: Union[Configuration, np.ndarray], convert=True):
+        if convert:
+            X = np.array(list(config.get_dictionary().values()))
+        else:
+            X = config
         result = self._evaluate(X)
         result['objs'] = [e + self.noise_std*self.rng.randn() for e in result['objs']]
         if 'constraint' in result:
@@ -329,7 +352,7 @@ class DTLZ(BaseTestProblem):
         params = {f'x{i}': (0, 1, i/dim) for i in range(1, dim+1)}
         config_space = ConfigurationSpace()
         config_space.add_hyperparameters([UniformFloatHyperparameter(e, *params[e]) for e in params])
-        super().__init__(config_space, noise_std, random_state=random_state, num_constraints=num_constraints, num_objs=num_objs)
+        super().__init__(config_space, noise_std, num_objs, num_constraints, random_state=random_state)
 
 
 class DTLZ1(DTLZ):
@@ -353,7 +376,8 @@ class DTLZ1(DTLZ):
 
     def __init__(self, dim, num_objs=2, constrained=False,
                  noise_std=0, random_state=None):
-        super().__init__(dim, noise_std=noise_std, random_state=None, num_objs=2, num_constraints=0)
+        self.constrained = constrained
+        super().__init__(dim, num_objs, num_constraints=0, noise_std=noise_std, random_state=random_state)
 
     @property
     def _max_hv(self) -> float:
@@ -393,13 +417,14 @@ class DTLZ2(DTLZ):
     """
 
     _ref_val = 1.1
+    #_ref_val = 1.5  # todo
     _r = 0.2
 
-    def __init__(self, dim=10, num_objs=2, constrained=False,
+    def __init__(self, dim=12, num_objs=2, constrained=False,
                  noise_std=0, random_state=None):
         self.constrained = constrained
         num_constraints = 1 if constrained else 0
-        super().__init__(dim, noise_std=noise_std, random_state=None, num_objs=num_objs, num_constraints=num_constraints)
+        super().__init__(dim, num_objs, num_constraints, noise_std=noise_std, random_state=random_state)
 
     @property
     def _max_hv(self) -> float:
@@ -478,9 +503,9 @@ class BraninCurrin(BaseTestProblem):
         config_space = ConfigurationSpace()
         config_space.add_hyperparameters([UniformFloatHyperparameter(e, *params[e]) for e in params])
         super().__init__(config_space, noise_std,
-                         random_state=random_state,
                          num_objs=2,
-                         num_constraints=num_constraints)
+                         num_constraints=num_constraints,
+                         random_state=random_state,)
 
     def _evaluate(self, X):
         x1 = X[..., 0]

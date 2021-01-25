@@ -1,7 +1,7 @@
 """
 example cmdline:
 
-python test/optimizer/test_mo_smbo.py --mth mesmo --sample_num 1 --n 100
+python test/optimizer/mo/test_mo_smbo_bc.py --mth mesmo --sample_num 1 --n 100
 
 """
 import os
@@ -9,14 +9,14 @@ import sys
 import numpy as np
 import argparse
 import matplotlib.pyplot as plt
-from pygmo import hypervolume
 
 sys.path.insert(0, os.getcwd())
 from litebo.optimizer.generic_smbo import SMBO
 from litebo.utils.config_space import Configuration
+from litebo.utils.multi_objective import Hypervolume
 
 # set problem
-from mo_benchmark_function import get_setup_bc
+from mo_benchmark_function import get_setup_bc  # todo
 setup = get_setup_bc()
 multi_objective_func = setup['multi_objective_func']
 cs = setup['cs']
@@ -71,9 +71,8 @@ hv_diffs = []
 for i in range(max_runs):
     config, trial_state, objs, trial_info = bo.iterate()
     print(i, objs, config)
-    hv = hypervolume(bo.get_history().get_pareto_front()).compute(referencePoint)
-    hv2 = hypervolume(bo.get_history().get_all_perfs()).compute(referencePoint)
-    print(i, 'hypervolume =', hv, hv2)
+    hv = Hypervolume(referencePoint).compute(bo.get_history().get_pareto_front())
+    print(i, 'hypervolume =', hv)
     hv_diff = real_hv - hv
     hv_diffs.append(hv_diff)
     print(i, 'hv diff =', hv_diff)
@@ -89,13 +88,12 @@ print('hv_diffs:', hv_diffs)
 bo_r = SMBO(multi_objective_func, cs, num_objs=num_objs, max_runs=max_runs,
             time_limit_per_trial=60, sample_strategy='random', task_id='mo_random')
 print('Random', '='*30)
-# bo.run()
+# bo_r.run()
 for i in range(max_runs):
     config, trial_state, objs, trial_info = bo_r.iterate()
     print(objs, config)
-    hv = hypervolume(bo_r.get_history().get_all_perfs()).compute(referencePoint)
-    hv2 = hypervolume(bo_r.get_history().get_pareto_front()).compute(referencePoint)
-    print('hypervolume =', hv, hv2)
+    hv = Hypervolume(referencePoint).compute(bo_r.get_history().get_pareto_front())
+    print('hypervolume =', hv)
     hv_diff = real_hv - hv
     print('hv diff =', hv_diff)
 

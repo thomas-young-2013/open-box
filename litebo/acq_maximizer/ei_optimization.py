@@ -267,22 +267,22 @@ class LocalSearch(AcquisitionFunctionMaximizer):
         init_points = self._get_initial_points(
             num_points, runhistory)
 
-        configs_acq = []
+        acq_configs = []
         # Start N local search from different random start points
         for start_point in init_points:
             acq_val, configuration = self._one_iter(
                 start_point, **kwargs)
 
             configuration.origin = "Local Search"
-            configs_acq.append((acq_val, configuration))
+            acq_configs.append((acq_val, configuration))
 
         # shuffle for random tie-break
-        self.rng.shuffle(configs_acq)
+        self.rng.shuffle(acq_configs)
 
         # sort according to acq value
-        configs_acq.sort(reverse=True, key=lambda x: x[0])
+        acq_configs.sort(reverse=True, key=lambda x: x[0])
 
-        return configs_acq
+        return acq_configs
 
     def _get_initial_points(self, num_points, runhistory):
 
@@ -568,10 +568,11 @@ class ScipyOptimizer(AcquisitionFunctionMaximizer):
             self,
             acquisition_function: AbstractAcquisitionFunction,
             config_space: ConfigurationSpace,
+            rand_prob: float = 0.0,
             rng: Union[bool, np.random.RandomState] = None,
     ):
         super().__init__(acquisition_function, config_space, rng)
-        self.random_chooser = ChooserProb(prob=0.0, rng=rng)
+        self.random_chooser = ChooserProb(prob=rand_prob, rng=rng)
 
         types, bounds = get_types(self.config_space)
         assert all(types == 0)
@@ -592,19 +593,29 @@ class ScipyOptimizer(AcquisitionFunctionMaximizer):
             return -self.acquisition_function(x, convert=False)[0]  # shape=(1,)
 
         if initial_config is None:
-            init_point = self.config_space.sample_configuration()
-        else:
-            init_point = initial_config.get_array()
+            initial_config = self.config_space.sample_configuration()
+        init_point = initial_config.get_array()
 
-        results = []
+        acq_configs = []
         result = scipy.optimize.minimize(fun=negative_acquisition,
                                          x0=init_point,
                                          bounds=self.bounds,
                                          **self.scipy_config)
-        if result.success:
-            results.append((result.fun, Configuration(self.config_space, vector=result.x)))
+        # if result.success:
+        #     acq_configs.append((result.fun, Configuration(self.config_space, vector=result.x)))
+        if not result.success:
+            self.logger.debug('Scipy optimizer failed. Info:\n%s' % (result,))
+        try:
+            config = Configuration(self.config_space, vector=result.x)
+            acq = self.acquisition_function(result.x, convert=False)
+            acq_configs.append((acq, config))
+        except Exception as e:
+            pass
 
-        challengers = ChallengerList([config for _, config in results],
+        if not acq_configs:  # empty
+            self.logger.warning('Scipy optimizer failed. Return empty config list. Info:\n%s' % (result,))
+
+        challengers = ChallengerList([config for _, config in acq_configs],
                                      self.config_space,
                                      self.random_chooser)
         self.random_chooser.next_smbo_iteration()
@@ -621,7 +632,7 @@ class ScipyOptimizer(AcquisitionFunctionMaximizer):
 
 class RandomScipyOptimizer(AcquisitionFunctionMaximizer):
     """
-    Use scipt.optimize with start points chosen by random search. Only on continuous dims.
+    Use scipy.optimize with start points chosen by random search. Only on continuous dims.
 
     Parameters
     ----------
@@ -636,11 +647,12 @@ class RandomScipyOptimizer(AcquisitionFunctionMaximizer):
             self,
             acquisition_function: AbstractAcquisitionFunction,
             config_space: ConfigurationSpace,
+            rand_prob: float = 0.0,
             rng: Union[bool, np.random.RandomState] = None,
     ):
         super().__init__(acquisition_function, config_space, rng)
 
-        self.random_chooser = ChooserProb(prob=0.2, rng=rng)
+        self.random_chooser = ChooserProb(prob=rand_prob, rng=rng)
 
         self.random_search = InterleavedLocalAndRandomSearch(
             acquisition_function=acquisition_function,
@@ -660,16 +672,190 @@ class RandomScipyOptimizer(AcquisitionFunctionMaximizer):
             num_trials=10,
             **kwargs
     ) -> List[Tuple[float, Configuration]]:
-        results = []
-        initial_configs = self.random_search.maximize(runhistory, num_points, **kwargs).challengers[:num_trials]
-        for config in initial_configs:
-            result = self.scipy_optimizer.maximize(runhistory, initial_config=config).challengers
-            results.extend(result)
+        acq_configs = []
 
-        challengers = ChallengerList(results,
+        initial_configs = self.random_search.maximize(runhistory, num_points, **kwargs).challengers
+        initial_acqs = self.acquisition_function(initial_configs)
+        acq_configs.extend(zip(initial_acqs, initial_configs))
+
+        success_count = 0
+        for config in initial_configs[:num_trials]:
+            scipy_configs = self.scipy_optimizer.maximize(runhistory, initial_config=config).challengers
+            if not scipy_configs:   # empty
+                continue
+            scipy_acqs = self.acquisition_function(scipy_configs)
+            acq_configs.extend(zip(scipy_acqs, scipy_configs))
+            success_count += 1
+        if success_count == 0:
+            self.logger.warning('None of Scipy optimizations are successful in RandomScipyOptimizer.')
+
+        # shuffle for random tie-break
+        self.rng.shuffle(acq_configs)
+
+        # sort according to acq value
+        acq_configs.sort(reverse=True, key=lambda x: x[0])
+
+        configs = [_[1] for _ in acq_configs]
+
+        challengers = ChallengerList(configs,
                                      self.config_space,
                                      self.random_chooser)
         self.random_chooser.next_smbo_iteration()
+        return challengers
+
+    def _maximize(
+            self,
+            runhistory: HistoryContainer,
+            num_points: int,
+            **kwargs
+    ) -> Iterable[Tuple[float, Configuration]]:
+        raise NotImplementedError()
+
+
+class StagedBatchScipyOptimizer(AcquisitionFunctionMaximizer):
+    """ todo constraints
+    Use batch scipy.optimize with start points chosen by specific method. Only on continuous dims.
+
+    Parameters
+    ----------
+    acquisition_function : ~litebo.acquisition_function.acquisition.AbstractAcquisitionFunction
+
+    config_space : ~litebo.config_space.ConfigurationSpace
+
+    num_random : Number of random chosen points
+
+    num_restarts : The number of starting points for multistart acquisition
+            function optimization
+
+    raw_samples : The number of samples for initialization
+
+    batch_limit : Number of points in a batch optimized jointly by scipy minimizer
+
+    scipy_maxiter : Maximum number of scipy minimizer iterations to perform
+
+    rand_prob : Probability of choosing random config
+
+    rng : np.random.RandomState or int, optional
+    """
+
+    def __init__(
+            self,
+            acquisition_function: AbstractAcquisitionFunction,
+            config_space: ConfigurationSpace,
+            num_random: int = 1000,
+            num_restarts: int = 20,
+            raw_samples: int = 1024,
+            batch_limit: int = 5,
+            scipy_maxiter: int = 200,
+            rand_prob: float = 0.0,
+            rng: Union[bool, np.random.RandomState] = None,
+    ):
+        super().__init__(acquisition_function, config_space, rng)
+        self.num_random = num_random
+        self.num_restarts = num_restarts
+        self.raw_samples = raw_samples
+        self.batch_limit = batch_limit
+        self.scipy_max_iter = scipy_maxiter
+        self.random_chooser = ChooserProb(prob=rand_prob, rng=rng)
+        self.minimizer = scipy.optimize.minimize
+        self.method = "L-BFGS-B"
+        self.dim = len(self.config_space.get_hyperparameters())
+        self.bound = (0.0, 1.0)  # todo only on continuous dims (int, float) now
+
+    def gen_initial_points(self, num_restarts, raw_samples):
+        # todo other strategy
+        random_points = self.rng.uniform(self.bound[0], self.bound[1], size=(raw_samples, self.dim))
+        acq_random = self.acquisition_function(random_points, convert=False).reshape(-1)
+        idx = np.argsort(acq_random)[::-1][:num_restarts]
+        return random_points[idx]
+
+    def gen_batch_scipy_points(self, initial_points: np.ndarray):
+        #count = 0  # todo remove
+        def f(X_flattened):
+            # nonlocal count
+            # count += 1
+            X = X_flattened.reshape(shapeX)
+            joint_acq = -self.acquisition_function(X, convert=False).sum().item()
+            return joint_acq
+
+        shapeX = initial_points.shape
+        x0 = initial_points.reshape(-1)
+        bounds = [self.bound] * x0.shape[0]
+
+        result = self.minimizer(
+            f,
+            x0=x0,
+            method=self.method,
+            bounds=bounds,
+            options=dict(maxiter=self.scipy_max_iter),
+        )
+        #print('count=', count)  # todo remove
+
+        # return result.x even failed. may because 'STOP: TOTAL NO. of ITERATIONS REACHED LIMIT'
+        # if not result.success:
+        #     self.logger.warning('Scipy minimizer %s failed in this round: %s.' % (self.method, result))
+        #     return None
+
+        #print(result.x.reshape(shapeX))    # todo remove
+        return result.x.reshape(shapeX)
+
+    def maximize(
+            self,
+            runhistory: HistoryContainer,
+            num_points: int,  # todo useless
+            **kwargs
+    ) -> List[Tuple[float, Configuration]]:
+
+        # print('start optimize')   # todo remove
+        # import time
+        # t0 = time.time()
+        acq_configs = []
+
+        # random points
+        random_points = self.rng.uniform(self.bound[0], self.bound[1], size=(self.num_random, self.dim))
+        acq_random = self.acquisition_function(random_points, convert=False)
+        for i in range(random_points.shape[0]):
+            # convert array to Configuration
+            config = Configuration(self.config_space, vector=random_points[i])
+            config.origin = 'Random Search'
+            acq_configs.append((acq_random[i], config))
+
+        # scipy points
+        initial_points = self.gen_initial_points(num_restarts=self.num_restarts, raw_samples=self.raw_samples)
+
+        for start_idx in range(0, self.num_restarts, self.batch_limit):
+            end_idx = min(start_idx + self.batch_limit, self.num_restarts)
+            # optimize using random restart optimization
+            scipy_points = self.gen_batch_scipy_points(initial_points[start_idx:end_idx])
+            if scipy_points is None:
+                continue
+            acq_scipy = self.acquisition_function(scipy_points, convert=False)
+            for i in range(scipy_points.shape[0]):
+                # convert array to Configuration
+                config = Configuration(self.config_space, vector=scipy_points[i])
+                config.origin = 'Batch Scipy'
+                acq_configs.append((acq_scipy[i], config))
+
+        # shuffle for random tie-break
+        self.rng.shuffle(acq_configs)
+
+        # sort according to acq value
+        acq_configs.sort(reverse=True, key=lambda x: x[0])
+
+        configs = [_[1] for _ in acq_configs]
+
+        challengers = ChallengerList(configs,
+                                     self.config_space,
+                                     self.random_chooser)
+        self.random_chooser.next_smbo_iteration()
+
+        # t1 = time.time()  # todo remove
+        # print('==time total=%.2f' % (t1-t0,))
+        # for x1 in np.linspace(0, 1, 20):
+        #     optimal_point = np.array([x1.item()] + [0.5] * (self.dim-1))
+        #     print('optimal_point acq=', self.acquisition_function(optimal_point, convert=False))
+        # print('best point acq=', acq_configs[0])
+        # time.sleep(2)
         return challengers
 
     def _maximize(
@@ -739,15 +925,16 @@ class MESMO_Optimizer(AcquisitionFunctionMaximizer):
         d = len(self.config_space.get_hyperparameters())
         bound = (0.0, 1.0)  # todo only on continuous dims (int, float) now
         bounds = [bound] * d
-        configs_acq = []
+        acq_configs = []
 
         # MC
         x_tries = self.rng.uniform(bound[0], bound[1], size=(self.num_mc, d))
         acq_tries = self.acquisition_function(x_tries, convert=False)
         for i in range(x_tries.shape[0]):
-            # convert array to Configuration todo
+            # convert array to Configuration
             config = Configuration(self.config_space, vector=x_tries[i])
-            configs_acq.append((acq_tries[i], config))
+            config.origin = 'Random Search'
+            acq_configs.append((acq_tries[i], config))
 
         # L-BFGS-B
         x_seed = self.rng.uniform(low=bound[0], high=bound[1], size=(self.num_opt, d))
@@ -756,18 +943,19 @@ class MESMO_Optimizer(AcquisitionFunctionMaximizer):
             result = self.minimizer(inverse_acquisition, x0=x0, method='L-BFGS-B', bounds=bounds)
             if not result.success:
                 continue
-            # convert array to Configuration todo
+            # convert array to Configuration
             config = Configuration(self.config_space, vector=result.x)
+            config.origin = 'Scipy'
             acq_val = self.acquisition_function(result.x, convert=False)  # [0]
-            configs_acq.append((acq_val, config))
+            acq_configs.append((acq_val, config))
 
         # shuffle for random tie-break
-        self.rng.shuffle(configs_acq)
+        self.rng.shuffle(acq_configs)
 
         # sort according to acq value
-        configs_acq.sort(reverse=True, key=lambda x: x[0])
+        acq_configs.sort(reverse=True, key=lambda x: x[0])
 
-        configs = [_[1] for _ in configs_acq]
+        configs = [_[1] for _ in acq_configs]
 
         challengers = ChallengerList(configs,
                                      self.config_space,
@@ -835,19 +1023,19 @@ class USeMO_Optimizer(AcquisitionFunctionMaximizer):
         assert len(acq_vals.shape) == 1 and len(candidates.shape) == 2 \
                and acq_vals.shape[0] == candidates.shape[0]
 
-        configs_acq = []
+        acq_configs = []
         for i in range(acq_vals.shape[0]):
             # convert array to Configuration todo
             config = Configuration(self.config_space, vector=candidates[i])
-            configs_acq.append((acq_vals[i], config))
+            acq_configs.append((acq_vals[i], config))
 
         # shuffle for random tie-break
-        self.rng.shuffle(configs_acq)
+        self.rng.shuffle(acq_configs)
 
         # sort according to acq value
-        configs_acq.sort(reverse=True, key=lambda x: x[0])
+        acq_configs.sort(reverse=True, key=lambda x: x[0])
 
-        configs = [_[1] for _ in configs_acq]
+        configs = [_[1] for _ in acq_configs]
 
         challengers = ChallengerList(configs,
                                      self.config_space,

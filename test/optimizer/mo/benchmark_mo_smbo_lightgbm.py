@@ -1,7 +1,7 @@
 """
 example cmdline:
 
-python test/optimizer/benchmark_mo_smbo_lightgbm.py --datasets spambase --mth mesmo --sample_num 1 --n 200 --rep 1 --start_id 0
+python test/optimizer/mo/benchmark_mo_smbo_lightgbm.py --datasets spambase --mth mesmo --sample_num 1 --n 200 --rep 1 --start_id 0
 
 """
 import os
@@ -12,13 +12,13 @@ from functools import partial
 import numpy as np
 import argparse
 import pickle as pkl
-from pygmo import hypervolume
 
 sys.path.insert(0, os.getcwd())
 from litebo.optimizer.generic_smbo import SMBO
 from litebo.utils.config_space import Configuration
-from test_utils import timeit
-from test_utils import check_datasets, load_data
+from test.test_utils import timeit, seeds
+from test.test_utils import check_datasets, load_data
+from litebo.utils.multi_objective import Hypervolume
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--n', type=int, default=200)
@@ -41,9 +41,6 @@ rep = args.rep
 start_id = args.start_id
 mth = args.mth
 
-seeds = [4774, 3711, 7238, 3203, 4254, 2137, 1188, 4356,  517, 5887,
-         9082, 4702, 4801, 8242, 7391, 1893, 4400, 1192, 5553, 9039]
-
 # Evaluate mth
 # X_init = np.array([
 # ])  # todo use latin hypercube?
@@ -51,7 +48,7 @@ seeds = [4774, 3711, 7238, 3203, 4254, 2137, 1188, 4356,  517, 5887,
 
 dataset_str = args.datasets
 dataset_list = dataset_str.split(',')
-data_dir = './test/optimizer/data/'
+data_dir = './test/data/'
 check_datasets(dataset_list, data_dir)
 
 dataset = dataset_list[0]   # todo one dataset only
@@ -92,9 +89,8 @@ with timeit('%s %s all' % (mth, problem_str)):
                 for i in range(max_runs):
                     config, trial_state, objs, trial_info = bo.iterate()
                     print(seed, i, objs, config)
-                    hv = hypervolume(bo.get_history().get_pareto_front()).compute(referencePoint)
-                    hv2 = hypervolume(bo.get_history().get_all_perfs()).compute(referencePoint)
-                    print(seed, i, 'hypervolume =', hv, hv2)
+                    hv = Hypervolume(referencePoint).compute(bo.get_history().get_pareto_front())
+                    print(seed, i, 'hypervolume =', hv)
                     hv_diff = real_hv - hv
                     hv_diffs.append(hv_diff)
                     print(seed, i, 'hv diff =', hv_diff)

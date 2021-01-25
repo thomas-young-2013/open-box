@@ -54,7 +54,7 @@ class AbstractAcquisitionFunction(object, metaclass=abc.ABCMeta):
         for key in kwargs:
             setattr(self, key, kwargs[key])
 
-    def __call__(self, configurations: List[Configuration], convert=True, **kwargs):
+    def __call__(self, configurations: Union[List[Configuration], np.ndarray], convert=True, **kwargs):
         """Computes the acquisition value for a given X
 
         Parameters

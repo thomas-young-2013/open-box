@@ -63,6 +63,9 @@ def build_optimizer(func_str='local_random', acq_func=None, config_space=None, r
     elif func_str == 'batchmc':
         from litebo.acq_maximizer.ei_optimization import batchMCOptimizer
         optimizer = batchMCOptimizer
+    elif func_str == 'staged_batch_scipy':
+        from litebo.acq_maximizer.ei_optimization import StagedBatchScipyOptimizer
+        optimizer = StagedBatchScipyOptimizer
     else:
         raise ValueError('Invalid string %s for acq_maximizer!' % func_str)
 

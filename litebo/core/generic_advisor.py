@@ -95,7 +95,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
         assert isinstance(self.num_objs, int) and self.num_objs >= 1
         assert isinstance(self.num_constraints, int) and self.num_constraints >= 0
 
-        # Single objective
+        # single objective
         if self.num_objs == 1:
             if self.num_constraints == 0:
                 if self.acq_type is None:
@@ -103,7 +103,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
                 assert self.acq_type in ['ei', 'eips', 'logei', 'pi', 'lcb', 'lpei', ]
                 if self.surrogate_type is None:
                     self.surrogate_type = 'prf'
-            else:
+            else:   # with constraints
                 if self.acq_type is None:
                     self.acq_type = 'eic'
                 assert self.acq_type in ['eic', ]
@@ -112,7 +112,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
                 if self.constraint_surrogate_type is None:
                     self.constraint_surrogate_type = 'gp'
 
-        # multi-objective with constraints
+        # multi-objective
         else:
             if self.num_constraints == 0:
                 if self.acq_type is None:
@@ -127,7 +127,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
                     self.surrogate_type = 'gp_rbf'
                     self.logger.warning('Surrogate model has changed to Gaussian Process with RBF kernel '
                                         'since MESMO is used. Surrogate_type should be set to \'gp_rbf\'.')
-            else:
+            else:   # with constraints
                 if self.acq_type is None:
                     self.acq_type = 'mesmoc2'
                 assert self.acq_type in ['mesmoc', 'mesmoc2']

@@ -1,7 +1,7 @@
 """
 example cmdline:
 
-python test/optimizer/benchmark_mo_gpflowopt.py --n 200 --rep 1 --start_id 0
+python test/optimizer/mo/benchmark_mo_gpflowopt_bc.py --n 110 --rep 1 --start_id 0
 
 """
 import os
@@ -15,7 +15,8 @@ import gpflow
 import gpflowopt
 
 sys.path.insert(0, os.getcwd())
-from test_utils import timeit
+from test.test_utils import timeit, seeds
+from litebo.utils.multi_objective import Hypervolume
 
 # set problem
 from mo_benchmark_function import get_setup_bc, branin, Currin
@@ -48,10 +49,6 @@ rep = args.rep
 start_id = args.start_id
 mth = 'gpflowopt-hvpoi'
 
-seeds = [4774, 3711, 7238, 3203, 4254, 2137, 1188, 4356,  517, 5887,
-         9082, 4702, 4801, 8242, 7391, 1893, 4400, 1192, 5553, 9039]
-
-
 # Setup input domain
 domain = gpflowopt.domain.ContinuousParameter('x0', 0, 1) + \
          gpflowopt.domain.ContinuousParameter('x1', 0, 1)
@@ -73,7 +70,7 @@ X_init = np.array([    # generate from LatinHyperCube(10)
     [ 1.11111111e-01,  8.88888889e-01],
 ])
 
-Y_init = np.vstack([multi_objective_func(X_init[i, :]) for i in range(init_num)])
+Y_init = np.vstack([multi_objective_func(X_init[i, :]) for i in range(X_init.shape[0])])
 
 with timeit('%s all' % (mth,)):
     for run_i in range(start_id, start_id + rep):
@@ -96,15 +93,17 @@ with timeit('%s all' % (mth,)):
             optimizer = gpflowopt.BayesianOptimizer(domain, hvpoi, optimizer=acquisition_opt, verbose=True)
             result = optimizer.optimize(multi_objective_func, n_iter=max_runs-init_num)
 
-            pf = optimizer.acquisition.pareto.front.value
+            #pf = optimizer.acquisition.pareto.front.value
             #pf, dom = gpflowopt.pareto.non_dominated_sort(hvpoi.data[1])
             #print(hvpoi.data[1])
+            pf = gpflowopt.pareto.Pareto(optimizer.acquisition.data[1]).front.value
 
             # Save result
             data = optimizer.acquisition.data   # data=(X, Y)
             hv_diffs = []
             for i in range(data[1].shape[0]):
-                hv = gpflowopt.pareto.Pareto(data[1][:i+1]).hypervolume(referencePoint)
+                #hv = gpflowopt.pareto.Pareto(data[1][:i+1]).hypervolume(referencePoint) # ref_point problem
+                hv = Hypervolume(referencePoint).compute(data[1][:i+1])
                 hv_diff = real_hv - hv
                 hv_diffs.append(hv_diff)
             print(seed, mth, 'pareto num:', pf.shape[0])
@@ -142,6 +141,7 @@ if rep == 1:
     print('X_init:', X_init)
     print('Y_init:', Y_init)
 
-    hv = optimizer.acquisition.pareto.hypervolume(np.array(referencePoint))
+    #hv = optimizer.acquisition.pareto.hypervolume(np.array(referencePoint))
+    hv = Hypervolume(referencePoint).compute(optimizer.acquisition.data[1])
     hv_diff = real_hv - hv
     print(hv, hv_diff)

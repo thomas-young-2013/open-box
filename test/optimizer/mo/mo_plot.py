@@ -1,7 +1,7 @@
 """
 example cmdline:
 
-python test/optimizer/mo_plot.py --mths mesmo-1,usemo-1,gpflowopt-hvpoi --problem bc --n 110
+python test/optimizer/mo/mo_plot.py --mths mesmo-1,usemo-1,gpflowopt-hvpoi --problem bc --n 110
 
 """
 import os
@@ -36,6 +36,10 @@ def get_mth_legend(mth):
 
 # set problem
 problem_str = args.problem
+title = problem_str
+log_phv = True
+log_func = np.log10
+std_scale = 1.0
 if problem_str == 'bc':
     title = 'Branin-Currin'
     log_phv = True
@@ -50,7 +54,8 @@ elif problem_str.startswith('lightgbm'):
     plt.xlim(0, 150)
     std_scale = 0.4
 else:
-    raise ValueError('Unknown problem:', problem_str)
+    print('Unknown problem: %s. Use default plot settings.' % (problem_str,))
+print(f'title={title}, log_phv={log_phv}, log_func={log_func}, std_scale={std_scale}.')
 
 plot_list = []
 legend_list = []
@@ -58,7 +63,7 @@ for mth in mths:
     result = []
     dir_path = 'logs/mo_benchmark_%s_%d/%s/' % (problem_str, max_runs, mth)
     for file in os.listdir(dir_path):
-        if file.startswith('benchmark_%s_' % (mth)) and file.endswith('.pkl'):
+        if file.startswith('benchmark_%s_' % (mth,)) and file.endswith('.pkl'):
             with open(os.path.join(dir_path, file), 'rb') as f:
                 save_item = pkl.load(f)
                 hv_diffs, pf, data = save_item
@@ -66,10 +71,10 @@ for mth in mths:
                 print('Error len: ', file, len(hv_diffs))
                 continue
             result.append(hv_diffs)
-            print(hv_diffs[-1])
-    print('result rep=', len(result))
+            print('last hv_diff =', hv_diffs[-1])
+    print('result rep =', len(result), mth)
     if log_phv:
-        result = np.log(result)  # log
+        result = log_func(result)  # log
     mean_res = np.mean(result, axis=0)
     std_res = np.std(result, axis=0)
 
@@ -80,7 +85,7 @@ for mth in mths:
     plt.fill_between(x, mean_res - std_res*std_scale, mean_res + std_res*std_scale, alpha=0.2)
     plot_list.append(p)
     legend_list.append(get_mth_legend(mth))
-    print(mean_res[-1], std_res[-1])
+    print('last mean,std:', mean_res[-1], std_res[-1])
 
 plt.legend(plot_list, legend_list, loc='upper right', fontsize=12)
 plt.title(title, fontsize=18)

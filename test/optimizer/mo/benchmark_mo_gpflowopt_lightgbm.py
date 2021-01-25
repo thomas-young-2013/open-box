@@ -1,7 +1,7 @@
 """
 example cmdline:
 
-python test/optimizer/benchmark_mo_gpflowopt_lightgbm.py --datasets spambase --n 200 --rep 1 --start_id 0
+python test/optimizer/mo/benchmark_mo_gpflowopt_lightgbm.py --datasets spambase --n 200 --rep 1 --start_id 0
 
 """
 import os
@@ -17,11 +17,12 @@ import gpflow
 import gpflowopt
 
 sys.path.insert(0, os.getcwd())
-from test_utils import timeit
-from test_utils import check_datasets, load_data
+from test.test_utils import timeit, seeds
+from test.test_utils import check_datasets, load_data
 from mo_benchmark_function import LightGBM
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import balanced_accuracy_score, f1_score, accuracy_score
+from litebo.utils.multi_objective import Hypervolume
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--n', type=int, default=200)
@@ -35,12 +36,9 @@ rep = args.rep
 start_id = args.start_id
 mth = 'gpflowopt-hvpoi'
 
-seeds = [4774, 3711, 7238, 3203, 4254, 2137, 1188, 4356, 517, 5887,
-         9082, 4702, 4801, 8242, 7391, 1893, 4400, 1192, 5553, 9039]
-
 dataset_str = args.datasets
 dataset_list = dataset_str.split(',')
-data_dir = './test/optimizer/data/'
+data_dir = './test/data/'
 check_datasets(dataset_list, data_dir)
 
 dataset = dataset_list[0]  # todo one dataset only
@@ -146,7 +144,8 @@ with timeit('%s all' % (mth,)):
             data = optimizer.acquisition.data  # data=(X, Y)
             hv_diffs = []
             for i in range(data[1].shape[0]):
-                hv = gpflowopt.pareto.Pareto(data[1][:i + 1]).hypervolume(referencePoint)
+                # hv = gpflowopt.pareto.Pareto(data[1][:i+1]).hypervolume(referencePoint)    # ref_point problem
+                hv = Hypervolume(referencePoint).compute(data[1][:i + 1])
                 hv_diff = real_hv - hv
                 hv_diffs.append(hv_diff)
             print(seed, mth, 'pareto num:', pf.shape[0])
