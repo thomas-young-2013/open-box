@@ -6,9 +6,9 @@ from typing import List
 
 from litebo.utils.util_funcs import get_types
 from litebo.core.base import build_surrogate
-from litebo.utils.constants import VERY_SMALL_NUMBER, MAXINT
-from litebo.config_space import ConfigurationSpace, Configuration
-from litebo.config_space.util import convert_configurations_to_array
+from litebo.utils.constants import VERY_SMALL_NUMBER
+from litebo.utils.config_space import ConfigurationSpace
+from litebo.utils.config_space.util import convert_configurations_to_array
 from litebo.utils.normalization import zero_mean_unit_var_normalization, zero_one_normalization
 from litebo.utils.logging_utils import get_logger
 

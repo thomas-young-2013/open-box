@@ -13,6 +13,18 @@ dist
 # MACOSX
 .DS_Store
 
+# Eclipse files
+.pydevproject
+.project
+
+# Log files.
+logs/
+
+# TensorboardX files.
+runs/
+
+# Jupyter checkpoint files.
+test/.ipynb_checkpoints/
 
 # Other
 .tox
@@ -23,11 +35,3 @@ dist
 *~
 .html/
 .mypy_cache/
-
-#eclipse files
-.pydevproject
-.project
-
-logs/
-runs/
-test/.ipynb_checkpoints/

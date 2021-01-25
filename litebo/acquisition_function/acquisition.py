@@ -1,15 +1,16 @@
 # encoding=utf8
 import abc
 import logging
-from typing import List
+from typing import List, Union
 
 import numpy as np
 from scipy.stats import norm
 import math
 
-from litebo.config_space import Configuration
-from litebo.config_space.util import convert_configurations_to_array
+from litebo.utils.config_space import Configuration
+from litebo.utils.config_space.util import convert_configurations_to_array
 from litebo.surrogate.base.base_model import AbstractModel
+from litebo.surrogate.base.gp import GaussianProcess
 
 
 class AbstractAcquisitionFunction(object, metaclass=abc.ABCMeta):
@@ -24,7 +25,7 @@ class AbstractAcquisitionFunction(object, metaclass=abc.ABCMeta):
     def __str__(self):
         return type(self).__name__ + " (" + self.long_name + ")"
 
-    def __init__(self, model: AbstractModel, **kwargs):
+    def __init__(self, model: Union[AbstractModel, List[AbstractModel]], **kwargs):
         """Constructor
 
         Parameters
@@ -53,32 +54,36 @@ class AbstractAcquisitionFunction(object, metaclass=abc.ABCMeta):
         for key in kwargs:
             setattr(self, key, kwargs[key])
 
-    def __call__(self, configurations: List[Configuration]):
+    def __call__(self, configurations: Union[List[Configuration], np.ndarray], convert=True, **kwargs):
         """Computes the acquisition value for a given X
 
         Parameters
         ----------
         configurations : list
             The configurations where the acquisition function
-            should be evaluated. 
+            should be evaluated.
+        convert : bool
 
         Returns
         -------
         np.ndarray(N, 1)
             acquisition values for X
         """
-        X = convert_configurations_to_array(configurations)
+        if convert:
+            X = convert_configurations_to_array(configurations)
+        else:
+            X = configurations  # to be compatible with multi-objective acq to call single acq
         if len(X.shape) == 1:
             X = X[np.newaxis, :]
 
-        acq = self._compute(X)
+        acq = self._compute(X, **kwargs)
         if np.any(np.isnan(acq)):
             idx = np.where(np.isnan(acq))[0]
             acq[idx, :] = -np.finfo(np.float).max
         return acq
 
     @abc.abstractmethod
-    def _compute(self, X: np.ndarray):
+    def _compute(self, X: np.ndarray, **kwargs):
         """Computes the acquisition value for a given point X. This function has
         to be overwritten in a derived class.
 
@@ -99,7 +104,6 @@ class AbstractAcquisitionFunction(object, metaclass=abc.ABCMeta):
 
 
 class EI(AbstractAcquisitionFunction):
-
     r"""Computes for a given x the expected improvement as
     acquisition value.
 
@@ -109,7 +113,7 @@ class EI(AbstractAcquisitionFunction):
 
     def __init__(self,
                  model: AbstractModel,
-                 par: float=0.0,
+                 par: float = 0.0,
                  **kwargs):
         """Constructor
 
@@ -140,7 +144,7 @@ class EI(AbstractAcquisitionFunction):
 
         Returns
         -------
-        np.ndarray(N,1)
+        np.ndarray(N, 1)
             Expected Improvement of X
         """
         if len(X.shape) == 1:
@@ -178,10 +182,61 @@ class EI(AbstractAcquisitionFunction):
         return f
 
 
+class EIC(EI):
+    r"""Computes for a given x the expected constrained improvement as
+    acquisition value.
+
+    :math:`\text{EIC}(X) := \text{EI}(X)\prod_{k=1}^K\text{Pr}(c_k(x) \leq 0 | \mathcal{D}_t)`,
+    with :math:`c_k \leq 0,\ 1 \leq k \leq K` the constraints, :math:`\mathcal{D}_t` the previous observations.
+    """
+
+    def __init__(self,
+                 model: AbstractModel,
+                 constraint_models: List[GaussianProcess],
+                 par: float = 0.0,
+                 **kwargs):
+        """Constructor
+
+        Parameters
+        ----------
+        model : AbstractEPM
+            A surrogate that implements at least
+                 - predict_marginalized_over_instances(X)
+        par : float, default=0.0
+            Controls the balance between exploration and exploitation of the
+            acquisition function.
+        """
+        super(EIC, self).__init__(model, par=par)
+        self.constraint_models = constraint_models
+        self.long_name = 'Expected Constrained Improvement'
+
+    def _compute(self, X: np.ndarray, **kwargs):
+        """Computes the EIC value and its derivatives.
+
+        Parameters
+        ----------
+        X: np.ndarray(N, D), The input points where the acquisition function
+            should be evaluated. The dimensionality of X is (N, D), with N as
+            the number of points to evaluate at and D is the number of
+            dimensions of one X.
+
+        Returns
+        -------
+        np.ndarray(N, 1)
+            Expected Constrained Improvement of X
+        """
+        f = super()._compute(X)
+        for model in self.constraint_models:
+            m, v = model.predict_marginalized_over_instances(X)
+            s = np.sqrt(v)
+            f *= norm.cdf(-m / s)
+        return f
+
+
 class EIPS(EI):
     def __init__(self,
                  model: AbstractModel,
-                 par: float=0.0,
+                 par: float = 0.0,
                  **kwargs):
         r"""Computes for a given x the expected improvement as
         acquisition value.
@@ -267,7 +322,7 @@ class LogEI(AbstractAcquisitionFunction):
 
     def __init__(self,
                  model: AbstractModel,
-                 par: float=0.0,
+                 par: float = 0.0,
                  **kwargs):
         r"""Computes for a given x the logarithm expected improvement as
         acquisition value.
@@ -282,7 +337,7 @@ class LogEI(AbstractAcquisitionFunction):
             acquisition function.
         """
         super(LogEI, self).__init__(model)
-        self.long_name = 'Expected Improvement'
+        self.long_name = 'Log Expected Improvement'
         self.par = par
         self.eta = None
 
@@ -298,7 +353,7 @@ class LogEI(AbstractAcquisitionFunction):
 
         Returns
         -------
-        np.ndarray(N,1)
+        np.ndarray(N, 1)
             Expected Improvement of X
         """
         if self.eta is None:
@@ -317,7 +372,7 @@ class LogEI(AbstractAcquisitionFunction):
             f_min = self.eta - self.par
             v = (f_min - m) / std
             return (np.exp(f_min) * norm.cdf(v)) - \
-                (np.exp(0.5 * var_ + m) * norm.cdf(v - std))
+                   (np.exp(0.5 * var_ + m) * norm.cdf(v - std))
 
         if np.any(std == 0.0):
             # if std is zero, we have observed x on all instances
@@ -344,7 +399,7 @@ class LPEI(EI):
                  model: AbstractModel,
                  batch_configs=None,
                  par: float = 0.0,
-                 estimate_L:float=10.0,
+                 estimate_L: float = 10.0,
                  **kwargs):
         r"""This is EI with local penalizer, BBO_LP. Computes for a given x the expected improvement as
         acquisition value.
@@ -380,7 +435,7 @@ class LPEI(EI):
 
         Returns
         -------
-        np.ndarray(N,1)
+        np.ndarray(N, 1)
             Expected Improvement per Second of X in log space
         """
         f = super()._compute(X)  # N*1
@@ -391,7 +446,7 @@ class LPEI(EI):
             var = v[0][0]
             sigma = math.sqrt(var)
             local_penalizer = np.apply_along_axis(self._local_penalizer, 1, X, config.get_array(),
-                                                   mu, sigma, self.eta).reshape(-1, 1)
+                                                  mu, sigma, self.eta).reshape(-1, 1)
             f += local_penalizer
         return f
 
@@ -406,7 +461,7 @@ class LPEI(EI):
 class PI(AbstractAcquisitionFunction):
     def __init__(self,
                  model: AbstractModel,
-                 par: float=0.0):
+                 par: float = 0.0):
 
         """Computes the probability of improvement for a given x over the best so far value as
         acquisition value.
@@ -429,7 +484,7 @@ class PI(AbstractAcquisitionFunction):
         self.par = par
         self.eta = None
 
-    def _compute(self, X: np.ndarray):
+    def _compute(self, X: np.ndarray, **kwargs):
         """Computes the PI value.
 
         Parameters
@@ -439,7 +494,7 @@ class PI(AbstractAcquisitionFunction):
 
         Returns
         -------
-        np.ndarray(N,1)
+        np.ndarray(N, 1)
             Expected Improvement of X
         """
         if self.eta is None:
@@ -457,7 +512,7 @@ class PI(AbstractAcquisitionFunction):
 class LCB(AbstractAcquisitionFunction):
     def __init__(self,
                  model: AbstractModel,
-                 par: float=1.0):
+                 par: float = 1.0):
 
         """Computes the lower confidence bound for a given x over the best so far value as
         acquisition value.
@@ -481,7 +536,7 @@ class LCB(AbstractAcquisitionFunction):
         self.eta = None  # to be compatible with the existing update calls in SMBO
         self.num_data = None
 
-    def _compute(self, X: np.ndarray):
+    def _compute(self, X: np.ndarray, **kwargs):
         """Computes the LCB value.
 
         Parameters
@@ -491,8 +546,8 @@ class LCB(AbstractAcquisitionFunction):
 
         Returns
         -------
-        np.ndarray(N,1)
-            Expected Improvement of X
+        np.ndarray(N, 1)
+            (Negative) Lower Confidence Bound of X
         """
         if self.num_data is None:
             raise ValueError('No current number of Datapoints specified. Call update('
@@ -502,5 +557,60 @@ class LCB(AbstractAcquisitionFunction):
             X = X[:, np.newaxis]
         m, var_ = self.model.predict_marginalized_over_instances(X)
         std = np.sqrt(var_)
-        beta = 2*np.log((X.shape[1] * self.num_data**2) / self.par)
-        return -(m - np.sqrt(beta)*std)
+        beta = 2 * np.log((X.shape[1] * self.num_data ** 2) / self.par)
+        return -(m - np.sqrt(beta) * std)
+
+
+class Uncertainty(AbstractAcquisitionFunction):
+    def __init__(self,
+                 model: AbstractModel,
+                 par: float = 1.0):
+
+        """Computes half of the difference between upper and lower confidence bound (Uncertainty).
+
+        :math:`LCB(X) = \mu(\mathbf{X}) - \sqrt(\beta_t)\sigma(\mathbf{X})`
+        :math:`UCB(X) = \mu(\mathbf{X}) + \sqrt(\beta_t)\sigma(\mathbf{X})`
+        :math:`Uncertainty(X) = \sqrt(\beta_t)\sigma(\mathbf{X})`
+
+        Parameters
+        ----------
+        model : AbstractEPM
+            A surrogate that implements at least
+                 - predict_marginalized_over_instances(X)
+        par : float, default=1.0
+            Controls the balance between exploration and exploitation of the
+            acquisition function.
+        """
+        super(Uncertainty, self).__init__(model)
+        self.long_name = 'Uncertainty'
+        self.par = par
+        self.eta = None  # to be compatible with the existing update calls in SMBO
+        self.num_data = None
+
+    def _compute(self, X: np.ndarray, **kwargs):
+        """Computes the Uncertainty value.
+
+        Parameters
+        ----------
+        X: np.ndarray(N, D)
+           Points to evaluate Uncertainty. N is the number of points and D the dimension for the points
+
+        Returns
+        -------
+        tuple(np.ndarray(N, 1), np.ndarray(N, 1))
+            Uncertainty of X
+        """
+        if self.num_data is None:
+            raise ValueError('No current number of Datapoints specified. Call update('
+                             'num_data=<int>) to inform the acquisition function '
+                             'about the number of datapoints.')
+        if len(X.shape) == 1:
+            X = X[:, np.newaxis]
+        m, var_ = self.model.predict_marginalized_over_instances(X)
+        std = np.sqrt(var_)
+        beta = 2 * np.log((X.shape[1] * self.num_data ** 2) / self.par)
+        uncertainty = np.sqrt(beta) * std
+        if np.any(np.isnan(uncertainty)):
+            self.logger.warning('Uncertainty has nan-value. Set to 0.')
+            uncertainty[np.isnan(uncertainty)] = 0
+        return uncertainty

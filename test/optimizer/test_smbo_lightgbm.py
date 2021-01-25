@@ -1,7 +1,5 @@
 import os
 import sys
-import numpy as np
-import pandas as pd
 import argparse
 
 from functools import partial
@@ -16,6 +14,7 @@ from sklearn.metrics import balanced_accuracy_score
 sys.path.append(os.getcwd())
 from litebo.optimizer.smbo import SMBO
 from litebo.optimizer.parallel_smbo import pSMBO
+from test.test_utils import check_datasets, load_data
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--datasets', type=str)
@@ -26,64 +25,7 @@ dataset_str = args.datasets
 run_count = args.n
 
 dataset_list = dataset_str.split(',')
-data_dir = './test/optimizer/data/'
-
-
-def check_datasets(datasets, data_dir):
-    for _dataset in datasets:
-        try:
-            _ = load_data(_dataset, data_dir)
-        except Exception as e:
-            raise ValueError('Dataset - %s does not exist!' % _dataset)
-
-
-def load_data(dataset, data_dir):
-    data_path = os.path.join(data_dir, "%s.csv" % dataset)
-
-    # Load train data.
-    if dataset in ['higgs', 'amazon_employee', 'spectf', 'usps', 'vehicle_sensIT', 'codrna']:
-        label_col = 0
-    elif dataset in ['rmftsa_sleepdata(1)']:
-        label_col = 1
-    else:
-        label_col = -1
-
-    if dataset in ['spambase', 'messidor_features']:
-        header = None
-    else:
-        header = 'infer'
-
-    if dataset in ['winequality_white', 'winequality_red']:
-        sep = ';'
-    else:
-        sep = ','
-
-    na_values = ["n/a", "na", "--", "-", "?"]
-    keep_default_na = True
-    df = pd.read_csv(data_path, keep_default_na=keep_default_na,
-                     na_values=na_values, header=header, sep=sep)
-
-    # Drop the row with all NaNs.
-    df.dropna(how='all')
-
-    # Clean the data where the label columns have nans.
-    columns_missed = df.columns[df.isnull().any()].tolist()
-
-    label_colname = df.columns[label_col]
-
-    if label_colname in columns_missed:
-        labels = df[label_colname].values
-        row_idx = [idx for idx, val in enumerate(labels) if np.isnan(val)]
-        # Delete the row with NaN label.
-        df.drop(df.index[row_idx], inplace=True)
-
-    train_y = df[label_colname].values
-
-    # Delete the label column.
-    df.drop(label_colname, axis=1, inplace=True)
-
-    train_X = df
-    return train_X, train_y
+data_dir = './test/data/'
 
 
 def get_cs():
@@ -106,7 +48,7 @@ def eval_func(params, x, y):
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, stratify=y, random_state=1)
     model.fit(x_train, y_train)
     y_pred = model.predict(x_test)
-    return 1 - balanced_accuracy_score(y_test, y_pred)
+    return -balanced_accuracy_score(y_test, y_pred)  # minimize
 
 
 class LightGBM:

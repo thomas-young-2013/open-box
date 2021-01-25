@@ -4,8 +4,8 @@ import numpy as np
 from litebo.utils.util_funcs import get_rng
 from litebo.utils.logging_utils import get_logger
 from litebo.utils.history_container import HistoryContainer
-from litebo.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
-from litebo.config_space.util import convert_configurations_to_array
+from litebo.utils.constants import MAXINT, SUCCESS
+from litebo.utils.config_space.util import convert_configurations_to_array
 from litebo.core.base import build_acq_func, build_optimizer, build_surrogate
 
 
@@ -113,6 +113,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
     def max_min_distance(self, default_config, src_configs, num):
         min_dis = list()
         initial_configs = list()
+        initial_configs.append(default_config)
 
         for config in src_configs:
             dis = np.linalg.norm(config.get_array()-default_config.get_array())  # get_array may have NaN problems

@@ -1,29 +1,44 @@
-from litebo.acquisition_function.acquisition import *
-from litebo.acq_maximizer.ei_optimization import InterleavedLocalAndRandomSearch
+from litebo.acquisition_function import *
 from litebo.surrogate.base.rf_with_instances import RandomForestWithInstances
 from litebo.surrogate.base.build_gp import create_gp_model
 from litebo.utils.util_funcs import get_types
 from litebo.utils.constants import MAXINT
+from collections import namedtuple
+
+Observation = namedtuple('Observation', ['config', 'trial_state', 'constraints', 'objectives'])
+
+acq_dict = {
+    'ei': EI,
+    'eips': EIPS,
+    'logei': LogEI,
+    'pi': PI,
+    'lcb': LCB,
+    'lpei': LPEI,
+    'ehvi': EHVI,
+    'mesmo': MESMO,
+    'usemo': USeMO,     # todo single acq type
+    'mcei': MCEI,
+    'parego': EI,
+    'mcparego': MCParEGO,
+    'mcparegoc': MCParEGOC,
+    'mcehvi': MCEHVI,
+    'mcehvic': MCEHVIC,
+    'eic': EIC,
+    'mesmoc': MESMOC,
+    'mesmoc2': MESMOC2,
+    'mceic': MCEIC,
+}
 
 
-def build_acq_func(func_str='ei', model=None):
+def build_acq_func(func_str='ei', model=None, constraint_models=None, **kwargs):
     func_str = func_str.lower()
-    if func_str == 'ei':
-        acq_func = EI
-    elif func_str == 'eips':
-        acq_func = EIPS
-    elif func_str == 'logei':
-        acq_func = LogEI
-    elif func_str == 'pi':
-        acq_func = PI
-    elif func_str == 'lcb':
-        acq_func = LCB
-    elif func_str == 'lpei':
-        acq_func = LPEI
-    else:
+    acq_func = acq_dict.get(func_str)
+    if acq_func is None:
         raise ValueError('Invalid string %s for acquisition function!' % func_str)
-
-    return acq_func(model=model)
+    if constraint_models is None:
+        return acq_func(model=model, **kwargs)
+    else:
+        return acq_func(model=model, constraint_models=constraint_models, **kwargs)
 
 
 def build_optimizer(func_str='local_random', acq_func=None, config_space=None, rng=None):
@@ -31,7 +46,26 @@ def build_optimizer(func_str='local_random', acq_func=None, config_space=None, r
     func_str = func_str.lower()
 
     if func_str == 'local_random':
+        from litebo.acq_maximizer.ei_optimization import InterleavedLocalAndRandomSearch
         optimizer = InterleavedLocalAndRandomSearch
+    elif func_str == 'random_scipy':
+        from litebo.acq_maximizer.ei_optimization import RandomScipyOptimizer
+        optimizer = RandomScipyOptimizer
+    elif func_str == 'mesmo_optimizer':
+        from litebo.acq_maximizer.ei_optimization import MESMO_Optimizer
+        optimizer = MESMO_Optimizer
+    elif func_str == 'usemo_optimizer':
+        from litebo.acq_maximizer.ei_optimization import USeMO_Optimizer
+        optimizer = USeMO_Optimizer
+    elif func_str == 'cma_es':
+        from litebo.acq_maximizer.ei_optimization import CMAESOptimizer
+        optimizer = CMAESOptimizer
+    elif func_str == 'batchmc':
+        from litebo.acq_maximizer.ei_optimization import batchMCOptimizer
+        optimizer = batchMCOptimizer
+    elif func_str == 'staged_batch_scipy':
+        from litebo.acq_maximizer.ei_optimization import StagedBatchScipyOptimizer
+        optimizer = StagedBatchScipyOptimizer
     else:
         raise ValueError('Invalid string %s for acq_maximizer!' % func_str)
 

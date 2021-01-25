@@ -7,6 +7,7 @@ from litebo.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
 from litebo.utils.limit import time_limit, TimeoutException
 
 
+@DeprecationWarning
 class SMBO(BOBase):
     def __init__(self, objective_function: callable, config_space,
                  sample_strategy: str = 'bo',
@@ -58,7 +59,12 @@ class SMBO(BOBase):
                     raise TimeoutException(
                         'Timeout: time limit for this evaluation is %.1fs' % self.time_limit_per_trial)
                 else:
-                    perf = _result if _result is not None else MAXINT
+                    if _result is None:
+                        perf = MAXINT
+                    elif isinstance(_result, dict):
+                        perf = _result['objective_value']
+                    else:
+                        perf = _result
             except Exception as e:
                 if isinstance(e, TimeoutException):
                     trial_state = TIMEOUT

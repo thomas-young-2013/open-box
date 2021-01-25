@@ -1,8 +1,8 @@
 import copy
 import numpy as np
 
-from litebo.config_space.util import convert_configurations_to_array
-from litebo.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
+from litebo.utils.config_space.util import convert_configurations_to_array
+from litebo.utils.constants import MAXINT, SUCCESS
 from litebo.core.advisor import Advisor
 
 
@@ -112,7 +112,7 @@ class SyncBatchAdvisor(Advisor):
 
     def update_observation(self, observation):
         config, perf, trial_state = observation
-        if not isinstance(perf, float):
+        if not isinstance(perf, (int, float)):
             perf = perf[-1]
         if trial_state == SUCCESS and perf < MAXINT:
             if len(self.configurations) == 0:
