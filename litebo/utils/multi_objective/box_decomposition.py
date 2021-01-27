@@ -114,8 +114,8 @@ class NondominatedPartitioning(object):
         2-outcome case.
         """
         # Extend pareto front with the ideal and anti-ideal point
-        ideal_point = self._pareto_Y.min(axis=0, keepdims=True).values - 1
-        anti_ideal_point = self._pareto_Y.max(axis=0, keepdims=True).values + 1
+        ideal_point = self._pareto_Y.min(axis=0, keepdims=True) - 1
+        anti_ideal_point = self._pareto_Y.max(axis=0, keepdims=True) + 1
 
         aug_pareto_Y = np.concatenate([ideal_point, self._pareto_Y, anti_ideal_point], axis=0)
         # The binary parititoning algorithm uses indices the augmented pareto front.
@@ -178,7 +178,8 @@ class NondominatedPartitioning(object):
                 ):
                     # Divide the test cell over its largest dimension
                     # largest (by index length)
-                    length, longest_dim = np.max(idx_dist, axis=0)
+                    longest_dim = np.argmax(idx_dist)
+                    length = idx_dist[longest_dim]
 
                     new_length1 = int(round(length / 2.0))
                     new_length2 = length - new_length1
@@ -270,16 +271,23 @@ class NondominatedPartitioning(object):
         """
         num_cells = self.hypercells.shape[1]
         outcome_idxr = np.tile(np.arange(self.num_objs), num_cells)
+
         # this array is 2 x (num_cells *num_objs) x 2
         # the batch dim corresponds to lower/upper bound
         cell_bounds_idxr = np.stack(
             [self.hypercells.reshape(2, -1),
-             np.tile(np.expand_dims(outcome_idxr, 0), (2, 1))],
+             np.tile(outcome_idxr[None, :], (2, 1))],
             axis=-1,
-        )
-        cell_bounds_values = aug_pareto_Y[
-            np.split(cell_bounds_idxr, self.num_objs, axis=-1)
-        ].reshape(2, -1, self.num_objs)
+        ).astype(int)
+
+        def chunk(arr, chunks, axis):
+            num_to_chunk = arr.shape[axis]
+            chunk_size = np.ceil(num_to_chunk / chunks).astype(int)
+            real_chunks = np.ceil(num_to_chunk / chunk_size).astype(int)
+            return tuple(np.take(arr, indices=range(i*chunk_size, (i+1)*chunk_size), axis=axis) for i in range(real_chunks))
+
+        indexers = chunk(cell_bounds_idxr, self.num_objs, axis=-1)
+        cell_bounds_values = aug_pareto_Y[indexers].reshape(2, -1, self.num_objs)
         return cell_bounds_values
 
     def compute_hypervolume(self, ref_point: np.ndarray) -> float:
