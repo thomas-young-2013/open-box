@@ -39,6 +39,7 @@ class SMBO(BOBase):
 
         self.task_info = {'num_constraints': num_constraints, 'num_objs': num_objs}
         self.FAILED_PERF = [MAXINT] * num_objs
+        self.MIN_PERF = [MAXINT] * num_objs
         super().__init__(objective_function, config_space, task_id=task_id, output_dir=logging_dir,
                          random_state=random_state, initial_runs=initial_runs, max_runs=max_runs,
                          sample_strategy=sample_strategy, time_limit_per_trial=time_limit_per_trial,
@@ -125,8 +126,16 @@ class SMBO(BOBase):
         self.iteration_id += 1
         # Logging.
         self.logger.info('In the %d-th iteration, the objective value: %s' % (self.iteration_id, str(objs)))
-        # Visualization.
-        for idx, obj in enumerate(objs):
-            if obj < self.FAILED_PERF[idx]:
-                self.writer.add_scalar('data/objective-%d' % (idx + 1), obj, self.iteration_id)
+        # # Visualization: min_bound line of the objective
+        # for idx, obj in enumerate(objs):
+        #     if obj < self.MIN_PERF[idx]:
+        #         self.writer.add_scalar('data/objective-%d' % (idx + 1), obj, self.iteration_id)
+        #         self.MIN_PERF[idx] = obj
+        #     else:
+        #         self.writer.add_scalar('data/objective-%d' % (idx + 1), self.MIN_PERF[idx], self.iteration_id)
+        # # Visualization:  hyperparameter
+        # config_dict = config.get_dictionary()
+        # score_dict = {'objective': obj}
+        # self.writer.add_hparams(config_dict, score_dict, name="trial" + str(idx+1))
+
         return config, trial_state, objs, trial_info
