@@ -5,7 +5,8 @@ from typing import Iterable
 
 from litebo.utils.util_funcs import get_types
 from litebo.utils.logging_utils import get_logger
-from litebo.utils.history_container import HistoryContainer, MOHistoryContainer
+from litebo.utils.history_container import HistoryContainer, MOHistoryContainer, \
+    MultiStartHistoryContainer
 from litebo.utils.constants import MAXINT, SUCCESS
 from litebo.utils.samplers import SobolSampler, LatinHypercubeSampler
 from litebo.utils.multi_objective import get_chebyshev_scalarization, NondominatedPartitioning
@@ -26,6 +27,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
                  acq_type=None,
                  acq_optimizer_type='local_random',
                  ref_point=None,
+                 use_trust_region=False,
                  output_dir='logs',
                  task_id=None,
                  random_state=None):
@@ -76,7 +78,11 @@ class Advisor(object, metaclass=abc.ABCMeta):
         else:
             self.initial_configurations = self.create_initial_design(self.init_strategy)
             self.init_num = len(self.initial_configurations)
-        if self.num_objs == 1:
+
+        if use_trust_region:
+            self.history_container = MultiStartHistoryContainer(task_id, self.num_objs,
+                                                                ref_point)
+        elif self.num_objs == 1:
             self.history_container = HistoryContainer(task_id)
         else:   # multi-objectives
             self.history_container = MOHistoryContainer(task_id, ref_point)
@@ -129,15 +135,18 @@ class Advisor(object, metaclass=abc.ABCMeta):
                                         'since MESMO is used. Surrogate_type should be set to \'gp_rbf\'.')
             else:   # with constraints
                 if self.acq_type is None:
-                    self.acq_type = 'mesmoc2'
-                assert self.acq_type in ['mesmoc', 'mesmoc2']
+                    self.acq_type = 'ehvic'
+                assert self.acq_type in ['ehvic', 'mesmoc', 'mesmoc2']
                 if self.surrogate_type is None:
-                    self.surrogate_type = 'gp_rbf'
-                if self.constraint_surrogate_type is None:
-                    if self.acq_type == 'mesmoc2':
-                        self.constraint_surrogate_type = 'gp'
+                    if self.acq_type == 'mesmoc':
+                        self.surrogate_type = 'gp_rbf'
                     else:
+                        self.surrogate_type = 'gp'
+                if self.constraint_surrogate_type is None:
+                    if self.acq_type == 'mesmoc':
                         self.constraint_surrogate_type = 'gp_rbf'
+                    else:
+                        self.constraint_surrogate_type = 'gp'
                 if self.acq_type == 'mesmoc' and self.surrogate_type != 'gp_rbf':
                     self.surrogate_type = 'gp_rbf'
                     self.logger.warning('Surrogate model has changed to Gaussian Process with RBF kernel '

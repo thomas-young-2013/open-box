@@ -505,7 +505,7 @@ class BraninCurrin(BaseTestProblem):
         super().__init__(config_space, noise_std,
                          num_objs=2,
                          num_constraints=num_constraints,
-                         random_state=random_state,)
+                         random_state=random_state)
 
     def _evaluate(self, X):
         x1 = X[..., 0]
@@ -521,4 +521,303 @@ class BraninCurrin(BaseTestProblem):
         result['objs'] = [f1, f2]
         if self.constrained:
             result['constraints'] = [(px1 - 2.5)**2 + (px2 - 7.5)**2 - 50]
+        return result
+
+
+class VehicleSafety(BaseTestProblem):
+    r"""Optimize Vehicle crash-worthiness.
+
+    See [Tanabe2020]_ for details.
+
+    The reference point is 1.1 * the nadir point from
+    approximate front provided by [Tanabe2020]_.
+
+    The maximum hypervolume is computed using the approximate
+    pareto front from [Tanabe2020]_.
+    """
+
+    _max_hv = 246.81607081187002
+
+    def __init__(self, noise_std=0, random_state=None):
+        self.ref_point = [1864.72022, 11.81993945, 0.2903999384]
+
+        params = {f'x{i}': (1.0, 3.0) for i in range(1, 6)}
+        config_space = ConfigurationSpace()
+        config_space.add_hyperparameters([UniformFloatHyperparameter(e, *params[e]) for e in params])
+        super().__init__(config_space, noise_std,
+                         num_objs=3,
+                         random_state=random_state)
+
+    def _evaluate(self, X):
+        X1, X2, X3, X4, X5 = np.split(X, 5, axis=-1)
+        f1 = (
+            1640.2823
+            + 2.3573285 * X1
+            + 2.3220035 * X2
+            + 4.5688768 * X3
+            + 7.7213633 * X4
+            + 4.4559504 * X5
+        )
+        f2 = (
+            6.5856
+            + 1.15 * X1
+            - 1.0427 * X2
+            + 0.9738 * X3
+            + 0.8364 * X4
+            - 0.3695 * X1 * X4
+            + 0.0861 * X1 * X5
+            + 0.3628 * X2 * X4
+            - 0.1106 * X1 ** 2
+            - 0.3437 * X3 ** 2
+            + 0.1764 * X4 ** 2
+        )
+        f3 = (
+            -0.0551
+            + 0.0181 * X1
+            + 0.1024 * X2
+            + 0.0421 * X3
+            - 0.0073 * X1 * X2
+            + 0.024 * X2 * X3
+            - 0.0118 * X2 * X4
+            - 0.0204 * X3 * X4
+            - 0.008 * X3 * X5
+            - 0.0241 * X2 ** 2
+            + 0.0109 * X4 ** 2
+        )
+        f_X = np.hstack([f1, f2, f3])
+
+        result = dict()
+        result['objs'] = f_X
+        return result
+
+
+class ZDT(BaseTestProblem):
+    r"""Base class for ZDT problems.
+
+    See [Zitzler2000]_ for more details on ZDT.
+    """
+
+    def __init__(self, dim: int, num_constraints=0, noise_std=0, random_state=None):
+        self.dim = dim
+        self.ref_point = [11.0, 11.0]
+        params = {f'x{i}': (0, 1) for i in range(1, dim+1)}
+        config_space = ConfigurationSpace()
+        config_space.add_hyperparameters([UniformFloatHyperparameter(e, *params[e]) for e in params])
+        super().__init__(config_space, noise_std,
+                         num_objs=2, num_constraints=num_constraints,
+                         random_state=random_state)
+
+    @staticmethod
+    def _g(X: np.ndarray) -> np.ndarray:
+        return 1 + 9 * X[..., 1:].mean(axis=-1)
+
+
+class ZDT1(ZDT):
+    r"""ZDT1 test problem.
+
+    d-dimensional problem evaluated on `[0, 1]^d`:
+
+        f_0(x) = x_0
+        f_1(x) = g(x) * (1 - sqrt(x_0 / g(x))
+        g(x) = 1 + 9 / (d - 1) * \sum_{i=1}^{d-1} x_i
+
+    The reference point comes from [Yang2019a]_.
+
+    The pareto front is convex.
+    """
+
+    _max_hv = 120 + 2 / 3
+
+    def _evaluate(self, X):
+        f_0 = X[..., 0]
+        g = self._g(X)
+        f_1 = g * (1 - np.sqrt(f_0 / g))
+
+        result = dict()
+        result['objs'] = np.stack([f_0, f_1], axis=-1)
+        return result
+
+    def generate_pareto_front(self, n: int):
+        f_0 = np.linspace(0, 1, n)
+        f_1 = 1 - np.sqrt(f_0)
+        f_X = np.stack([f_0, f_1], axis=-1)
+        return f_X
+
+
+class ZDT2(ZDT):
+    r"""ZDT2 test problem.
+
+    d-dimensional problem evaluated on `[0, 1]^d`:
+
+        f_0(x) = x_0
+        f_1(x) = g(x) * (1 - (x_0 / g(x))^2)
+        g(x) = 1 + 9 / (d - 1) * \sum_{i=1}^{d-1} x_i
+
+    The reference point comes from [Yang2019a]_.
+
+    The pareto front is concave.
+    """
+
+    _max_hv = 120 + 1 / 3
+
+    def _evaluate(self, X):
+        f_0 = X[..., 0]
+        g = self._g(X)
+        f_1 = g * (1 - (f_0 / g)**2)
+
+        result = dict()
+        result['objs'] = np.stack([f_0, f_1], axis=-1)
+        return result
+
+    def generate_pareto_front(self, n: int):
+        f_0 = np.linspace( 0, 1, n)
+        f_1 = 1 - f_0**2
+        f_X = np.stack([f_0, f_1], axis=-1)
+        return f_X
+
+
+class ZDT3(ZDT):
+    r"""ZDT3 test problem.
+
+    d-dimensional problem evaluated on `[0, 1]^d`:
+
+        f_0(x) = x_0
+        f_1(x) = 1 - sqrt(x_0 / g(x)) - x_0 / g * sin(10 * pi * x_0)
+        g(x) = 1 + 9 / (d - 1) * \sum_{i=1}^{d-1} x_i
+
+    The reference point comes from [Yang2019a]_.
+
+    The pareto front consists of several discontinuous convex parts.
+    """
+
+    _max_hv = 128.77811613069076060
+    _parts = [
+        # this interval includes both end points
+        [0, 0.0830015349],
+        # this interval includes only the right end points
+        [0.1822287280, 0.2577623634],
+        [0.4093136748, 0.4538821041],
+        [0.6183967944, 0.6525117038],
+        [0.8233317983, 0.8518328654],
+    ]
+    # nugget to make sure linspace returns elements within the specified range
+    _eps = 1e-6
+
+    def _evaluate(self, X):
+        f_0 = X[..., 0]
+        g = self._g(X)
+        f_1 = 1 - np.sqrt(f_0 / g) - f_0 / g * np.sin(10 * np.pi * f_0)
+
+        result = dict()
+        result['objs'] = np.stack([f_0, f_1], axis=-1)
+        return result
+
+    def generate_pareto_front(self, n: int):
+        n_parts = len(self._parts)
+        n_per_part = np.full(n_parts, n // n_parts)
+        left_over = n % n_parts
+        n_per_part[:left_over] += 1
+        f_0s = []
+        for i, p in enumerate(self._parts):
+            left, right = p
+            f_0s.append(
+                np.linspace(left + self._eps, right - self._eps, n_per_part[i])
+            )
+        f_0 = np.vstask(f_0s)
+        f_1 = 1 - np.sqrt(f_0) - f_0 * np.sin(10 * np.pi * f_0)
+        f_X = np.stack([f_0, f_1], axis=-1)
+        return f_X
+
+
+class BNH(BaseTestProblem):
+    r"""The constrained BNH problem.
+
+    See [GarridoMerchan2020]_ for more details on this problem. Note that this is a
+    minimization problem.
+    """
+
+    def __init__(self, noise_std=0, random_state=None):
+        self.ref_point = [150, 60]
+
+        params = {'x1': (0.0, 5.0),
+                  'x2': (0.0, 3.0)}
+        config_space = ConfigurationSpace()
+        config_space.add_hyperparameters([UniformFloatHyperparameter(e, *params[e]) for e in params])
+        super().__init__(config_space, noise_std,
+                         num_objs=2, num_constraints=2,
+                         random_state=random_state)
+
+    def _evaluate(self, X):
+        result = dict()
+        result['objs'] = np.stack(
+            [4.0 * (X ** 2).sum(axis=-1), ((X - 5.0) ** 2).sum(axis=-1)], axis=-1
+        )
+
+        c1 = (X[..., 0] - 5.0) ** 2 - X[..., 1] ** 2 - 25.0
+        c2 = 7.7 - (X[..., 0] - 8.0) ** 2 - (X[..., 1] + 3.0) ** 2
+        result['constraints'] = np.stack([c1, c2], axis=-1)
+
+        return result
+
+
+class SRN(BaseTestProblem):
+    r"""The constrained SRN problem.
+
+    See [GarridoMerchan2020]_ for more details on this problem. Note that this is a
+    minimization problem.
+    """
+
+    def __init__(self, noise_std=0, random_state=None):
+        self.ref_point = [250, 0]
+
+        params = {'x1': (-20.0, 20.0),
+                  'x2': (-20.0, 20.0)}
+        config_space = ConfigurationSpace()
+        config_space.add_hyperparameters([UniformFloatHyperparameter(e, *params[e]) for e in params])
+        super().__init__(config_space, noise_std,
+                         num_objs=2,
+                         num_constraints=2,
+                         random_state=random_state)
+
+    def _evaluate(self, X):
+        result = dict()
+        obj1 = 2.0 + ((X - 2.0) ** 2).sum(axis=-1)
+        obj2 = 9.0 * X[..., 0] - (X[..., 1] - 1.0) ** 2
+        result['objs'] = np.stack([obj1, obj2], axis=-1)
+
+        c1 = ((X ** 2) ** 2).sum(axis=-1) - 225.0
+        c2 = X[..., 0] - 3 * X[..., 1] + 10
+        result['constraints'] = np.stack([c1, c2], axis=-1)
+
+        return result
+
+
+class CONSTR(BaseTestProblem):
+    r"""The constrained CONSTR problem.
+
+    See [GarridoMerchan2020]_ for more details on this problem. Note that this is a
+    minimization problem.
+    """
+
+    def __init__(self, noise_std=0, random_state=None):
+        self.ref_point = [10.0, 10.0]
+
+        params = {'x1': (0.1, 10.0),
+                  'x2': (0.0, 5.0)}
+        config_space = ConfigurationSpace()
+        config_space.add_hyperparameters([UniformFloatHyperparameter(e, *params[e]) for e in params])
+        super().__init__(config_space, noise_std,
+                         num_objs=2, num_constraints=2,
+                         random_state=random_state)
+
+    def _evaluate(self, X):
+        result = dict()
+        obj1 = X[..., 0]
+        obj2 = (1.0 + X[..., 1]) / X[..., 0]
+        result['objs'] = np.stack([obj1, obj2], axis=-1)
+
+        c1 = 6.0 - 9.0 * X[..., 0] - X[..., 1]
+        c2 = 1.0 - 9.0 * X[..., 0] + X[..., 1]
+        result['constraints'] = np.stack([c1, c2], axis=-1)
+
         return result
