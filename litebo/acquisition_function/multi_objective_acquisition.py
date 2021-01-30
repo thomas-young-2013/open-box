@@ -7,6 +7,7 @@ from sklearn.kernel_approximation import RBFSampler
 
 from litebo.acquisition_function.acquisition import AbstractAcquisitionFunction, Uncertainty
 from litebo.surrogate.base.base_model import AbstractModel
+from litebo.surrogate.base.gp import GaussianProcess
 
 from platypus import NSGAII, Problem, Real
 
@@ -142,6 +143,47 @@ class EHVI(AbstractAcquisitionFunction):
 
         # Compute product for all 2^m terms, and sum across all terms and hypercells
         return all_factors_up_to_last.prod(axis=-1).sum(axis=-1).sum(axis=-1).reshape(-1, 1)
+
+
+class EHVIC(EHVI):
+    r"""Expected Hypervolume Improvement with Constraints, supporting m>=2 outcomes.
+
+    This assumes minimization.
+
+    Code is adapted from botorch. See [Daulton2020qehvi]_ for details.
+    """
+
+    def __init__(
+        self,
+        model: List[AbstractModel],
+        constraint_models: List[GaussianProcess],
+        ref_point,
+        **kwargs
+    ):
+        """Constructor
+
+        Parameters
+        ----------
+        model: A fitted model.
+        ref_point: A list with `m` elements representing the reference point (in the
+            outcome space) w.r.t. to which compute the hypervolume. This is a
+            reference point for the objective values (i.e. after applying
+            `objective` to the samples).
+        """
+        super().__init__(model=model, ref_point=ref_point, **kwargs)
+        self.constraint_models = constraint_models
+        self.long_name = 'Expected Hypervolume Improvement with Constraints'
+
+    def _compute(self, X: np.ndarray, **kwargs):
+        # Compute EHVI value
+        acq = super()._compute(X)
+
+        # Multiply by probability of feasibility
+        for c_model in self.constraint_models:
+            m, v = c_model.predict_marginalized_over_instances(X)
+            s = np.sqrt(v)
+            acq *= norm.cdf(-m / s)
+        return acq
 
 
 class MaxvalueEntropySearch(object):  # todo name min?

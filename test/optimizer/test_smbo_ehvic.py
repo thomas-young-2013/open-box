@@ -6,21 +6,22 @@ import matplotlib.pyplot as plt
 sys.path.insert(0, os.getcwd())
 
 from litebo.optimizer.generic_smbo import SMBO
-from litebo.benchmark.objective_functions.synthetic import VehicleSafety
+from litebo.benchmark.objective_functions.synthetic import CONSTR
 
-num_inputs = 5
-num_objs = 3
+num_inputs = 2
+num_objs = 2
+prob = CONSTR()
+
 acq_optimizer_type = 'random_scipy'
 seed = 1
-prob = VehicleSafety()
 initial_runs = 2 * (num_inputs + 1)
 max_runs = 100 + initial_runs
 
 bo = SMBO(prob.evaluate, prob.config_space,
-          task_id='ehvi',
+          task_id='ehvic',
           num_objs=prob.num_objs,
           num_constraints=prob.num_constraints,
-          acq_type='ehvi',
+          acq_type='ehvic',
           acq_optimizer_type=acq_optimizer_type,
           surrogate_type='gp',
           ref_point=prob.ref_point,

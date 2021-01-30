@@ -12,6 +12,7 @@ from litebo.acquisition_function.acquisition import (
 
 from litebo.acquisition_function.multi_objective_acquisition import (
     EHVI,
+    EHVIC,
     MESMO,
     MESMOC,
     MESMOC2,
@@ -42,6 +43,7 @@ __all__ = [
     'Uncertainty',
 
     'EHVI',
+    'EHVIC',
     'MESMO',
     'MESMOC',
     'MESMOC2',

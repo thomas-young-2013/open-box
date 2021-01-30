@@ -1,7 +1,6 @@
 from typing import List
 
 import numpy as np
-from scipy.stats import norm
 
 from litebo.acquisition_function.acquisition import AbstractAcquisitionFunction
 from litebo.surrogate.base.base_model import AbstractModel
@@ -61,7 +60,7 @@ class MCEIC(AbstractAcquisitionFunction):
         for c_model in self.constraint_models:
             constraint_samples = np.zeros(shape=(self.mc_times, X.shape[0]))
             constraint_samples[:, :] = c_model.sample_functions(X, n_funcs=self.mc_times).transpose()
-            eic *= 1/(1 + np.exp(-constraint_samples/self.eps))
+            eic *= 1/(1 + np.exp(constraint_samples/self.eps))
 
         eic = eic.mean(axis=0).reshape(-1, 1)
         return eic
