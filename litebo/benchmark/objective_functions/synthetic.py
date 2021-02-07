@@ -417,7 +417,6 @@ class DTLZ2(DTLZ):
     """
 
     _ref_val = 1.1
-    #_ref_val = 1.5  # todo
     _r = 0.2
 
     def __init__(self, dim=12, num_objs=2, constrained=False,
@@ -428,8 +427,8 @@ class DTLZ2(DTLZ):
 
     @property
     def _max_hv(self) -> float:
-        if self.constrained:
-            return 0.3996406303723544
+        if self.constrained and self.dim == 12 and self.num_objs == 2:
+            return 0.3996406303723544   # approximate from nsga-ii
         else:
             # hypercube - volume of hypersphere in R^n such that all coordinates are positive
             hypercube_vol = self._ref_val ** self.num_objs
@@ -785,7 +784,7 @@ class SRN(BaseTestProblem):
         obj2 = 9.0 * X[..., 0] - (X[..., 1] - 1.0) ** 2
         result['objs'] = np.stack([obj1, obj2], axis=-1)
 
-        c1 = ((X ** 2) ** 2).sum(axis=-1) - 225.0
+        c1 = (X ** 2).sum(axis=-1) - 225.0  # fix bug
         c2 = X[..., 0] - 3 * X[..., 1] + 10
         result['constraints'] = np.stack([c1, c2], axis=-1)
 
