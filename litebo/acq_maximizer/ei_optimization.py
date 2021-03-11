@@ -935,7 +935,10 @@ class StagedBatchScipyOptimizer(AcquisitionFunctionMaximizer):
         raise NotImplementedError()
 
 
-class MESMO_Optimizer(AcquisitionFunctionMaximizer):
+MESMO_Optimizer = RandomScipyOptimizer
+
+
+class MESMO_Optimizer2(AcquisitionFunctionMaximizer):
     """Implements Scipy optimizer for MESMO. Only on continuous dims
 
     Parameters

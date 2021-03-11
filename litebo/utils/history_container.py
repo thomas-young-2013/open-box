@@ -160,8 +160,6 @@ class MOHistoryContainer(HistoryContainer):
                 hv = Hypervolume(ref_point=self.ref_point).compute(pareto_front)
             else:
                 hv = 0
-            print('-'*30)
-            print('Current HV is %f' % hv)
             self.hv_data.append(hv)
 
     def get_incumbents(self):

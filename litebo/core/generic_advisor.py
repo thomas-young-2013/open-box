@@ -199,10 +199,13 @@ class Advisor(object, metaclass=abc.ABCMeta):
                                          config_space=self.config_space,
                                          rng=self.rng)
 
-    def create_initial_design(self, init_strategy='random'):
+    def create_initial_design(self, init_strategy='default'):
         default_config = self.config_space.get_default_configuration()
         num_random_config = self.init_num - 1
         if init_strategy == 'random':
+            initial_configs = self.sample_random_configs(self.init_num)
+            return initial_configs
+        elif init_strategy == 'default':
             initial_configs = [default_config] + self.sample_random_configs(num_random_config)
             return initial_configs
         elif init_strategy == 'random_explore_first':
