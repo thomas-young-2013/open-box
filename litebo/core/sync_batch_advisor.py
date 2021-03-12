@@ -52,11 +52,15 @@ class SyncBatchAdvisor(Advisor):
         failed_perfs = list() if self.max_y is None else [self.max_y] * num_failed_trial
         Y = np.array(self.perfs + failed_perfs, dtype=np.float64)
 
-        num_config_evaluated = len(self.perfs)
+        all_considered_configs = self.configurations + self.failed_configurations
+        num_config_evaluated = len(all_considered_configs)
         batch_configs_list = list()
 
         if num_config_evaluated < self.init_num:
-            return self.sample_random_configs(self.init_num)
+            if self.initial_configurations is not None:  # self.init_num equals to len(self.initial_configurations)
+                return self.initial_configurations
+            else:
+                return self.sample_random_configs(self.init_num)
 
         if self.optimization_strategy == 'random':
             return self.sample_random_configs(self.batch_size)
@@ -79,16 +83,16 @@ class SyncBatchAdvisor(Advisor):
                 repeated_time = 0
                 curr_batch_config = None
                 while is_repeated_config:
-                    try:
-                        curr_batch_config = challengers.challengers[repeated_time]
-                        batch_history_container.add(curr_batch_config, estimated_y)
-                    except ValueError:
+                    curr_batch_config = challengers.challengers[repeated_time]
+                    if curr_batch_config in all_considered_configs:
                         is_repeated_config = True
                         repeated_time += 1
                     else:
                         is_repeated_config = False
 
+                batch_history_container.add(curr_batch_config, estimated_y)
                 batch_configs_list.append(curr_batch_config)
+                all_considered_configs.append(curr_batch_config)
                 X = np.append(X, curr_batch_config.get_array().reshape(1, -1), axis=0)
                 Y = np.append(Y, estimated_y)
 
