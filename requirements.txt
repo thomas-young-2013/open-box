@@ -8,6 +8,8 @@ pyyaml
 lazy_import
 scikit-optimize
 emcee
+tqdm
+terminaltables
 
 scipy>=0.18.1
 platypus-opt==1.0.4

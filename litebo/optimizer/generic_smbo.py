@@ -2,6 +2,7 @@ import sys
 import traceback
 from typing import List
 from collections import OrderedDict
+from tqdm import tqdm
 from litebo.optimizer.base import BOBase
 from litebo.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
 from litebo.utils.limit import time_limit, TimeoutException
@@ -84,7 +85,7 @@ class SMBO(BOBase):
             raise ValueError('Invalid advisor type!')
 
     def run(self):
-        while self.iteration_id < self.max_iterations:
+        for i in tqdm(range(self.iteration_id, self.max_iterations)):
             self.iterate()
 
     def iterate(self):
