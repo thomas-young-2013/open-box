@@ -156,9 +156,9 @@ class Advisor(object, metaclass=abc.ABCMeta):
                     self.logger.warning('Constraint surrogate model has changed to Gaussian Process with RBF kernel '
                                         'since MESMOC is used. Surrogate_type should be set to \'gp_rbf\'.')
 
-                # Check reference point is provided for EHVI methods
-                if 'ehvi' in self.acq_type and self.ref_point is None:
-                    raise ValueError('Must provide reference point to use EHVI method!')
+            # Check reference point is provided for EHVI methods
+            if 'ehvi' in self.acq_type and self.ref_point is None:
+                raise ValueError('Must provide reference point to use EHVI method!')
 
     def setup_bo_basics(self):
         if self.num_objs == 1 or self.acq_type == 'parego':
