@@ -8,7 +8,7 @@
 [![Bugs](https://img.shields.io/github/issues/thomas-young-2013/lite-bo/bug.svg)](https://github.com/thomas-young-2013/lite-bo/issues?q=is%3Aissue+is%3Aopen+label%3Abug)
 [![Pull Requests](https://img.shields.io/github/issues-pr-raw/thomas-young-2013/lite-bo.svg)](https://github.com/thomas-young-2013/lite-bo/pulls?q=is%3Apr+is%3Aopen)
 [![Version](https://img.shields.io/github/release/thomas-young-2013/lite-bo.svg)](https://github.com/thomas-young-2013/lite-bo/releases) [![Join the chat at https://gitter.im/bbo-open-box](https://badges.gitter.im/bbo-open-box.svg)](https://gitter.im/bbo-open-box?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![Documentation Status](https://readthedocs.org/projects/nni/badge/?version=latest)](https://nni.readthedocs.io/en/latest/?badge=latest)
+[![Documentation Status](https://readthedocs.org/projects/lite-bo/badge/?version=latest)](https://lite-bo.readthedocs.io/en/latest/?badge=latest)
 
 ---
 
