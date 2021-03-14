@@ -1,4 +1,4 @@
-![](docs/logos/logo.png)
+<img src="docs/logos/logo.png" width="70%">
 
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)](https://github.com/thomas-young-2013/automl-toolkit/blob/master/LICENSE)
 
