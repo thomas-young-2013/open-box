@@ -87,6 +87,12 @@ class SMBO(BOBase):
             self.iterate()
 
     def iterate(self):
+
+        self.config_advisor.load_history_from_json()
+        print('vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv')
+        self.config_advisor.history_container.print_info()
+        print('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^')
+
         config = self.config_advisor.get_suggestion()
 
         trial_state, trial_info = SUCCESS, None
@@ -137,5 +143,7 @@ class SMBO(BOBase):
         # config_dict = config.get_dictionary()
         # score_dict = {'objective': obj}
         # self.writer.add_hparams(config_dict, score_dict, name="trial" + str(idx+1))
+
+        self.config_advisor.save_history()
 
         return config, trial_state, objs, trial_info

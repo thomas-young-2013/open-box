@@ -21,6 +21,11 @@ class HistoryContainer(object):
         self.incumbents = list()
         self.logger = get_logger(self.__class__.__name__)
 
+    def print_info(self):
+        print('self.task_id', self.task_id, 'self.data', self.data, 'self.config_counter', self.config_counter,
+              'self.incumbent_value', self.incumbent_value, 'self.incumbents', self.incumbents,
+              'self.logger', self.logger, sep='\n~~\n')
+
     def add(self, config: Configuration, perf: Perf):
         if config in self.data:
             self.logger.warning('Repeated configuration detected!')
@@ -63,7 +68,8 @@ class HistoryContainer(object):
         data = [(k.get_dictionary(), float(v)) for k, v in self.data.items()]
 
         with open(fn, "w") as fp:
-            json.dump({"data": data}, fp, indent=2)
+            json.dump({"task_id": self.task_id, "data": data, "config_counter": self.config_counter,
+                       "incumbent_value": self.incumbent_value}, fp, indent=2)
 
     def load_history_from_json(self, cs: ConfigurationSpace, fn: str = "history_container.json"):
         """Load and runhistory in json representation from disk.
@@ -89,6 +95,11 @@ class HistoryContainer(object):
             config = get_config_from_dict(k, cs)
             perf = float(v)
             _history_data[config] = perf
+
+        self.data = _history_data
+        self.config_counter = int(all_data["config_counter"])
+        self.incumbent_value = float(all_data["incumbent_value"])
+
         return _history_data
 
 
@@ -162,6 +173,7 @@ class MOHistoryContainer(object):
     def save_json(self, fn: str = "history_container.json"):
         """
         saves runhistory on disk
+        not supporting multi objective(MO) for now
 
         Parameters
         ----------

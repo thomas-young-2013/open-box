@@ -35,3 +35,13 @@ test/.ipynb_checkpoints/
 *~
 .html/
 .mypy_cache/
+1-30-run1.sh
+*.sh
+key.pem
+read1-1-30.py
+*.sh
+run-ml-1-29.sh
+scores1-1-30.csv
+scores1-1-31.csv
+scores-1-30.numbers
+run-ml-1-29.sh

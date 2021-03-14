@@ -78,7 +78,7 @@ def evaluate(mth, run_i, seed):
     bo.MIN_PERF = [MAXINT]
     for i in range(max_runs):
         config, trial_state, objs, trial_info = bo.iterate()  # 这里进行训练循环 次数为--n 参数，一次次iterate
-        # 同时iterate的时候还会输出[INFO]
+        # iterate
 
         # Visualization: min_bound line of the objective
         for idx, obj in enumerate(objs):

@@ -374,7 +374,8 @@ class Advisor(object, metaclass=abc.ABCMeta):
         self.history_container.save_json(self.history_file)
 
     def load_history_from_json(self):
-        return self.history_container.load_history_from_json(self.config_space, self.history_file)
+        if os.path.exists(self.history_file):
+            return self.history_container.load_history_from_json(self.config_space, self.history_file)
 
     def get_suggestions(self):
         raise NotImplementedError

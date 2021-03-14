@@ -1,0 +1,9 @@
+## Bugs and Unsolved problems
+
+1. Lightgbm fails on 2-nd iteration. **"Solved"**
+
+2. How to set n_jobs for estimators?
+   * -1 If CPUs are occupied, the training process will be suspended.
+   * A fixed number like 4 cannot make full use of computational resource.
+
+3. Regression evaluator returns "1 - score"
