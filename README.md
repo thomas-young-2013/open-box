@@ -2,8 +2,13 @@
 <img src="docs/logos/logo.png" width="68%">
 </p>
 
-[![license](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)](https://github.com/thomas-young-2013/automl-toolkit/blob/master/LICENSE)
+[![license](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)](https://github.com/thomas-young-2013/lite-bo/blob/master/LICENSE)
 [![Build Status](https://api.travis-ci.org/thomas-young-2013/lite-bo.svg?branch=master)](https://api.travis-ci.org/thomas-young-2013)
+[![Issues](https://img.shields.io/github/issues-raw/thomas-young-2013/lite-bo.svg)](https://github.com/thomas-young-2013/lite-bo/issues?q=is%3Aissue+is%3Aopen)
+[![Bugs](https://img.shields.io/github/issues/thomas-young-2013/lite-bo/bug.svg)](https://github.com/thomas-young-2013/lite-bo/issues?q=is%3Aissue+is%3Aopen+label%3Abug)
+[![Pull Requests](https://img.shields.io/github/issues-pr-raw/thomas-young-2013/lite-bo.svg)](https://github.com/thomas-young-2013/lite-bo/pulls?q=is%3Apr+is%3Aopen)
+[![Version](https://img.shields.io/github/release/thomas-young-2013/lite-bo.svg)](https://github.com/thomas-young-2013/lite-bo/releases) [![Join the chat at https://gitter.im/bbo-open-box](https://badges.gitter.im/bbo-open-box.svg)](https://gitter.im/bbo-open-box?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Documentation Status](https://readthedocs.org/projects/nni/badge/?version=latest)](https://nni.readthedocs.io/en/latest/?badge=latest)
 
 ---
 
@@ -132,7 +137,7 @@ print(inc_value)
 ```
 
 ## **Feedback**
-* File an issue on GitHub.
+* [File an issue](https://github.com/thomas-young-2013/lite-bo/issues) on GitHub.
 * Email us via *liyang.cs@pku.edu.cn*.
 
 
