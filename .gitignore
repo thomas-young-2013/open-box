@@ -35,3 +35,5 @@ test/.ipynb_checkpoints/
 *~
 .html/
 .mypy_cache/
+
+docs/build/
