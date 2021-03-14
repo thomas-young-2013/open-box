@@ -39,7 +39,7 @@ before_install:
   - if [ $PYTHON_VERSION == '3.5' ]; then pip install 'numpy>=1.9.0,<=1.18.4'; fi
 
 install:
-  - pip install codecov pytest-cov
+  - pip install codecov mypy pytest-cov
   - cat requirements.txt | xargs -n 1 -L 1 pip install
   - pip install .[all]
 
