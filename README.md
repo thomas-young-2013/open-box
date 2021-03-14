@@ -1,4 +1,6 @@
+<p> align="center">
 <img src="docs/logos/logo.png" width="68%">
+</p>
 
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)](https://github.com/thomas-young-2013/automl-toolkit/blob/master/LICENSE)
 
@@ -20,7 +22,7 @@ Open-BOX is an efficient and generalized blackbox optimization (BBO) system, whi
 Users can install the released package and use it using Python.
 
 #### Distributed BBO service.
-we adopt the "BBO as a service" paradigm and implement OpenBox as a managed general service for black-box optimization. Users can access this service via REST API conveniently (see Figure 2), and do not need to worry about other issues such as environment setup, software maintenance, programming, and optimization of the execution. Moreover, we also provide a Web UI,
+We adopt the "BBO as a service" paradigm and implement OpenBox as a managed general service for black-box optimization. Users can access this service via REST API conveniently, and do not need to worry about other issues such as environment setup, software maintenance, programming, and optimization of the execution. Moreover, we also provide a Web UI,
 through which users can easily track and manage the tasks.
 
 
