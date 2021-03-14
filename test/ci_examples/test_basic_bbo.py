@@ -22,7 +22,7 @@ def branin(x):
 
 def test_branin():
     space_dict = {
-        "parameter": {
+        "parameters": {
             "x1": {
                 "type": "float",
                 "bound": [-5, 10],
@@ -38,7 +38,7 @@ def test_branin():
     cs = get_config_space_from_dict(space_dict)
     print(cs)
 
-    bo = BayesianOptimization(branin, cs, max_runs=90, time_limit_per_trial=3,
+    bo = BayesianOptimization(branin, cs, max_runs=30, time_limit_per_trial=3,
                               logging_dir='logs')
     bo.run()
     inc_value = bo.get_incumbent()
@@ -46,7 +46,7 @@ def test_branin():
     print(inc_value)
 
     # Evaluate the random search.
-    bo = BayesianOptimization(branin, cs, max_runs=90, time_limit_per_trial=3,
+    bo = BayesianOptimization(branin, cs, max_runs=30, time_limit_per_trial=3,
                               sample_strategy='random', logging_dir='logs')
     bo.run()
     inc_value = bo.get_incumbent()
@@ -54,7 +54,7 @@ def test_branin():
     print(inc_value)
 
     # Evaluate batch BO.
-    bo = BatchBayesianOptimization(branin, cs, max_runs=30, batch_size=3,
+    bo = BatchBayesianOptimization(branin, cs, max_runs=10, batch_size=3,
                                    time_limit_per_trial=3,
                                    sample_strategy='median_imputation',
                                    logging_dir='logs')
@@ -64,7 +64,7 @@ def test_branin():
     print(inc_value)
 
     # Evaluate batch BO.
-    bo = BatchBayesianOptimization(branin, cs, max_runs=30, batch_size=3,
+    bo = BatchBayesianOptimization(branin, cs, max_runs=10, batch_size=3,
                                    time_limit_per_trial=3,
                                    sample_strategy='local_penalization',
                                    logging_dir='logs')
