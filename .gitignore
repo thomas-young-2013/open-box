@@ -31,7 +31,7 @@ test/.ipynb_checkpoints/
 .coverage
 .pypirc
 .ipynb_checkpoints/
-*.ipynb
+
 *~
 .html/
 .mypy_cache/
@@ -45,3 +45,4 @@ scores1-1-30.csv
 scores1-1-31.csv
 scores-1-30.numbers
 run-ml-1-29.sh
+test/test_visualization.ipynb
