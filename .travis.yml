@@ -14,11 +14,7 @@ matrix:
     - os: linux
       env: TESTSUITE=unittests.sh PYTHON_VERSION="3.5" MINICONDA_URL="https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh"
     - os: linux
-      env: TESTSUITE=unittests.sh PYTHON_VERSION="3.6" MINICONDA_URL="https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh"
-    - os: linux
       env: TESTSUITE=unittests.sh PYTHON_VERSION="3.7" MINICONDA_URL="https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh"
-    - os: linux
-      env: TESTSUITE=unittests.sh PYTHON_VERSION="3.8" MINICONDA_URL="https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh"
 
 cache:
   directories:
@@ -39,7 +35,7 @@ before_install:
   - if [[ `which conda` ]]; then echo 'Conda installation successful'; else exit 1; fi
   - conda create -n testenv --yes python=$PYTHON_VERSION pip wheel pytest gxx_linux-64 gcc_linux-64 swig
   - source activate testenv
-  - chmod +x ci_scripts/unittests.sh
+  - chmod +x ci_scripts/functionality_tests.sh
   - if [ $PYTHON_VERSION == '3.5' ]; then pip install 'numpy>=1.9.0,<=1.18.4'; fi
 
 install:

@@ -3,6 +3,7 @@
 </p>
 
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)](https://github.com/thomas-young-2013/automl-toolkit/blob/master/LICENSE)
+[![Build Status](https://api.travis-ci.org/thomas-young-2013/lite-bo.svg?branch=master)](https://api.travis-ci.org/thomas-young-2013)
 
 ---
 
