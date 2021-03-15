@@ -1,19 +1,38 @@
-![](docs/logos/logo.png)
+<p align="center">
+<img src="docs/logos/logo.png" width="68%">
+</p>
 
-[![license](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)](https://github.com/thomas-young-2013/automl-toolkit/blob/master/LICENSE)
+[![license](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)](https://github.com/thomas-young-2013/lite-bo/blob/master/LICENSE)
+[![Build Status](https://api.travis-ci.org/thomas-young-2013/lite-bo.svg?branch=master)](https://api.travis-ci.org/thomas-young-2013)
+[![Issues](https://img.shields.io/github/issues-raw/thomas-young-2013/lite-bo.svg)](https://github.com/thomas-young-2013/lite-bo/issues?q=is%3Aissue+is%3Aopen)
+[![Bugs](https://img.shields.io/github/issues/thomas-young-2013/lite-bo/bug.svg)](https://github.com/thomas-young-2013/lite-bo/issues?q=is%3Aissue+is%3Aopen+label%3Abug)
+[![Pull Requests](https://img.shields.io/github/issues-pr-raw/thomas-young-2013/lite-bo.svg)](https://github.com/thomas-young-2013/lite-bo/pulls?q=is%3Apr+is%3Aopen)
+[![Version](https://img.shields.io/github/release/thomas-young-2013/lite-bo.svg)](https://github.com/thomas-young-2013/lite-bo/releases) [![Join the chat at https://gitter.im/bbo-open-box](https://badges.gitter.im/bbo-open-box.svg)](https://gitter.im/bbo-open-box?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Documentation Status](https://readthedocs.org/projects/lite-bo/badge/?version=latest)](https://lite-bo.readthedocs.io/en/latest/?badge=latest)
 
 ---
 
-## Open-BOX: an efficient Blackbox Optimization (BO) Library.
-Open-BOX is an efficient and effective blackbox optimization toolkit, which owns the following characteristics:
-1. Black-box solvers.
-2. BO with transfer learning.
-3. BO with constraints.
-4. BO with parallel support.
-5. BO with multi-fidelity evaluations.
-6. BO with multi-objective.
+## Open-BOX: Generalized and Efficient Blackbox Optimization System.
+Open-BOX is an efficient and generalized blackbox optimization (BBO) system, which owns the following characteristics:
+1. Basic BBO algorithms.
+2. BBO with constraints.
+3. BBO with multiple objectives.
+4. BBO with transfer learning.
+5. BBO with distributed parallelization.
+6. BBO with multi-fidelity acceleration.
+7. BBO with early stops.
 
-# Features
+
+## Deployment Artifacts
+#### Standalone Python package.
+Users can install the released package and use it using Python.
+
+#### Distributed BBO service.
+We adopt the "BBO as a service" paradigm and implement OpenBox as a managed general service for black-box optimization. Users can access this service via REST API conveniently, and do not need to worry about other issues such as environment setup, software maintenance, programming, and optimization of the execution. Moreover, we also provide a Web UI,
+through which users can easily track and manage the tasks.
+
+
+## Features
 
 + Ease of use. Minimal user configuration and setup, and necessary visualization for optimization process. 
 + Performance standards. Host state-of-the-art optimization algorithms; select proper algorithms automatically.
@@ -22,7 +41,7 @@ Open-BOX is an efficient and effective blackbox optimization toolkit, which owns
 + High efficiency. Effective use of parallel resource, speeding up optimization with transfer-learning, and multi-fidelity acceleration for computationally-expensive evaluations. 
 + Data privacy protection, robustness and extensibility.
 
-# Benchmarks
+## Benchmark Results
 
 Single-objective problems
 Ackley-4                  | Hartmann
@@ -46,7 +65,7 @@ CONSTR             | SRN
 :-------------------------:|:-------------------------:
 ![](docs/experiments/moc_math_constr.png)  |  ![](docs/experiments/moc_math_srn.png)
 
-# Installation
+## Installation
 
 **Installation via pip**
 
@@ -69,7 +88,7 @@ python setup.py install
  ```
 macOS users still need to follow the [tips](docs/install/install-pyrfr-on-macos.md) to install `pyrfr` correctly first.
 
-# Quick Start
+## Quick Start
 
 ```python
 import numpy as np
@@ -117,8 +136,18 @@ print('BO', '=' * 30)
 print(inc_value)
 ```
 
-# Reference
-1. Frank Hutter, Holger H Hoos, and Kevin Leyton-Brown. 2011. Sequential model-based optimization for general algorithm configuration. In International Conference on Learning and Intelligent Optimization. Springer, 507–523.
-2. Nicolas Knudde, Joachim van der Herten, Tom Dhaene, and Ivo Couckuyt. 2017. GPflowOpt: A Bayesian Optimization Library using TensorFlow. arXiv:1711.03845.
-3. Luigi Nardi, David Koeplinger, and Kunle Olukotun. 2019. Practical Design Space Exploration. arXiv:1810.05236.
-4. Maximilian Balandat, Brian Karrer, Daniel R.Jiang, Samuel Daulton, Benjamin Letham, Andrew Gordon Wilson, and Eytan Bakshy. 2020. BoTorch: A Framework for Efficient Monte-Carlo Bayesian Optimization. In Advances in Neural Information Processing Systems.
+## **Feedback**
+* [File an issue](https://github.com/thomas-young-2013/lite-bo/issues) on GitHub.
+* Email us via *liyang.cs@pku.edu.cn*.
+
+
+## Related Projects
+
+Targeting at openness and advancing AutoML ecosystems, we had also released few other open source projects.
+
+* [VocalnoML](https://github.com/thomas-young-2013/soln-ml) : an open source system that provides end-to-end ML model training and inference capabilities.
+
+
+## **License**
+
+The entire codebase is under [MIT license](LICENSE)
