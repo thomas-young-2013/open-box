@@ -10,7 +10,7 @@ Welcome to open-box's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   main
+   main.md
 
 Indices and tables
 ==================
