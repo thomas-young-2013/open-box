@@ -6,7 +6,7 @@
 :github_url: https://github.com/thomas-young-2013/lite-bo
 
 Open-BOX documentation
-===================================
+======================
 
 Open-BOX is an optimized tensor library for deep learning using GPUs and CPUs.
 
@@ -39,13 +39,13 @@ Features described in this documentation are classified by release status:
 .. toctree::
    :glob:
    :maxdepth: 1
-   :caption: Python API
+   :caption: Docs Examples
 
-   api/*
+   examples/*
 
 .. toctree::
    :maxdepth: 1
-   :caption: Examples
+   :caption: Summary
 
    main
 
