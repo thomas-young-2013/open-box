@@ -61,6 +61,7 @@ class SMBO(BOBase):
                                           random_state=random_state)
         elif advisor_type == 'mcadvisor':
             from litebo.core.mc_advisor import MCAdvisor
+            use_trust_region = kwargs.get('use_trust_region', False)
             self.config_advisor = MCAdvisor(config_space, self.task_info,
                                             mc_times=kwargs.get('mc_times', 10),
                                             initial_trials=initial_runs,
@@ -70,6 +71,7 @@ class SMBO(BOBase):
                                             surrogate_type=surrogate_type,
                                             acq_type=acq_type,
                                             acq_optimizer_type=acq_optimizer_type,
+                                            use_trust_region=use_trust_region,
                                             ref_point=ref_point,
                                             history_bo_data=history_bo_data,
                                             task_id=task_id,

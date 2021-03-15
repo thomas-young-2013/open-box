@@ -3,15 +3,15 @@ import logging
 import time
 from typing import Iterable, List, Union, Tuple, Optional
 
+import random
 import scipy
 import numpy as np
 
 from litebo.acquisition_function.acquisition import AbstractAcquisitionFunction
 from litebo.utils.config_space import get_one_exchange_neighbourhood, \
     Configuration, ConfigurationSpace
-from litebo.utils.config_space.util import convert_configurations_to_array
 from litebo.acq_maximizer.random_configuration_chooser import ChooserNoCoolDown, ChooserProb
-from litebo.utils.history_container import HistoryContainer
+from litebo.utils.history_container import HistoryContainer, MultiStartHistoryContainer
 from litebo.utils.util_funcs import get_types
 
 
@@ -609,7 +609,7 @@ class ScipyOptimizer(AcquisitionFunctionMaximizer):
             config = Configuration(self.config_space, vector=result.x)
             acq = self.acquisition_function(result.x, convert=False)
             acq_configs.append((acq, config))
-        except Exception as e:
+        except Exception:
             pass
 
         if not acq_configs:  # empty
@@ -698,6 +698,74 @@ class RandomScipyOptimizer(AcquisitionFunctionMaximizer):
         configs = [_[1] for _ in acq_configs]
 
         challengers = ChallengerList(configs,
+                                     self.config_space,
+                                     self.random_chooser)
+        self.random_chooser.next_smbo_iteration()
+        return challengers
+
+    def _maximize(
+            self,
+            runhistory: HistoryContainer,
+            num_points: int,
+            **kwargs
+    ) -> Iterable[Tuple[float, Configuration]]:
+        raise NotImplementedError()
+
+
+class ScipyGlobalOptimizer(AcquisitionFunctionMaximizer):
+    """
+    Wraps scipy global optimizer. Only on continuous dims.
+
+    Parameters
+    ----------
+    acquisition_function : ~litebo.acquisition_function.acquisition.AbstractAcquisitionFunction
+
+    config_space : ~litebo.config_space.ConfigurationSpace
+
+    rng : np.random.RandomState or int, optional
+    """
+
+    def __init__(
+            self,
+            acquisition_function: AbstractAcquisitionFunction,
+            config_space: ConfigurationSpace,
+            rand_prob: float = 0.0,
+            rng: Union[bool, np.random.RandomState] = None,
+    ):
+        super().__init__(acquisition_function, config_space, rng)
+        self.random_chooser = ChooserProb(prob=rand_prob, rng=rng)
+
+        types, bounds = get_types(self.config_space)
+        assert all(types == 0)
+        self.bounds = bounds
+
+    def maximize(
+            self,
+            runhistory: HistoryContainer,
+            initial_config=None,
+            **kwargs
+    ) -> List[Tuple[float, Configuration]]:
+
+        def negative_acquisition(x):
+            # shape of x = (d,)
+            return -self.acquisition_function(x, convert=False)[0]  # shape=(1,)
+
+        acq_configs = []
+        result = scipy.optimize.differential_evolution(func=negative_acquisition,
+                                                       bounds=self.bounds)
+        if not result.success:
+            self.logger.debug('Scipy differential evolution optimizer failed. Info:\n%s' % (result,))
+        try:
+            config = Configuration(self.config_space, vector=result.x)
+            acq = self.acquisition_function(result.x, convert=False)
+            acq_configs.append((acq, config))
+        except Exception:
+            pass
+
+        if not acq_configs:  # empty
+            self.logger.warning('Scipy differential evolution optimizer failed. Return empty config list. Info:\n%s' % (result,))
+
+        challengers = ChallengerList([config for _, config in acq_configs],
                                      self.config_space,
                                      self.random_chooser)
         self.random_chooser.next_smbo_iteration()
@@ -867,7 +935,10 @@ class StagedBatchScipyOptimizer(AcquisitionFunctionMaximizer):
         raise NotImplementedError()
 
 
-class MESMO_Optimizer(AcquisitionFunctionMaximizer):
+MESMO_Optimizer = RandomScipyOptimizer
+
+
+class MESMO_Optimizer2(AcquisitionFunctionMaximizer):
     """Implements Scipy optimizer for MESMO. Only on continuous dims
 
     Parameters
@@ -1058,16 +1129,22 @@ class batchMCOptimizer(AcquisitionFunctionMaximizer):
             acquisition_function: AbstractAcquisitionFunction,
             config_space: ConfigurationSpace,
             rng: Union[bool, np.random.RandomState] = None,
-            batch_size=100,
+            batch_size=None,
             rand_prob=0.0
     ):
         super().__init__(acquisition_function, config_space, rng)
-        self.batch_size = batch_size
         self.random_chooser = ChooserProb(prob=rand_prob, rng=rng)
+
+        if batch_size is None:
+            types, bounds = get_types(self.config_space)
+            dim = np.sum(types == 0)
+            self.batch_size = min(5000, max(2000, 200 * dim))
+        else:
+            self.batch_size = batch_size
 
     def maximize(
             self,
-            runhistory: HistoryContainer,
+            runhistory: Union[HistoryContainer, MultiStartHistoryContainer],
             num_points: int,
             _sorted: bool = True,
             **kwargs
@@ -1083,7 +1160,8 @@ class batchMCOptimizer(AcquisitionFunctionMaximizer):
         _sorted: bool
             whether random configurations are sorted according to acquisition function
         **kwargs
-            not used
+            turbo_state: TurboState
+                provide turbo state to use trust region
 
         Returns
         -------
@@ -1095,12 +1173,27 @@ class batchMCOptimizer(AcquisitionFunctionMaximizer):
 
         cur_idx = 0
         config_acq = list()
-        weight_seed = self.rng.random_integers(0, int(1e8), 1)[0]  # The same weight each iteration
+        weight_seed = self.rng.randint(0, int(1e8))  # The same weight seed each iteration
 
         while cur_idx < num_points:
             batch_size = min(self.batch_size, num_points - cur_idx)
+            turbo_state = kwargs.get('turbo_state', None)
+            if turbo_state is None:
+                lower_bounds = None
+                upper_bounds = None
+            else:
+                assert isinstance(runhistory, MultiStartHistoryContainer)
+                if runhistory.num_objs > 1:
+                    # TODO implement adaptive strategy to choose trust region center for MO
+                    raise NotImplementedError()
+                else:
+                    x_center = random.choice(runhistory.get_incumbents())[0].get_array()
+                    lower_bounds = x_center - turbo_state.length / 2.0
+                    upper_bounds = x_center + turbo_state.length / 2.0
+
             sobol_sampler = SobolSampler(self.config_space, batch_size,
-                                         random_state=self.rng.random_integers(0, int(1e8), 1)[0])
+                                         lower_bounds, upper_bounds,
+                                         random_state=self.rng.randint(0, int(1e8)))
             _configs = sobol_sampler.generate(return_config=True)
             _acq_values = self.acquisition_function(_configs, seed=weight_seed)
             config_acq.extend([(_configs[idx], _acq_values[idx]) for idx in range(len(_configs))])

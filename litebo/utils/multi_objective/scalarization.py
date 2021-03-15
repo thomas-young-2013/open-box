@@ -47,7 +47,7 @@ def get_chebyshev_scalarization(
     if weights.shape != Y.shape[-1:]:
         raise Exception(
             "weights must be an `m`-dim array where Y is `... x m`."
-            f"Got shapes {weights.shape} and {Y.shape}."
+            "Got shapes %s and %s." % (str(weights.shape), str(Y.shape))
         )
     Y_bounds = np.stack([Y.min(axis=-2), Y.max(axis=-2)])
 

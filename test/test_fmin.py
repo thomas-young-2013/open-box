@@ -29,7 +29,7 @@ def branin(x):
 # cs.add_hyperparameters([x1, x2])
 
 space_dict = {
-    "parameter": {
+    "parameters": {
         "x1": {
             "type": "float",
             "bound": [-5, 10],

@@ -6,16 +6,16 @@ import matplotlib.pyplot as plt
 sys.path.insert(0, os.getcwd())
 
 from litebo.optimizer.generic_smbo import SMBO
-from litebo.benchmark.objective_functions.synthetic import DTLZ2
+from litebo.benchmark.objective_functions.synthetic import VehicleSafety
 
-num_inputs = 6
-num_objs = 2
-max_runs = 100
+num_inputs = 5
+num_objs = 3
 acq_optimizer_type = 'random_scipy'
-#acq_optimizer_type = 'staged_batch_scipy'
 seed = 1
+prob = VehicleSafety()
+initial_runs = 2 * (num_inputs + 1)
+max_runs = 100 + initial_runs
 
-prob = DTLZ2(num_inputs, num_objs)
 bo = SMBO(prob.evaluate, prob.config_space,
           task_id='ehvi',
           num_objs=prob.num_objs,
@@ -25,14 +25,24 @@ bo = SMBO(prob.evaluate, prob.config_space,
           surrogate_type='gp',
           ref_point=prob.ref_point,
           max_runs=max_runs,
+          initial_runs=initial_runs,
+          init_strategy='sobol',
           random_state=seed)
 bo.run()
 
 hvs = bo.get_history().hv_data
-log_hv_diff = np.log10(prob.max_hv - np.asarray(hvs))
 
 pf = np.asarray(bo.get_history().get_pareto_front())
-plt.scatter(pf[:, 0], pf[:, 1])
+if pf.shape[-1] == 2:
+    plt.scatter(pf[:, 0], pf[:, 1])
+elif pf.shape[-1] == 3:
+    ax = plt.axes(projection='3d')
+    ax.scatter3D(pf[:, 0], pf[:, 1], pf[:, 2])
 plt.show()
-plt.plot(log_hv_diff)
+
+try:
+    log_hv_diff = np.log10(prob.max_hv - np.asarray(hvs))[initial_runs:]
+    plt.plot(log_hv_diff)
+except NotImplementedError:
+    plt.plot(hvs)
 plt.show()
