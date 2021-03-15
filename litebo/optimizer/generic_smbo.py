@@ -87,6 +87,7 @@ class SMBO(BOBase):
     def run(self):
         for i in tqdm(range(self.iteration_id, self.max_iterations)):
             self.iterate()
+        return self.get_history()
 
     def iterate(self):
         config = self.config_advisor.get_suggestion()

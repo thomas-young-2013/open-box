@@ -38,7 +38,7 @@ class HistoryContainer(object):
                 if val is None:
                     val = nil
                 if isinstance(val, float):
-                    val = f"{val:.6f}"
+                    val = "%.6f" % val
                 elif not isinstance(val, str):
                     val = str(val)
                 row.append(val)
