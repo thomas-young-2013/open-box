@@ -1,6 +1,7 @@
 import json
 import collections
 from typing import List, Union
+from terminaltables import AsciiTable
 from litebo.utils.constants import MAXINT
 from litebo.utils.config_space import Configuration, ConfigurationSpace
 from litebo.utils.logging_utils import get_logger
@@ -20,6 +21,59 @@ class HistoryContainer(object):
         self.incumbent_value = MAXINT
         self.incumbents = list()
         self.logger = get_logger(self.__class__.__name__)
+
+    def get_str(self):
+        incumbents = self.get_incumbents()
+        if not incumbents:
+            return 'No incumbents in history. Please run optimization process.'
+
+        configs_table = []
+        nil = "-"
+        parameters = list(incumbents[0][0].get_dictionary().keys())
+        for para in parameters:
+            row = []
+            row.append(para)
+            for config, perf in incumbents:
+                val = config.get(para, None)
+                if val is None:
+                    val = nil
+                if isinstance(val, float):
+                    val = "%.6f" % val
+                elif not isinstance(val, str):
+                    val = str(val)
+                row.append(val)
+            configs_table.append(row)
+        configs_title = ["Parameters"] + ["" if i else "Optimal Value" for i, _ in enumerate(incumbents)]
+
+        table_data = ([configs_title] +
+                      configs_table +
+                      [["Optimal Objective Value"] + [perf for config, perf in incumbents]] +
+                      [["Num Configs"] + [str(self.config_counter)]]    # todo: no failed configs
+                      )
+
+        M = 2
+        raw_table = AsciiTable(
+            table_data
+            # title="Result of Optimization"
+        ).table
+        lines = raw_table.splitlines()
+        title_line = lines[1]
+        st = title_line.index("|", 1)
+        col = "Optimal Value"
+        L = len(title_line)
+        lines[0] = "+" + "-" * (L - 2) + "+"
+        new_title_line = title_line[:st + 1] + (" " + col + " " * (L - st - 3 - len(col))) + "|"
+        lines[1] = new_title_line
+        bar = "\n" + lines.pop() + "\n"
+        finals = lines[-M:]
+        prevs = lines[:-M]
+        render_table = "\n".join(prevs) + bar + bar.join(finals) + bar
+        return render_table
+
+    def __str__(self):
+        return self.get_str()
+
+    __repr__ = __str__
 
     def add(self, config: Configuration, perf: Perf):
         if config in self.data:
