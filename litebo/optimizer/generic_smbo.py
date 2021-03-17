@@ -134,3 +134,15 @@ class SMBO(BOBase):
             if obj < self.FAILED_PERF[idx]:
                 self.writer.add_scalar('data/objective-%d' % (idx + 1), obj, self.iteration_id)
         return config, trial_state, objs, trial_info
+
+    def visualize_jupyter(self):
+        visualize_data_premature = self.get_history().data
+        visualize_data = []
+        for config, perf in visualize_data_premature.items():
+            config_perf = config.get_dictionary()
+            config_perf['perf'] = perf
+            visualize_data.append(config_perf)
+        import hiplot as hip
+        hip.Experiment.from_iterable(visualize_data).display()
+        return
+

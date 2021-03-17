@@ -31,7 +31,6 @@ test/.ipynb_checkpoints/
 .coverage
 .pypirc
 .ipynb_checkpoints/
-*.ipynb
 *~
 .html/
 .mypy_cache/

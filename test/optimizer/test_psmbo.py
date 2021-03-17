@@ -32,7 +32,8 @@ def branin(x):
 cs = ConfigurationSpace()
 x1 = UniformFloatHyperparameter("x1", -5, 10, default_value=0)
 x2 = UniformFloatHyperparameter("x2", 0, 15, default_value=0)
-cs.add_hyperparameters([x1, x2])
+x3 = UniformFloatHyperparameter("x3", -10, 10, default_value=0)
+cs.add_hyperparameters([x1, x2, x3])
 
 bo = pSMBO(branin, cs, max_runs=50, batch_size=3,
            time_limit_per_trial=time_limit,
@@ -46,5 +47,5 @@ print(inc_value)
 
 # =====for vvv=====
 # after the execution of this file
-# goto the roor directory using the command `tensorboard --logdir`
+# goto the root directory using the command `tensorboard --logdir`
 visualize(bo.logger_name)

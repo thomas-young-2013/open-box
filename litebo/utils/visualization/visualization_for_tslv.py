@@ -22,6 +22,8 @@ def visualize(logging_file_path):
             score_dict = dict()
         elif re.match(', result is:', log_entry) is None:  # continue parsing configuration
             search_obj = re.search(r'(.*), Value: (.*)', log_entry)
+            if search_obj is None:
+                search_obj = re.search(r'(.*), Constant: (.*)', log_entry)
             config_dict[str(search_obj.group(1))] = float(search_obj.group(2))
             print('key is: ', str(search_obj.group(1)), ' value is : ', config_dict[str(search_obj.group(1))])
         else:  # parsing performance and end
