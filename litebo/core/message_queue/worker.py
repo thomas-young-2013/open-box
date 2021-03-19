@@ -7,9 +7,9 @@ from litebo.core.message_queue.worker_messager import WorkerMessager
 
 
 class Worker(object):
-    def __init__(self, objective_function, ip="127.0.0.1", port=13579):
+    def __init__(self, objective_function, ip="127.0.0.1", port=13579, authkey=b'abc'):
         self.objective_function = objective_function
-        self.worker_messager = WorkerMessager(ip, port)
+        self.worker_messager = WorkerMessager(ip, port, authkey)
 
     def run(self):
         while True:
@@ -38,22 +38,29 @@ class Worker(object):
                         'Timeout: time limit for this evaluation is %.1fs' % time_limit_per_trial)
                 else:
                     if _result is None:
-                        perf = MAXINT
-                    elif isinstance(_result, dict):
-                        perf = _result['objective_value']
+                        objs = None
+                        constraints = None
+                    elif isinstance(_result, dict):  # recommended usage
+                        objs = _result['objs']
+                        constraints = _result.get('constraints', None)
+                    elif isinstance(_result, (int, float)):
+                        objs = (_result,)
+                        constraints = None
                     else:
-                        perf = _result
+                        objs = _result
+                        constraints = None
             except Exception as e:
                 if isinstance(e, TimeoutException):
                     trial_state = TIMEOUT
                 else:
                     traceback.print_exc(file=sys.stdout)
                     trial_state = FAILED
-                perf = MAXINT
-            observation = [config, perf, trial_state]
+                objs = None
+                constraints = None
+            observation = [config, trial_state, constraints, objs]
 
             # Send result
-            print("Worker: perf=%.3f. sending result." % perf)
+            print("Worker: observation=%s. sending result." % str(observation))
             try:
                 self.worker_messager.send_message(observation)
             except Exception as e:

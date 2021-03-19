@@ -6,6 +6,7 @@ from collections import OrderedDict
 
 from litebo.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
 from litebo.core.computation.parallel_process import ParallelEvaluation
+from multiprocessing import Lock
 from litebo.utils.limit import time_limit, TimeoutException
 from litebo.core.sync_batch_advisor import SyncBatchAdvisor
 from litebo.core.async_batch_advisor import AsyncBatchAdvisor
@@ -22,59 +23,91 @@ def wrapper(param):
             raise TimeoutException('Timeout: time limit for this evaluation is %.1fs' % time_limit_per_trial)
         else:
             if _result is None:
-                result = MAXINT
-            elif isinstance(_result, dict):
-                result = _result['objective_value']
+                objs = None
+                constraints = None
+            elif isinstance(_result, dict):  # recommended usage
+                objs = _result['objs']
+                constraints = _result.get('constraints', None)
+            elif isinstance(_result, (int, float)):
+                objs = (_result,)
+                constraints = None
             else:
-                result = _result
+                objs = _result
+                constraints = None
     except Exception as e:
         if isinstance(e, TimeoutException):
             trial_state = TIMEOUT
         else:
             traceback.print_exc(file=sys.stdout)
             trial_state = FAILED
-        result = MAXINT
-    return [config, result]
+        objs = None
+        constraints = None
+    return [config, constraints, objs]
 
 
 class pSMBO(BOBase):
     def __init__(self, objective_function, config_space,
-                 batch_size=4,
-                 sample_strategy='bo',
                  parallel_strategy='async',
-                 time_limit_per_trial=180,
+                 batch_size=4,
+                 batch_strategy='median_imputation',
+                 num_constraints=0,
+                 num_objs=1,
+                 sample_strategy: str = 'bo',
                  max_runs=200,
-                 logging_dir='logs',
-                 initial_configurations=None,
+                 time_limit_per_trial=180,
+                 surrogate_type=None,
+                 acq_type=None,
+                 acq_optimizer_type='local_random',
+                 initial_runs=3,
                  init_strategy='random_explore_first',
+                 initial_configurations=None,
+                 ref_point=None,
                  history_bo_data: List[OrderedDict] = None,
-                 initial_runs=10,
+                 logging_dir='logs',
                  task_id=None,
-                 random_state=1):
+                 random_state=1,
+                 ):
 
+        self.task_info = {'num_constraints': num_constraints, 'num_objs': num_objs}
+        self.FAILED_PERF = [MAXINT] * num_objs
         super().__init__(objective_function, config_space, task_id=task_id, output_dir=logging_dir,
                          random_state=random_state, initial_runs=initial_runs, max_runs=max_runs,
                          sample_strategy=sample_strategy, time_limit_per_trial=time_limit_per_trial,
                          history_bo_data=history_bo_data)
+
         if parallel_strategy == 'sync':
-            self.config_advisor = SyncBatchAdvisor(config_space,
+            self.config_advisor = SyncBatchAdvisor(config_space, self.task_info,
+                                                   batch_size=batch_size,
+                                                   batch_strategy=batch_strategy,
                                                    initial_trials=initial_runs,
                                                    initial_configurations=initial_configurations,
                                                    init_strategy=init_strategy,
+                                                   history_bo_data=history_bo_data,
                                                    optimization_strategy=sample_strategy,
-                                                   batch_size=batch_size,
+                                                   surrogate_type=surrogate_type,
+                                                   acq_type=acq_type,
+                                                   acq_optimizer_type=acq_optimizer_type,
+                                                   ref_point=ref_point,
                                                    task_id=task_id,
                                                    output_dir=logging_dir,
-                                                   rng=self.rng)
+                                                   random_state=random_state)
         elif parallel_strategy == 'async':
-            self.config_advisor = AsyncBatchAdvisor(config_space,
+            self.config_advisor = AsyncBatchAdvisor(config_space, self.task_info,
+                                                    batch_size=batch_size,
+                                                    batch_strategy=batch_strategy,
                                                     initial_trials=initial_runs,
                                                     initial_configurations=initial_configurations,
                                                     init_strategy=init_strategy,
+                                                    history_bo_data=history_bo_data,
                                                     optimization_strategy=sample_strategy,
+                                                    surrogate_type=surrogate_type,
+                                                    acq_type=acq_type,
+                                                    acq_optimizer_type=acq_optimizer_type,
+                                                    ref_point=ref_point,
                                                     task_id=task_id,
                                                     output_dir=logging_dir,
-                                                    rng=self.rng)
+                                                    random_state=random_state)
+            self.update_lock = Lock()
         else:
             raise ValueError('Invalid parallel strategy - %s.' % parallel_strategy)
 
@@ -82,10 +115,14 @@ class pSMBO(BOBase):
         self.batch_size = batch_size
 
     def callback(self, result):
-        _config, _perf = result[0], result[1]
-        _observation = [_config, _perf, SUCCESS]
+        _config, _constraints, _objs = result
+        if _objs is None:
+            _objs = self.FAILED_PERF
+        _observation = [_config, SUCCESS, _constraints, _objs]
         # Report the result, and remove the config from the running queue.
-        self.config_advisor.update_observation(_observation)
+        with self.update_lock:
+            self.config_advisor.update_observation(_observation)
+            self.logger.info('Update observation %d: %s.' % (self.iteration_id, str(_observation)))
         # Parent process: collect the result and increment id.
         self.iteration_id += 1
 
@@ -108,21 +145,19 @@ class pSMBO(BOBase):
             batch_id = 0
             while batch_id < batch_num:
                 configs = self.config_advisor.get_suggestions()
+                self.logger.info('Running on %d configs in the %d-th batch.' % (len(configs), batch_id))
                 params = [(self.objective_function, config, self.time_limit_per_trial) for config in configs]
                 # Wait all workers to complete their corresponding jobs.
                 results = proc.parallel_execute(params)
                 # Report their results.
-                for idx, (_config, _result) in enumerate(zip(configs, results)):
-                    if _result[-1] is None:
-                        _perf = MAXINT
-                    elif isinstance(_result[-1], dict):
-                        _perf = _result[-1]['objective_value']
-                    else:
-                        _perf = _result[-1]
-                    _observation = [_config, _perf, SUCCESS]
+                for idx, _result in enumerate(results):
+                    _config, _constraints, _objs = _result
+                    if _objs is None:
+                        _objs = self.FAILED_PERF
+                    _observation = [_config, SUCCESS, _constraints, _objs]
                     self.config_advisor.update_observation(_observation)
-                    self.logger.info('In the %d-th batch [%d], using config %s, result is: %.3f'
-                                     % (batch_id, idx, str(_config), _perf))
+                    self.logger.info('In the %d-th batch [%d], using config %s, result is: %s'
+                                     % (batch_id, idx, str(_config), str(_objs)))
                 batch_id += 1
 
     def run(self):

@@ -25,12 +25,12 @@ class SMBO(BOBase):
                  surrogate_type=None,
                  acq_type=None,
                  acq_optimizer_type='local_random',
+                 initial_runs=3,
+                 init_strategy='random_explore_first',
+                 initial_configurations=None,
                  ref_point=None,
                  history_bo_data: List[OrderedDict] = None,
                  logging_dir='logs',
-                 init_strategy='random_explore_first',
-                 initial_configurations=None,
-                 initial_runs=3,
                  task_id=None,
                  random_state=1,
                  **kwargs):
@@ -104,8 +104,18 @@ class SMBO(BOBase):
                     raise TimeoutException(
                         'Timeout: time limit for this evaluation is %.1fs' % self.time_limit_per_trial)
                 else:
-                    objs = _result['objs'] if _result['objs'] is not None else self.FAILED_PERF
-                    constraints = _result.get('constraints', None)
+                    if _result is None:
+                        objs = self.FAILED_PERF
+                        constraints = None
+                    elif isinstance(_result, dict):     # recommended usage
+                        objs = _result['objs'] if _result['objs'] is not None else self.FAILED_PERF
+                        constraints = _result.get('constraints', None)
+                    elif isinstance(_result, (int, float)):
+                        objs = (_result, )
+                        constraints = None
+                    else:
+                        objs = _result
+                        constraints = None
             except Exception as e:
                 if isinstance(e, TimeoutException):
                     trial_state = TIMEOUT

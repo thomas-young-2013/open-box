@@ -35,10 +35,12 @@ x2 = UniformFloatHyperparameter("x2", 0, 15, default_value=0)
 x3 = UniformFloatHyperparameter("x3", -10, 10, default_value=0)
 cs.add_hyperparameters([x1, x2, x3])
 
-bo = pSMBO(branin, cs, max_runs=50, batch_size=3,
+bo = pSMBO(branin, cs, max_runs=20, batch_size=3,
+           batch_strategy='median_imputation',
+           parallel_strategy='sync',
            time_limit_per_trial=time_limit,
            logging_dir='logs',
-           parallel_strategy='sync')
+           )
 bo.run()
 inc_value = bo.get_incumbent()
 print('BO', '=' * 30)
@@ -48,4 +50,4 @@ print(inc_value)
 # =====for vvv=====
 # after the execution of this file
 # goto the root directory using the command `tensorboard --logdir`
-visualize(bo.logger_name)
+visualize(bo.logger_name)   # todo: update to new api
