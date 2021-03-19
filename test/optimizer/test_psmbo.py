@@ -40,6 +40,7 @@ bo = pSMBO(branin, cs, max_runs=20, batch_size=3,
            parallel_strategy='sync',
            time_limit_per_trial=time_limit,
            logging_dir='logs',
+           task_id='test_psmbo',
            )
 bo.run()
 inc_value = bo.get_incumbent()

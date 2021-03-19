@@ -1,5 +1,6 @@
 import numpy as np
 from litebo.utils.start_smbo import create_smbo
+import matplotlib.pyplot as plt
 
 
 def branin(x):
@@ -30,14 +31,18 @@ config_dict = {
         },
     },
     "advisor_type": 'default',
-    "max_runs": 90,
+    "max_runs": 100,
     "time_limit_per_trial": 5,
     "logging_dir": 'logs',
     "task_id": 'hp1'
 }
 
 bo = create_smbo(branin, **config_dict)
-bo.run()
+history = bo.run()
 inc_value = bo.get_incumbent()
 print('BO', '=' * 30)
 print(inc_value)
+
+print(history)
+history.plot_convergence(true_minimum=0.397887)
+plt.show()

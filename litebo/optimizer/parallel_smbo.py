@@ -68,6 +68,9 @@ class pSMBO(BOBase):
                  random_state=1,
                  ):
 
+        if task_id is None:
+            raise ValueError('Task id is not SPECIFIED. Please input task id first.')
+
         self.task_info = {'num_constraints': num_constraints, 'num_objs': num_objs}
         self.FAILED_PERF = [MAXINT] * num_objs
         super().__init__(objective_function, config_space, task_id=task_id, output_dir=logging_dir,
