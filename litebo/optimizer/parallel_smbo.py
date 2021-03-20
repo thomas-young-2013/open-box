@@ -8,6 +8,7 @@ from litebo.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
 from litebo.core.computation.parallel_process import ParallelEvaluation
 from multiprocessing import Lock
 from litebo.utils.limit import time_limit, TimeoutException
+from litebo.utils.util_funcs import get_result
 from litebo.core.sync_batch_advisor import SyncBatchAdvisor
 from litebo.core.async_batch_advisor import AsyncBatchAdvisor
 from litebo.optimizer.base import BOBase
@@ -22,18 +23,7 @@ def wrapper(param):
         if timeout_status:
             raise TimeoutException('Timeout: time limit for this evaluation is %.1fs' % time_limit_per_trial)
         else:
-            if _result is None:
-                objs = None
-                constraints = None
-            elif isinstance(_result, dict):  # recommended usage
-                objs = _result['objs']
-                constraints = _result.get('constraints', None)
-            elif isinstance(_result, (int, float)):
-                objs = (_result,)
-                constraints = None
-            else:
-                objs = _result
-                constraints = None
+            objs, constraints = get_result(_result, FAILED_PERF=None)
     except Exception as e:
         if isinstance(e, TimeoutException):
             trial_state = TIMEOUT

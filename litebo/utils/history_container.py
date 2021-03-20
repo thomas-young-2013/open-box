@@ -155,6 +155,17 @@ class HistoryContainer(object):
         return plot_convergence(iterations, mins, cliped_losses, xlabel, ylabel, ax, name, alpha, yscale, color,
                                 true_minimum, **kwargs)
 
+    def visualize_jupyter(self):
+        import hiplot as hip
+        visualize_data_premature = self.data
+        visualize_data = []
+        for config, perf in visualize_data_premature.items():
+            config_perf = config.get_dictionary()
+            config_perf['perf'] = perf
+            visualize_data.append(config_perf)
+        hip.Experiment.from_iterable(visualize_data).display()
+        return
+
     def save_json(self, fn: str = "history_container.json"):
         """
         saves runhistory on disk
