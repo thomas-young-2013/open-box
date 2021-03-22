@@ -9,13 +9,11 @@ import sys
 import importlib.util
 from pathlib import Path
 from typing import Dict, List
-from setuptools import setup, find_packages
-
-import setuptools
 from distutils.core import setup
+from setuptools import find_packages
 
 
-requirements: Dict[str, List[str]] = {}
+requirements = dict()
 for extra in ["dev", "main"]:
     # Skip `package @ git+[repo_url]` because not supported by pypi
     requirements[extra] = [r
@@ -44,9 +42,15 @@ setup(
     url='https://github.com/thomas-young-2013/lite-bo',
     author="Thomas (Yang) Li from DAIM@PKU",
     packages=find_packages(),
+    license="MIT",
     install_requires=requirements["main"],
     extras_require={"dev": requirements["dev"]},
     package_data={"lite-bo": ["py.typed"]},
     include_package_data=True,
-    python_requires='>=3.5.2'
+    python_requires='>=3.5.2',
+    entry_points={
+        "console_scripts": [
+            "litebo = litebo.__main__:main",
+        ]
+    }
 )
