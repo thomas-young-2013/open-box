@@ -2,7 +2,6 @@ import json
 import collections
 from typing import List, Union
 import numpy as np
-from terminaltables import AsciiTable
 from litebo.utils.constants import MAXINT
 from litebo.utils.config_space import Configuration, ConfigurationSpace
 from litebo.utils.logging_utils import get_logger
@@ -58,6 +57,7 @@ class HistoryContainer(object):
         return self.incumbents
 
     def get_str(self):
+        from terminaltables import AsciiTable
         incumbents = self.get_incumbents()
         if not incumbents:
             return 'No incumbents in history. Please run optimization process.'

@@ -3,11 +3,9 @@ import sys
 import time
 import numpy as np
 
-from ConfigSpace.hyperparameters import UniformFloatHyperparameter
-
 sys.path.append(os.getcwd())
 from litebo.optimizer.parallel_smbo import pSMBO
-from litebo.utils.config_space import ConfigurationSpace
+from litebo.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter
 from litebo.utils.visualization.visualizatoin_for_test_psmbo import visualize
 
 time_limit = 5

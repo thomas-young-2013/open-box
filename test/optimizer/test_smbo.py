@@ -31,7 +31,8 @@ config_dict = {
         },
     },
     "advisor_type": 'default',
-    "max_runs": 100,
+    "max_runs": 50,
+    "surrogate_type": 'gp',
     "time_limit_per_trial": 5,
     "logging_dir": 'logs',
     "task_id": 'hp1'
@@ -46,3 +47,6 @@ print(inc_value)
 print(history)
 history.plot_convergence(true_minimum=0.397887)
 plt.show()
+#plt.savefig('logs/plot_convergence_branin.png')
+
+#history.visualize_jupyter()
