@@ -8,7 +8,7 @@
 Open-BOX documentation
 ======================
 
-Open-BOX is an optimized tensor library for deep learning using GPUs and CPUs.
+Open-BOX is an efficient and generalized blackbox optimization (BBO) system.
 
 Features described in this documentation are classified by release status:
 
@@ -32,22 +32,56 @@ Features described in this documentation are classified by release status:
 .. toctree::
    :glob:
    :maxdepth: 1
-   :caption: Notes
+   :caption: Introduction
 
-   notes/*
+   introduction/overview
+   introduction/design_goal
+   introduction/use_case
+   introduction/functionality_scope
 
 .. toctree::
    :glob:
    :maxdepth: 1
-   :caption: Docs Examples
+   :caption: Installation
 
-   examples/*
+   installation/installation_guide
+
+.. toctree::
+   :glob:
+   :maxdepth: 1
+   :caption: Getting Started
+
+   getting_started/quick_example
 
 .. toctree::
    :maxdepth: 1
-   :caption: Summary
+   :caption: Usage Examples
 
-   main
+   usage_examples/single_objective_hpo
+   usage_examples/single_objective_with_constraint
+   usage_examples/multi_objective
+   usage_examples/multi_objective_with_constraint
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Advanced Usage
+
+   advanced_usage/parallel_on_local
+   advanced_usage/distributed_service
+   advanced_usage/transfer_learning
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Manual
+
+   manual/manual
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Doc Examples (for test)
+
+   examples/note1
+   examples/pytorch_rst_complex_example
 
 Indices and tables
 ==================

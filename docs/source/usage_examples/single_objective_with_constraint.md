@@ -1,3 +1,6 @@
+# Single Objective with Constraint
+
+```python
 import numpy as np
 from litebo.optimizer.generic_smbo import SMBO
 from litebo.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter
@@ -30,3 +33,4 @@ bo = SMBO(townsend, townsend_cs,
           task_id='soc')
 bo.run()
 print(bo.get_history())
+```

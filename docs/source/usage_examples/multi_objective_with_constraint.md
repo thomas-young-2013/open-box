@@ -1,34 +1,29 @@
-import os
-import sys
+# Multi-Objective with Constraint
+
+```python
 import numpy as np
 import matplotlib.pyplot as plt
-
-sys.path.insert(0, os.getcwd())
 
 from litebo.optimizer.generic_smbo import SMBO
 from litebo.benchmark.objective_functions.synthetic import CONSTR
 
-num_inputs = 2
-num_objs = 2
 prob = CONSTR()
+dim = 2
+initial_runs = 2 * (dim + 1)
 
-acq_optimizer_type = 'random_scipy'
-seed = 1
-initial_runs = 2 * (num_inputs + 1)
-max_runs = 100 + initial_runs
-
-bo = SMBO(prob.evaluate, prob.config_space,
-          task_id='ehvic',
+bo = SMBO(prob.evaluate,
+          prob.config_space,
           num_objs=prob.num_objs,
           num_constraints=prob.num_constraints,
           acq_type='ehvic',
-          acq_optimizer_type=acq_optimizer_type,
+          acq_optimizer_type='random_scipy',
           surrogate_type='gp',
           ref_point=prob.ref_point,
-          max_runs=max_runs,
+          max_runs=100,
           initial_runs=initial_runs,
           init_strategy='sobol',
-          random_state=seed)
+          task_id='moc',
+          random_state=1)
 bo.run()
 
 # plot pareto front
@@ -49,11 +44,9 @@ if pareto_front.shape[-1] in (2, 3):
 
 # plot hypervolume
 hypervolume = bo.get_history().hv_data
-try:
-    log_hv_diff = np.log10(prob.max_hv - np.asarray(hypervolume))
-    plt.plot(log_hv_diff)
-except NotImplementedError:
-    plt.plot(hypervolume)
+log_hv_diff = np.log10(prob.max_hv - np.asarray(hypervolume))
+plt.plot(log_hv_diff)
 plt.xlabel('Iteration')
 plt.ylabel('Log Hypervolume Difference')
 plt.show()
+```

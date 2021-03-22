@@ -96,8 +96,9 @@ class Advisor(object, metaclass=abc.ABCMeta):
 
     def check_setup(self):
         """
-            check num_objs, num_constraints, acq_type, surrogate_type
+            check optimization_strategy, num_objs, num_constraints, acq_type, surrogate_type
         """
+        assert self.optimization_strategy in ['bo', 'random']
         assert isinstance(self.num_objs, int) and self.num_objs >= 1
         assert isinstance(self.num_constraints, int) and self.num_constraints >= 0
 
@@ -255,6 +256,11 @@ class Advisor(object, metaclass=abc.ABCMeta):
         num_failed_trial = len(self.failed_configurations)
         failed_perfs = list() if self.max_y is None else [self.max_y] * num_failed_trial
         Y = np.array(self.perfs + failed_perfs, dtype=np.float64)
+        cY = []
+        if self.num_constraints > 0:
+            for c in self.constraint_perfs:
+                failed_c = list() if num_failed_trial == 0 else [max(c)] * num_failed_trial
+                cY.append(np.array(c + failed_c, dtype=np.float64))
 
         num_config_evaluated = len(self.perfs + self.failed_configurations)
         if num_config_evaluated < self.init_num:
@@ -267,7 +273,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
             if self.num_objs == 1:
                 self.surrogate_model.train(X, Y)
             elif self.acq_type == 'parego':
-                weights = np.random.random_sample(self.num_objs)
+                weights = self.rng.random_sample(self.num_objs)
                 weights = weights / np.sum(weights)
                 scalarized_obj = get_chebyshev_scalarization(weights, Y)
                 self.surrogate_model.train(X, scalarized_obj(Y))
@@ -276,15 +282,9 @@ class Advisor(object, metaclass=abc.ABCMeta):
                     self.surrogate_model[i].train(X, Y[:, i])
 
             # train constraint model
-            cX = None
             if self.num_constraints > 0:
-                cX = []
-                for c in self.constraint_perfs:
-                    failed_c = list() if num_failed_trial == 0 else [max(c)] * num_failed_trial
-                    cX.append(np.array(c + failed_c, dtype=np.float64))
-
                 for i, model in enumerate(self.constraint_models):
-                    model.train(X, cX[i])
+                    model.train(X, cY[i])
 
             # update acquisition function
             if self.num_objs == 1:
@@ -295,7 +295,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
                                                  num_data=num_config_evaluated)
             else:   # multi-objectives
                 mo_incumbent_value = self.history_container.get_mo_incumbent_value()
-                if self.acq_type.startswith('parego'):
+                if self.acq_type == 'parego':
                     self.acquisition_function.update(model=self.surrogate_model,
                                                      constraint_models=self.constraint_models,
                                                      eta=scalarized_obj(np.atleast_2d(mo_incumbent_value)),
@@ -310,7 +310,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
                 else:
                     self.acquisition_function.update(model=self.surrogate_model,
                                                      constraint_models=self.constraint_models,
-                                                     constraint_perfs=cX,   # for MESMOC
+                                                     constraint_perfs=cY,   # for MESMOC
                                                      eta=mo_incumbent_value,
                                                      num_data=num_config_evaluated,
                                                      X=X, Y=Y)
