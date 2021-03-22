@@ -1,3 +1,4 @@
+import sys
 import json
 import collections
 from typing import List, Union
@@ -156,7 +157,16 @@ class HistoryContainer(object):
                                 true_minimum, **kwargs)
 
     def visualize_jupyter(self):
-        import hiplot as hip
+        try:
+            import hiplot as hip
+        except ModuleNotFoundError:
+            if sys.version_info < (3, 6):
+                raise ValueError("HiPlot requires Python 3.6 or newer. "
+                                 "See https://facebookresearch.github.io/hiplot/getting_started.html")
+            self.logger.error("Please run 'pip install hiplot'. "
+                              "HiPlot requires Python 3.6 or newer.")
+            raise
+
         visualize_data_premature = self.data
         visualize_data = []
         for config, perf in visualize_data_premature.items():
