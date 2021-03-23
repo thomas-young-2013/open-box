@@ -1,5 +1,5 @@
 <p align="center">
-<img src="https://raw.githubusercontent.com/thomas-young-2013/lite-bo/blob/master/docs/logos/logo.png" width="68%">
+<img src="https://raw.githubusercontent.com/thomas-young-2013/lite-bo/master/docs/logos/logo.png" width="68%">
 </p>
 
 -----------
