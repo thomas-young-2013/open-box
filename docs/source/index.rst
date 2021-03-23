@@ -75,10 +75,17 @@ Features described in this documentation are classified by release status:
 
 .. toctree::
    :maxdepth: 1
-   :caption: Doc Examples (for test)
+   :caption: Doc Template from PyTorch (example)
 
-   examples/note1
    examples/pytorch_rst_complex_example
+
+.. toctree::
+   :glob:
+   :maxdepth: 2
+   :caption: APIs
+
+   api/*
+
 
 Indices and tables
 ==================

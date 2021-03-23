@@ -16,6 +16,9 @@ from litebo.core.base import Observation
 
 
 class Advisor(object, metaclass=abc.ABCMeta):
+    """
+    Basic Advisor Class, which adopts a policy to sample a configuration.
+    """
     def __init__(self, config_space,
                  task_info,
                  initial_trials=10,
@@ -96,7 +99,10 @@ class Advisor(object, metaclass=abc.ABCMeta):
 
     def check_setup(self):
         """
-            check optimization_strategy, num_objs, num_constraints, acq_type, surrogate_type
+        Check optimization_strategy, num_objs, num_constraints, acq_type, surrogate_type.
+        Returns
+        -------
+        None
         """
         assert self.optimization_strategy in ['bo', 'random']
         assert isinstance(self.num_objs, int) and self.num_objs >= 1
@@ -162,6 +168,12 @@ class Advisor(object, metaclass=abc.ABCMeta):
                 raise ValueError('Must provide reference point to use EHVI method!')
 
     def setup_bo_basics(self):
+        """
+        Prepare the basic BO components.
+        Returns
+        -------
+        An optimizer object.
+        """
         if self.num_objs == 1 or self.acq_type == 'parego':
             self.surrogate_model = build_surrogate(func_str=self.surrogate_type,
                                                    config_space=self.config_space,
@@ -201,6 +213,16 @@ class Advisor(object, metaclass=abc.ABCMeta):
                                          rng=self.rng)
 
     def create_initial_design(self, init_strategy='default'):
+        """
+        Create several configurations as initial design.
+        Parameters
+        ----------
+        init_strategy: str
+
+        Returns
+        -------
+        Initial configurations.
+        """
         default_config = self.config_space.get_default_configuration()
         num_random_config = self.init_num - 1
         if init_strategy == 'random':
@@ -247,6 +269,12 @@ class Advisor(object, metaclass=abc.ABCMeta):
         return initial_configs
 
     def get_suggestion(self):
+        """
+        Generate a configuration (suggestion) for this query.
+        Returns
+        -------
+        A configuration.
+        """
         if len(self.configurations) == 0:
             X = np.array([])
         else:
@@ -332,6 +360,16 @@ class Advisor(object, metaclass=abc.ABCMeta):
             raise ValueError('Unknown optimization strategy: %s.' % self.optimization_strategy)
 
     def update_observation(self, observation: Observation):
+        """
+        Update the current observations.
+        Parameters
+        ----------
+        observation
+
+        Returns
+        -------
+
+        """
         def bilog(y):
             """Magnify the difference between y and 0"""
             if y >= 0:
@@ -367,6 +405,16 @@ class Advisor(object, metaclass=abc.ABCMeta):
             self.failed_configurations.append(config)
 
     def sample_random_configs(self, num_configs=1):
+        """
+        Sample a batch of random configurations.
+        Parameters
+        ----------
+        num_configs
+
+        Returns
+        -------
+
+        """
         configs = list()
         sample_cnt = 0
         while len(configs) < num_configs:
@@ -383,9 +431,21 @@ class Advisor(object, metaclass=abc.ABCMeta):
         return configs
 
     def save_history(self):
+        """
+        Save the history into a json file.
+        Returns
+        -------
+
+        """
         self.history_container.save_json(self.history_file)
 
     def load_history_from_json(self):
+        """
+        Load history from a json file.
+        Returns
+        -------
+
+        """
         return self.history_container.load_history_from_json(self.config_space, self.history_file)
 
     def get_suggestions(self):
