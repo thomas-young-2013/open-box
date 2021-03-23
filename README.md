@@ -144,6 +144,18 @@ print('BO', '=' * 30)
 print(inc_value)
 ```
 
+## **Releases and Contributing**
+OpenBox has a frequent release cycle. Please let us know if you encounter a bug by [filling an issue](https://github.com/thomas-young-2013/lite-bo/issues/new/choose).
+
+We appreciate all contributions. If you are planning to contribute any bug-fixes, please do so without further discussions.
+
+If you plan to contribute new features, new modules, etc. please first open an issue or reuse an existing issue, and discuss the feature with us.
+
+To learn more about making a contribution to OpenBox, please refer to our [How-to contribution page](https://github.com/thomas-young-2013/lite-bo/blob/master/CONTRIBUTING.md). 
+
+We appreciate all contributions and thank all the contributors!
+
+
 ## **Feedback**
 * [File an issue](https://github.com/thomas-young-2013/lite-bo/issues) on GitHub.
 * Email us via *liyang.cs@pku.edu.cn*.
