@@ -1,6 +1,8 @@
 <p align="center">
-<img src="docs/logos/logo.png" width="68%">
+<img src="https://raw.githubusercontent.com/thomas-young-2013/lite-bo/blob/master/docs/logos/logo.png" width="68%">
 </p>
+
+-----------
 
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)](https://github.com/thomas-young-2013/lite-bo/blob/master/LICENSE)
 [![Build Status](https://api.travis-ci.org/thomas-young-2013/lite-bo.svg?branch=master)](https://api.travis-ci.org/thomas-young-2013)
@@ -10,7 +12,7 @@
 [![Version](https://img.shields.io/github/release/thomas-young-2013/lite-bo.svg)](https://github.com/thomas-young-2013/lite-bo/releases) [![Join the chat at https://gitter.im/bbo-open-box](https://badges.gitter.im/bbo-open-box.svg)](https://gitter.im/bbo-open-box?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Documentation Status](https://readthedocs.org/projects/lite-bo/badge/?version=latest)](https://lite-bo.readthedocs.io/en/latest/?badge=latest)
 
----
+[OpenBox Documentation](https://lite-bo.readthedocs.io/en/latest/?badge=latest)
 
 ## Open-BOX: Generalized and Efficient Blackbox Optimization System.
 Open-BOX is an efficient and generalized blackbox optimization (BBO) system, which owns the following characteristics:
