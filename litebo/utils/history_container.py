@@ -257,10 +257,10 @@ class MOHistoryContainer(HistoryContainer):
                 remove_config.append(pareto_config)
         else:
             self.pareto[config] = perf
-            self.logger.info('Update pareto: %s, %s.' % (str(config), str(perf)))
+            self.logger.info('Update pareto: config=%s, objs=%s.' % (str(config), str(perf)))
 
         for conf in remove_config:
-            self.logger.info('Remove from pareto: %s, %s.' % (str(conf), str(self.pareto[conf])))
+            self.logger.info('Remove from pareto: config=%s, objs=%s.' % (str(conf), str(self.pareto[conf])))
             self.pareto.pop(conf)
 
         # update mo_incumbents
@@ -394,10 +394,6 @@ class MultiStartHistoryContainer(object):
     def get_pareto_set(self):
         assert self.num_objs > 1
         return self.current.get_pareto_set()
-
-    def get_pareto_front(self):
-        assert self.num_objs > 1
-        return self.current.get_pareto_front()
 
     def compute_hypervolume(self, ref_point=None):
         assert self.num_objs > 1

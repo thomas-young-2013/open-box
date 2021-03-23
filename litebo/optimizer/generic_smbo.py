@@ -128,7 +128,7 @@ class SMBO(BOBase):
 
         self.iteration_id += 1
         # Logging.
-        self.logger.info('In the %d-th iteration, the objective value: %s' % (self.iteration_id, str(objs)))
+        self.logger.info('Iteration %d, objective value: %s' % (self.iteration_id, str(objs)))
         # Visualization.
         for idx, obj in enumerate(objs):
             if obj < self.FAILED_PERF[idx]:

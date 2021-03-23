@@ -1,13 +1,10 @@
 # A Quick Example
 
-This document helps you run your first example with **Open-Box**.
+This tutorial helps you run your first example with **Open-Box**.
 
 ## Define Configuration Space
 
 First, define a configuration space using **ConfigSpace** for searching.
-In this example, we create a **ConfigurationSpace** then add two **UniformFloatHyperparameter** into it.
-The parameter **x1** is ranged from -5 to 10. The parameter **x2** is ranged from 0 to 15.
-Default values (optional) of each parameter are specified which may be used in the optimization process.
 
 ```python
 from litebo.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter
@@ -19,8 +16,11 @@ x2 = UniformFloatHyperparameter("x2", 0, 15, default_value=0)
 config_space.add_hyperparameters([x1, x2])
 ```
 
+In this example, we create a **ConfigurationSpace** then add two **UniformFloatHyperparameter** into it.
+The parameter **x1** ranges from -5 to 10. The parameter **x2** ranges from 0 to 15.
+
 Other types of hyperparameter are also supported in **ConfigSpace**.
-Here are examples of how to define **Integer** and **Categorical** hyperparameters.
+Here are examples of how to define **Integer** and **Categorical** hyperparameters:
 
 ```python
 from litebo.utils.config_space import UniformIntegerHyperparameter, CategoricalHyperparameter
@@ -60,7 +60,8 @@ def branin(config):
     return ret
 ```
 
-The input of the objective function is a **Configuration** object sampled from ConfigurationSpace we defined above.
+The input of the objective function is a **Configuration** object sampled from **ConfigurationSpace**
+as we defined above.
 Call <font color=#FF0000>**config.get_dictionary()**</font> to covert **Configuration** to Python **dict** form.
 
 After evaluation, the objective function should return a <font color=#FF0000>**dict (Recommended)**.</font>
@@ -107,7 +108,7 @@ constraint.
 + **surrogate_type='gp'**. For mathematical problem, we suggest using Gaussian Process (**'gp'**) as Bayesian surrogate
 model. For practical problems such as hyperparameter optimization (HPO), we suggest using Random Forest (**'prf'**).
 
-+ **time_limit_per_trial** sets the longest time (seconds) one objective function evaluation could last. Once the 
++ **time_limit_per_trial** sets the time budget (seconds) of each objective function evaluation. Once the 
 evaluation time exceeds this limit, objective function will return as a failed trial.
 
 + **task_id** is set to identify the optimization process.
@@ -140,7 +141,8 @@ print(history)
 +-------------------------+-------------------+
 ```
 
-Call <font color=#FF0000>**history.plot_convergence()**</font> to see the optimization process:
+Call <font color=#FF0000>**history.plot_convergence()**</font> to see the optimization process
+(you may need to call **plt.show()** to see the graph):
 
 ```python
 history.plot_convergence(true_minimum=0.397887)

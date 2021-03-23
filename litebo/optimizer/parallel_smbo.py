@@ -158,3 +158,4 @@ class pSMBO(BOBase):
             self.async_run()
         else:
             self.sync_run()
+        return self.get_history()

@@ -1,34 +1,25 @@
-import os
-import sys
 import numpy as np
 import matplotlib.pyplot as plt
 
-sys.path.insert(0, os.getcwd())
-
 from litebo.optimizer.generic_smbo import SMBO
-from litebo.benchmark.objective_functions.synthetic import CONSTR
+from litebo.benchmark.objective_functions.synthetic import ZDT2
 
-num_inputs = 2
-prob = CONSTR()
-prob.max_hv = 92.02004226679216
+dim = 3
+prob = ZDT2(dim=dim)
 
-acq_optimizer_type = 'random_scipy'
-seed = 1
-initial_runs = 2 * (num_inputs + 1)
-max_runs = 100
-
-bo = SMBO(prob.evaluate, prob.config_space,
-          task_id='ehvic',
+bo = SMBO(prob.evaluate,
+          prob.config_space,
           num_objs=prob.num_objs,
-          num_constraints=prob.num_constraints,
-          acq_type='ehvic',
-          acq_optimizer_type=acq_optimizer_type,
+          num_constraints=0,
+          acq_type='ehvi',
+          acq_optimizer_type='random_scipy',
           surrogate_type='gp',
           ref_point=prob.ref_point,
-          max_runs=max_runs,
-          initial_runs=initial_runs,
+          max_runs=50,
+          initial_runs=2*(dim+1),
           init_strategy='sobol',
-          random_state=seed)
+          task_id='mo',
+          random_state=1)
 bo.run()
 
 # plot pareto front
@@ -45,17 +36,14 @@ if pareto_front.shape[-1] in (2, 3):
         ax.set_ylabel('Objective 2')
         ax.set_zlabel('Objective 3')
     plt.title('Pareto Front')
-    plt.savefig('logs/plot_pareto_front_constr.png')
+    plt.savefig('logs/plot_pareto_front_zdt2.png')
     plt.show()
 
 # plot hypervolume
 hypervolume = bo.get_history().hv_data
-try:
-    log_hv_diff = np.log10(prob.max_hv - np.asarray(hypervolume))
-    plt.plot(log_hv_diff)
-except NotImplementedError:
-    plt.plot(hypervolume)
+log_hv_diff = np.log10(prob.max_hv - np.asarray(hypervolume))
+plt.plot(log_hv_diff)
 plt.xlabel('Iteration')
 plt.ylabel('Log Hypervolume Difference')
-plt.savefig('logs/plot_hypervolume_constr.png')
-plt.show()
+#plt.show()
+plt.savefig('logs/plot_hypervolume_zdt2.png')

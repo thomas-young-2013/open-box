@@ -35,9 +35,6 @@ Features described in this documentation are classified by release status:
    :caption: Introduction
 
    introduction/overview
-   introduction/design_goal
-   introduction/use_case
-   introduction/functionality_scope
 
 .. toctree::
    :glob:
