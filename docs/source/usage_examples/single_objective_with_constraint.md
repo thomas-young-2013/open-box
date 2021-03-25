@@ -1,8 +1,8 @@
 # Single Objective with Constraint
 
-In this tutorial, we illustrate how to optimize a constrained problem with **Open-Box**.
+In this tutorial, we illustrate how to optimize a constrained problem with **OpenBox**.
 
-## Define Configuration Space and Objective Function
+## Problem Setup
 
 First, **define configuration space** to search and **define objective function**
 to <font color=#FF0000>**minimize**</font>. Here we use the constrained **Mishra** function.

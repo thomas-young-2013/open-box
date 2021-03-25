@@ -1,6 +1,6 @@
 # A Quick Example
 
-This tutorial helps you run your first example with **Open-Box**.
+This tutorial helps you run your first example with **OpenBox**.
 
 ## Define Configuration Space
 
@@ -34,7 +34,7 @@ For advanced usage of **ConfigSpace**, please refer to [ConfigSpace’s document
 ## Define Objective Function
 
 Second, define the objective function to be optimized.
-Note that **Open-Box** aims to <font color=#FF0000>**minimize**</font> the objective function.
+Note that **OpenBox** aims to <font color=#FF0000>**minimize**</font> the objective function.
 Here we use the **Branin** function.
 
 ```python

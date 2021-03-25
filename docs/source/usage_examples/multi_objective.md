@@ -1,6 +1,6 @@
 # Multi-Objective
 
-In this tutorial, we illustrate how to optimize multiple objectives problem with **Open-Box**.
+In this tutorial, we illustrate how to optimize multiple objectives problem with **OpenBox**.
 
 ## Problem Setup
 
@@ -38,6 +38,7 @@ bo = SMBO(prob.evaluate,
           initial_runs=2*(dim+1),
           init_strategy='sobol',
           ref_point=prob.ref_point,
+          time_limit_per_trial=10,
           task_id='mo',
           random_state=1)
 bo.run()
@@ -64,8 +65,13 @@ using **'local_random'**.
 
 + **init_strategy='sobol'** sets the strategy to suggest the initial configurations.
 
-+ **ref_point** sets the reference point of the problem used to calculate the hypervolume. If using EHVI method,
-a ref_point must be provided.
++ **ref_point** specifies the reference point, which is the upper bound on the objectives used for computing
+hypervolume. If using EHVI method, a reference point must be provided. In practice the reference point can be
+set 1) using domain knowledge to be slightly worse than the upper bound of objective values, where the upper bound is
+the maximum acceptable value of interest for each objective, or 2) using a dynamic reference point selection strategy.
+
++ **time_limit_per_trial** sets the time budget (seconds) of each objective function evaluation. Once the 
+evaluation time exceeds this limit, objective function will return as a failed trial.
 
 + **task_id** is set to identify the optimization process.
 
