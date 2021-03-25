@@ -15,7 +15,7 @@ To install SWIG, please refer to [SWIG Installation Guide](./install_swig.md)
 
 ## Installation from PyPI
 
-To install OpenBox from pypi:
+To install OpenBox from PyPI:
 
 ```bash
 pip install lite-bo
@@ -36,5 +36,5 @@ python setup.py install
 
 ## Trouble Shooting
 
-For macOS users who have trouble installing pyrfr, see the [tips](../../install/install-pyrfr-on-macos.md).
+For macOS users who have trouble installing pyrfr, see the [tips](./install-pyrfr-on-macos.md).
 
