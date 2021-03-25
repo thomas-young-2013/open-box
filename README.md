@@ -13,8 +13,8 @@
 [![Documentation Status](https://readthedocs.org/projects/lite-bo/badge/?version=latest)](https://lite-bo.readthedocs.io/en/latest/?badge=latest)
 
 
-## Open-BOX: Generalized and Efficient Blackbox Optimization System.
-Open-BOX is an efficient and generalized blackbox optimization (BBO) system, which owns the following characteristics:
+## OpenBox: Generalized and Efficient Blackbox Optimization System.
+OpenBox is an efficient and generalized blackbox optimization (BBO) system, which owns the following characteristics:
 1. Basic BBO algorithms.
 2. BBO with constraints.
 3. BBO with multiple objectives.
@@ -85,7 +85,7 @@ pip install lite-bo
 
 For macOS users, you need to install `pyrfr` correctly first, and then `pip install lite-bo`. 
 
-The tips for installing `pyrfr` on macOS is [here](docs/install/install-pyrfr-on-macos.md).
+The tips for installing `pyrfr` on macOS is [here](docs/source/installation/install-pyrfr-on-macos.md).
 
 **Manual installation from the github source**
 
@@ -94,7 +94,8 @@ git clone https://github.com/thomas-young-2013/lite-bo.git && cd lite-bo
 cat requirements.txt | xargs -n 1 -L 1 pip install
 python setup.py install
  ```
-macOS users still need to follow the [tips](docs/install/install-pyrfr-on-macos.md) to install `pyrfr` correctly first.
+macOS users still need to follow the [tips](docs/source/installation/install-pyrfr-on-macos.md) 
+to install `pyrfr` correctly first.
 
 ## Quick Start
 

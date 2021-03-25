@@ -1,6 +1,6 @@
 # Single Objective Hyperparameter Optimization
 
-This tutorial will guide you on how to tune hyperparameters of ML task with **Open-Box**.
+This tutorial will guide you on how to tune hyperparameters of ML task with **OpenBox**.
 
 ## Prepare Data
 
@@ -15,7 +15,7 @@ X, y = load_digits(return_X_y=True)
 x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=1)
 ```
 
-## Define Configuration Space and Objective Function
+## Problem Setup
 
 Second, **define configuration space** to search and **define objective function**
 to <font color=#FF0000>**minimize**</font>.

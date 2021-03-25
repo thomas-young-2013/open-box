@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.abspath('./../../'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'open-box'
+project = 'OpenBox'
 copyright = '2021, Thomas (Yang) Li'
 author = 'Thomas (Yang) Li'
 
