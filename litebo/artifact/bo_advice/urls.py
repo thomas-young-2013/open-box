@@ -1,7 +1,8 @@
 from django.urls import path
 
-from litebo.artifact.bo_advice import views
+from . import views
 
+app_name = 'bo_advice'
 urlpatterns = [
     # ex: /bo_advice/task_register/
     path('task_register/', views.task_register, name='task_register'),
