@@ -20,7 +20,7 @@ class BOBase(object, metaclass=abc.ABCMeta):
 
         self.task_id = task_id
         _time_stamp = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-        _logger_id = '%s-[%s]' % (task_id, _time_stamp)
+        _logger_id = '%s' % task_id
         self.logger_name = None
         self.logger = self._get_logger(_logger_id)
         self.rng = np.random.RandomState(random_state)

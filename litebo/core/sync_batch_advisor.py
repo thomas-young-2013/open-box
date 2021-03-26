@@ -3,43 +3,59 @@ import numpy as np
 
 from litebo.utils.config_space.util import convert_configurations_to_array
 from litebo.utils.constants import MAXINT, SUCCESS
-from litebo.core.advisor import Advisor
+from litebo.utils.multi_objective import get_chebyshev_scalarization, NondominatedPartitioning
+from litebo.core.generic_advisor import Advisor
 
 
 class SyncBatchAdvisor(Advisor):
     def __init__(self, config_space,
+                 task_info,
                  batch_size=4,
+                 batch_strategy='median_imputation',
                  initial_trials=10,
                  initial_configurations=None,
                  init_strategy='random_explore_first',
-                 optimization_strategy='bo',
-                 batch_strategy='median_imputation',
                  history_bo_data=None,
-                 surrogate_type='prf',
+                 optimization_strategy='bo',
+                 surrogate_type=None,
+                 acq_type=None,
+                 acq_optimizer_type='local_random',
+                 ref_point=None,
                  output_dir='logs',
                  task_id=None,
-                 rng=None):
+                 random_state=None):
 
         self.batch_size = batch_size
         self.batch_strategy = batch_strategy
         super().__init__(config_space,
+                         task_info,
                          initial_trials=initial_trials,
                          initial_configurations=initial_configurations,
                          init_strategy=init_strategy,
-                         optimization_strategy=optimization_strategy,
                          history_bo_data=history_bo_data,
+                         optimization_strategy=optimization_strategy,
                          surrogate_type=surrogate_type,
+                         acq_type=acq_type,
+                         acq_optimizer_type=acq_optimizer_type,
+                         ref_point=ref_point,
                          output_dir=output_dir,
                          task_id=task_id,
-                         rng=rng)
+                         random_state=random_state)
 
-        if batch_strategy == 'median_imputation':
-            acq_type = 'ei'
-        elif batch_strategy == 'local_penalization':
-            acq_type = 'lpei'
-        else:
-            raise ValueError('Unsupported batch strategy - %s.' % batch_strategy)
-        super(SyncBatchAdvisor, self).setup_bo_basics(acq_type=acq_type)
+    def check_setup(self):
+        super().check_setup()
+
+        if self.batch_strategy is None:
+            self.batch_strategy = 'median_imputation'
+
+        assert self.batch_strategy in ['median_imputation', 'local_penalization']
+
+        if self.num_objs > 1 or self.num_constraints > 0:
+            # local_penalization only supports single objective with no constraint
+            assert self.batch_strategy in ['median_imputation', ]
+
+        if self.batch_strategy == 'local_penalization':
+            self.acq_type = 'lpei'
 
     def get_suggestions(self):
         if len(self.configurations) == 0:
@@ -51,6 +67,11 @@ class SyncBatchAdvisor(Advisor):
         num_failed_trial = len(self.failed_configurations)
         failed_perfs = list() if self.max_y is None else [self.max_y] * num_failed_trial
         Y = np.array(self.perfs + failed_perfs, dtype=np.float64)
+        cY = []
+        if self.num_constraints > 0:
+            for c in self.constraint_perfs:
+                failed_c = list() if num_failed_trial == 0 else [max(c)] * num_failed_trial
+                cY.append(np.array(c + failed_c, dtype=np.float64))
 
         all_considered_configs = self.configurations + self.failed_configurations
         num_config_evaluated = len(all_considered_configs)
@@ -66,16 +87,62 @@ class SyncBatchAdvisor(Advisor):
             return self.sample_random_configs(self.batch_size)
 
         if self.batch_strategy == 'median_imputation':
-            estimated_y = np.median(Y)
+            estimated_y = np.median(Y, axis=0)
+            estimated_c = None
+            if self.num_constraints > 0:
+                estimated_c = np.median(cY, axis=1)
             batch_history_container = copy.deepcopy(self.history_container)
-            for i in range(self.batch_size):
-                self.surrogate_model.train(X, Y)
-                incumbent_value = batch_history_container.get_incumbents()[0][1]
-                self.acquisition_function.update(model=self.surrogate_model, eta=incumbent_value,
-                                                 num_data=len(batch_history_container.data))
 
+            for batch_i in range(self.batch_size):
+                # train surrogate model
+                if self.num_objs == 1:
+                    self.surrogate_model.train(X, Y)
+                elif self.acq_type == 'parego':
+                    weights = self.rng.random_sample(self.num_objs)
+                    weights = weights / np.sum(weights)
+                    scalarized_obj = get_chebyshev_scalarization(weights, Y)
+                    self.surrogate_model.train(X, scalarized_obj(Y))
+                else:  # multi-objectives
+                    for i in range(self.num_objs):
+                        self.surrogate_model[i].train(X, Y[:, i])
+
+                # train constraint model
+                if self.num_constraints > 0:
+                    for i, model in enumerate(self.constraint_models):
+                        model.train(X, cY[i])
+
+                # update acquisition function
+                if self.num_objs == 1:
+                    incumbent_value = batch_history_container.get_incumbents()[0][1]
+                    self.acquisition_function.update(model=self.surrogate_model,
+                                                     constraint_models=self.constraint_models,
+                                                     eta=incumbent_value,
+                                                     num_data=len(batch_history_container.data))
+                else:  # multi-objectives
+                    mo_incumbent_value = batch_history_container.get_mo_incumbent_value()
+                    if self.acq_type == 'parego':
+                        self.acquisition_function.update(model=self.surrogate_model,
+                                                         constraint_models=self.constraint_models,
+                                                         eta=scalarized_obj(np.atleast_2d(mo_incumbent_value)),
+                                                         num_data=len(batch_history_container.data))
+                    elif self.acq_type.startswith('ehvi'):
+                        partitioning = NondominatedPartitioning(self.num_objs, Y)
+                        cell_bounds = partitioning.get_hypercell_bounds(ref_point=self.ref_point)
+                        self.acquisition_function.update(model=self.surrogate_model,
+                                                         constraint_models=self.constraint_models,
+                                                         cell_lower_bounds=cell_bounds[0],
+                                                         cell_upper_bounds=cell_bounds[1])
+                    else:
+                        self.acquisition_function.update(model=self.surrogate_model,
+                                                         constraint_models=self.constraint_models,
+                                                         constraint_perfs=cY,  # for MESMOC
+                                                         eta=mo_incumbent_value,
+                                                         num_data=len(batch_history_container.data),
+                                                         X=X, Y=Y)
+
+                # optimize acquisition function
                 challengers = self.optimizer.maximize(
-                    runhistory=batch_history_container,
+                    runhistory=self.history_container,
                     num_points=5000
                 )
 
@@ -90,13 +157,17 @@ class SyncBatchAdvisor(Advisor):
                     else:
                         is_repeated_config = False
 
-                batch_history_container.add(curr_batch_config, estimated_y)
+                batch_history_container.add(curr_batch_config, estimated_y.tolist())
                 batch_configs_list.append(curr_batch_config)
                 all_considered_configs.append(curr_batch_config)
                 X = np.append(X, curr_batch_config.get_array().reshape(1, -1), axis=0)
-                Y = np.append(Y, estimated_y)
+                Y = np.append(Y, estimated_y[np.newaxis, ...], axis=0)
+                if self.num_constraints > 0:
+                    for i in range(len(cY)):
+                        cY[i] = np.append(cY[i], estimated_c[i])
 
         elif self.batch_strategy == 'local_penalization':
+            # local_penalization only supports single objective with no constraint
             self.surrogate_model.train(X, Y)
             incumbent_value = self.history_container.get_incumbents()[0][1]
             # L = self.estimate_L(X)
@@ -107,27 +178,9 @@ class SyncBatchAdvisor(Advisor):
 
                 challengers = self.optimizer.maximize(
                     runhistory=self.history_container,
-                    num_points=5000
+                    num_points=5000,
                 )
                 batch_configs_list.append(challengers.challengers[0])
         else:
             raise ValueError('Invalid sampling strategy - %s.' % self.batch_strategy)
         return batch_configs_list
-
-    def update_observation(self, observation):
-        config, perf, trial_state = observation
-        if not isinstance(perf, (int, float)):
-            perf = perf[-1]
-        if trial_state == SUCCESS and perf < MAXINT:
-            if len(self.configurations) == 0:
-                self.default_obj_value = perf
-
-            self.configurations.append(config)
-            self.perfs.append(perf)
-            self.history_container.add(config, perf)
-
-            self.perc = np.percentile(self.perfs, self.scale_perc)
-            self.min_y = np.min(self.perfs)
-            self.max_y = np.max(self.perfs)
-        else:
-            self.failed_configurations.append(config)

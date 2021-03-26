@@ -3,6 +3,11 @@ import time
 
 
 class mqSMBO_modified(mqSMBO):
+    """
+    record config_list, perf_list, time_list.
+    run with time limit.
+    single objective only.
+    """
 
     def async_run_with_limit(self, runtime_limit):
         config_num = 0
@@ -11,10 +16,10 @@ class mqSMBO_modified(mqSMBO):
             # Add jobs to masterQueue.
             while len(self.config_advisor.running_configs) < self.batch_size and config_num < self.max_iterations:
                 config_num += 1
-                _config = self.config_advisor.get_suggestion()
-                _msg = [_config, self.time_limit_per_trial]
+                config = self.config_advisor.get_suggestion()
+                msg = [config, self.time_limit_per_trial]
                 self.logger.info("Master: Add config %d." % config_num)
-                self.master_messager.send_message(_msg)
+                self.master_messager.send_message(msg)
 
             # Get results from workerQueue.
             while True:
@@ -26,13 +31,15 @@ class mqSMBO_modified(mqSMBO):
                     break
                 # Report result.
                 result_num += 1
-                self.config_advisor.update_observation(observation)  # config, perf, trial_state
-                self.logger.info('Master: Get %d result: %.3f' % (result_num, observation[1]))
+                if observation[3] is None:
+                    observation[3] = self.FAILED_PERF
+                self.config_advisor.update_observation(observation)  # config, trial_state, constraints, objs
+                self.logger.info('Master: Get %d observation: %s' % (result_num, str(observation)))
 
-                config, perf, trial_state = observation
+                config, trial_state, constraints, objs = observation
                 global_time = time.time() - self.global_start_time
                 self.config_list.append(config)
-                self.perf_list.append(perf)
+                self.perf_list.append(objs[0])  # single objective
                 self.time_list.append(global_time)
 
             global_time = time.time() - self.global_start_time
@@ -63,14 +70,16 @@ class mqSMBO_modified(mqSMBO):
                     continue
                 # Report result.
                 result_num += 1
-                self.config_advisor.update_observation(observation)  # config, perf, trial_state
-                self.logger.info('Master: In the %d-th batch [%d], result is: %.3f'
-                                 % (batch_id, result_num, observation[1]))
+                if observation[3] is None:
+                    observation[3] = self.FAILED_PERF
+                self.config_advisor.update_observation(observation)  # config, trial_state, constraints, objs
+                self.logger.info('Master: In the %d-th batch [%d], observation is: %s'
+                                 % (batch_id, result_num, str(observation)))
 
-                config, perf, trial_state = observation
+                config, trial_state, constraints, objs = observation
                 global_time = time.time() - self.global_start_time
                 self.config_list.append(config)
-                self.perf_list.append(perf)
+                self.perf_list.append(objs[0])  # single objective
                 self.time_list.append(global_time)
 
                 if result_num == result_needed:
