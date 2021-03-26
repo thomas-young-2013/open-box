@@ -6,7 +6,7 @@ mechanism for distributed parallelization, where multiple configurations can be 
 
 Two parallel settings are considered:
 
-![An illustration of the sync (left) and async (right) parallel methods using three workers](../assets/parallel_bo.pdf)
+![An illustration of the sync (left) and async (right) parallel methods using three workers](../assets/parallel_bo.svg)
 
 1) **Synchronous parallel setting (left)**. The worker pulls new configuration from suggestion server to evaluate until all 
 the workers have finished their last evaluations.

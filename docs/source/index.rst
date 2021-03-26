@@ -129,7 +129,7 @@ Why this name, OpenBox?
 Performance Rank
 ----------------
 
-.. image:: ./assets/ranking_lgb_7.pdf
+.. image:: ./assets/ranking_lgb_7.svg
 
 Performance rank of AutoML Benchmark on LightGBM on 25 datasets. The lower is the
 better.
