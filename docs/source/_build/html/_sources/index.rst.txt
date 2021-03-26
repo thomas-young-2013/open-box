@@ -32,35 +32,22 @@ Features described in this documentation are classified by release status:
 .. toctree::
    :glob:
    :maxdepth: 1
-   :caption: Introduction
+   :caption: Notes
 
-   introduction/*
-
-.. toctree::
-   :glob:
-   :maxdepth: 1
-   :caption: Installation
-
-   installation/*
+   notes/*
 
 .. toctree::
    :glob:
    :maxdepth: 1
-   :caption: Getting Started
+   :caption: Docs Examples
 
-   getting_started/*
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Usage Examples
-
-   usage_examples/*
+   examples/*
 
 .. toctree::
    :maxdepth: 1
-   :caption: Advanced Usage
+   :caption: Summary
 
-   advanced_usage/*
+   main
 
 Indices and tables
 ==================
