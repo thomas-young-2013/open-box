@@ -6,6 +6,7 @@ from tqdm import tqdm
 from litebo.optimizer.base import BOBase
 from litebo.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
 from litebo.utils.limit import time_limit, TimeoutException
+from litebo.utils.util_funcs import get_result
 from litebo.utils.multi_objective import Hypervolume
 from litebo.core.base import Observation
 
@@ -25,12 +26,12 @@ class SMBO(BOBase):
                  surrogate_type=None,
                  acq_type=None,
                  acq_optimizer_type='local_random',
+                 initial_runs=3,
+                 init_strategy='random_explore_first',
+                 initial_configurations=None,
                  ref_point=None,
                  history_bo_data: List[OrderedDict] = None,
                  logging_dir='logs',
-                 init_strategy='random_explore_first',
-                 initial_configurations=None,
-                 initial_runs=3,
                  task_id=None,
                  random_state=1,
                  **kwargs):
@@ -104,8 +105,7 @@ class SMBO(BOBase):
                     raise TimeoutException(
                         'Timeout: time limit for this evaluation is %.1fs' % self.time_limit_per_trial)
                 else:
-                    objs = _result['objs'] if _result['objs'] is not None else self.FAILED_PERF
-                    constraints = _result.get('constraints', None)
+                    objs, constraints = get_result(_result, FAILED_PERF=self.FAILED_PERF)
             except Exception as e:
                 if isinstance(e, TimeoutException):
                     trial_state = TIMEOUT
@@ -128,21 +128,10 @@ class SMBO(BOBase):
 
         self.iteration_id += 1
         # Logging.
-        self.logger.info('In the %d-th iteration, the objective value: %s' % (self.iteration_id, str(objs)))
+        self.logger.info('Iteration %d, objective value: %s' % (self.iteration_id, str(objs)))
         # Visualization.
         for idx, obj in enumerate(objs):
             if obj < self.FAILED_PERF[idx]:
                 self.writer.add_scalar('data/objective-%d' % (idx + 1), obj, self.iteration_id)
         return config, trial_state, objs, trial_info
-
-    def visualize_jupyter(self):
-        visualize_data_premature = self.get_history().data
-        visualize_data = []
-        for config, perf in visualize_data_premature.items():
-            config_perf = config.get_dictionary()
-            config_perf['perf'] = perf
-            visualize_data.append(config_perf)
-        import hiplot as hip
-        hip.Experiment.from_iterable(visualize_data).display()
-        return
 

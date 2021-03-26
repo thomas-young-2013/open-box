@@ -9,28 +9,6 @@ from litebo.utils.config_space.util import convert_configurations_to_array
 from litebo.core.base import build_acq_func, build_optimizer, build_surrogate
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class Advisor(object, metaclass=abc.ABCMeta):
     def __init__(self, config_space,
                  initial_trials=10,

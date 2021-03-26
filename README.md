@@ -1,6 +1,8 @@
 <p align="center">
-<img src="docs/logos/logo.png" width="68%">
+<img src="https://raw.githubusercontent.com/thomas-young-2013/lite-bo/master/docs/logos/logo.png" width="68%">
 </p>
+
+-----------
 
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)](https://github.com/thomas-young-2013/lite-bo/blob/master/LICENSE)
 [![Build Status](https://api.travis-ci.org/thomas-young-2013/lite-bo.svg?branch=master)](https://api.travis-ci.org/thomas-young-2013)
@@ -10,10 +12,9 @@
 [![Version](https://img.shields.io/github/release/thomas-young-2013/lite-bo.svg)](https://github.com/thomas-young-2013/lite-bo/releases) [![Join the chat at https://gitter.im/bbo-open-box](https://badges.gitter.im/bbo-open-box.svg)](https://gitter.im/bbo-open-box?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Documentation Status](https://readthedocs.org/projects/lite-bo/badge/?version=latest)](https://lite-bo.readthedocs.io/en/latest/?badge=latest)
 
----
 
-## Open-BOX: Generalized and Efficient Blackbox Optimization System.
-Open-BOX is an efficient and generalized blackbox optimization (BBO) system, which owns the following characteristics:
+## OpenBox: Generalized and Efficient Blackbox Optimization System.
+OpenBox is an efficient and generalized blackbox optimization (BBO) system, which owns the following characteristics:
 1. Basic BBO algorithms.
 2. BBO with constraints.
 3. BBO with multiple objectives.
@@ -41,29 +42,36 @@ through which users can easily track and manage the tasks.
 + High efficiency. Effective use of parallel resource, speeding up optimization with transfer-learning, and multi-fidelity acceleration for computationally-expensive evaluations. 
 + Data privacy protection, robustness and extensibility.
 
+## Links
++ Blog post: [to appear soon]()
++ Documentation: https://lite-bo.readthedocs.io/en/latest/?badge=latest
++ Pypi package: https://pypi.org/project/lite-bo/
++ Conda package: [to appear soon]()
++ Examples: https://github.com/thomas-young-2013/lite-bo/tree/master/examples
+
 ## Benchmark Results
 
 Single-objective problems
 Ackley-4                  | Hartmann
 :-------------------------:|:-------------------------:
-![](docs/experiments/so_math_ackley-4.png)  |  ![](docs/experiments/so_math_hartmann.png)
+![](https://raw.githubusercontent.com/thomas-young-2013/lite-bo/master/docs/experiments/so_math_ackley-4.png)  |  ![](https://raw.githubusercontent.com/thomas-young-2013/lite-bo/master/docs/experiments/so_math_hartmann.png)
 
 Single-objective problems with constraints
 Mishra                  | Keane-10
 :-------------------------:|:-------------------------:
-![](docs/experiments/soc_math_mishra.png)  |  ![](docs/experiments/soc_math_keane.png)
+![](https://raw.githubusercontent.com/thomas-young-2013/lite-bo/master/docs/experiments/soc_math_mishra.png)  |  ![](https://raw.githubusercontent.com/thomas-young-2013/lite-bo/master/docs/experiments/soc_math_keane.png)
 
 Multi-objective problems
 
 DTLZ1-6-5             | ZDT2-3 
 :-------------------------:|:-------------------------:
-![](docs/experiments/mo_math_dtlz1-6-5.png)  |  ![](docs/experiments/mo_math_zdt2-3.png)
+![](https://raw.githubusercontent.com/thomas-young-2013/lite-bo/master/docs/experiments/mo_math_dtlz1-6-5.png)  |  ![](https://raw.githubusercontent.com/thomas-young-2013/lite-bo/master/docs/experiments/mo_math_zdt2-3.png)
 
 Multi-objective problems with constraints
 
 CONSTR             | SRN 
 :-------------------------:|:-------------------------:
-![](docs/experiments/moc_math_constr.png)  |  ![](docs/experiments/moc_math_srn.png)
+![](https://raw.githubusercontent.com/thomas-young-2013/lite-bo/master/docs/experiments/moc_math_constr.png)  |  ![](https://raw.githubusercontent.com/thomas-young-2013/lite-bo/master/docs/experiments/moc_math_srn.png)
 
 ## Installation
 
@@ -77,7 +85,7 @@ pip install lite-bo
 
 For macOS users, you need to install `pyrfr` correctly first, and then `pip install lite-bo`. 
 
-The tips for installing `pyrfr` on macOS is [here](docs/install/install-pyrfr-on-macos.md).
+The tips for installing `pyrfr` on macOS is [here](docs/source/installation/install-pyrfr-on-macos.md).
 
 **Manual installation from the github source**
 
@@ -86,7 +94,8 @@ git clone https://github.com/thomas-young-2013/lite-bo.git && cd lite-bo
 cat requirements.txt | xargs -n 1 -L 1 pip install
 python setup.py install
  ```
-macOS users still need to follow the [tips](docs/install/install-pyrfr-on-macos.md) to install `pyrfr` correctly first.
+macOS users still need to follow the [tips](docs/source/installation/install-pyrfr-on-macos.md) 
+to install `pyrfr` correctly first.
 
 ## Quick Start
 
@@ -135,6 +144,18 @@ inc_value = bo.get_incumbent()
 print('BO', '=' * 30)
 print(inc_value)
 ```
+
+## **Releases and Contributing**
+OpenBox has a frequent release cycle. Please let us know if you encounter a bug by [filling an issue](https://github.com/thomas-young-2013/lite-bo/issues/new/choose).
+
+We appreciate all contributions. If you are planning to contribute any bug-fixes, please do so without further discussions.
+
+If you plan to contribute new features, new modules, etc. please first open an issue or reuse an existing issue, and discuss the feature with us.
+
+To learn more about making a contribution to OpenBox, please refer to our [How-to contribution page](https://github.com/thomas-young-2013/lite-bo/blob/master/CONTRIBUTING.md). 
+
+We appreciate all contributions and thank all the contributors!
+
 
 ## **Feedback**
 * [File an issue](https://github.com/thomas-young-2013/lite-bo/issues) on GitHub.

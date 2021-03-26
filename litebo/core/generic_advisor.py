@@ -16,6 +16,9 @@ from litebo.core.base import Observation
 
 
 class Advisor(object, metaclass=abc.ABCMeta):
+    """
+    Basic Advisor Class, which adopts a policy to sample a configuration.
+    """
     def __init__(self, config_space,
                  task_info,
                  initial_trials=10,
@@ -96,8 +99,12 @@ class Advisor(object, metaclass=abc.ABCMeta):
 
     def check_setup(self):
         """
-            check num_objs, num_constraints, acq_type, surrogate_type
+        Check optimization_strategy, num_objs, num_constraints, acq_type, surrogate_type.
+        Returns
+        -------
+        None
         """
+        assert self.optimization_strategy in ['bo', 'random']
         assert isinstance(self.num_objs, int) and self.num_objs >= 1
         assert isinstance(self.num_constraints, int) and self.num_constraints >= 0
 
@@ -161,6 +168,12 @@ class Advisor(object, metaclass=abc.ABCMeta):
                 raise ValueError('Must provide reference point to use EHVI method!')
 
     def setup_bo_basics(self):
+        """
+        Prepare the basic BO components.
+        Returns
+        -------
+        An optimizer object.
+        """
         if self.num_objs == 1 or self.acq_type == 'parego':
             self.surrogate_model = build_surrogate(func_str=self.surrogate_type,
                                                    config_space=self.config_space,
@@ -200,6 +213,16 @@ class Advisor(object, metaclass=abc.ABCMeta):
                                          rng=self.rng)
 
     def create_initial_design(self, init_strategy='default'):
+        """
+        Create several configurations as initial design.
+        Parameters
+        ----------
+        init_strategy: str
+
+        Returns
+        -------
+        Initial configurations.
+        """
         default_config = self.config_space.get_default_configuration()
         num_random_config = self.init_num - 1
         if init_strategy == 'random':
@@ -246,6 +269,12 @@ class Advisor(object, metaclass=abc.ABCMeta):
         return initial_configs
 
     def get_suggestion(self):
+        """
+        Generate a configuration (suggestion) for this query.
+        Returns
+        -------
+        A configuration.
+        """
         if len(self.configurations) == 0:
             X = np.array([])
         else:
@@ -255,6 +284,11 @@ class Advisor(object, metaclass=abc.ABCMeta):
         num_failed_trial = len(self.failed_configurations)
         failed_perfs = list() if self.max_y is None else [self.max_y] * num_failed_trial
         Y = np.array(self.perfs + failed_perfs, dtype=np.float64)
+        cY = []
+        if self.num_constraints > 0:
+            for c in self.constraint_perfs:
+                failed_c = list() if num_failed_trial == 0 else [max(c)] * num_failed_trial
+                cY.append(np.array(c + failed_c, dtype=np.float64))
 
         num_config_evaluated = len(self.perfs + self.failed_configurations)
         if num_config_evaluated < self.init_num:
@@ -267,7 +301,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
             if self.num_objs == 1:
                 self.surrogate_model.train(X, Y)
             elif self.acq_type == 'parego':
-                weights = np.random.random_sample(self.num_objs)
+                weights = self.rng.random_sample(self.num_objs)
                 weights = weights / np.sum(weights)
                 scalarized_obj = get_chebyshev_scalarization(weights, Y)
                 self.surrogate_model.train(X, scalarized_obj(Y))
@@ -276,15 +310,9 @@ class Advisor(object, metaclass=abc.ABCMeta):
                     self.surrogate_model[i].train(X, Y[:, i])
 
             # train constraint model
-            cX = None
             if self.num_constraints > 0:
-                cX = []
-                for c in self.constraint_perfs:
-                    failed_c = list() if num_failed_trial == 0 else [max(c)] * num_failed_trial
-                    cX.append(np.array(c + failed_c, dtype=np.float64))
-
                 for i, model in enumerate(self.constraint_models):
-                    model.train(X, cX[i])
+                    model.train(X, cY[i])
 
             # update acquisition function
             if self.num_objs == 1:
@@ -295,7 +323,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
                                                  num_data=num_config_evaluated)
             else:   # multi-objectives
                 mo_incumbent_value = self.history_container.get_mo_incumbent_value()
-                if self.acq_type.startswith('parego'):
+                if self.acq_type == 'parego':
                     self.acquisition_function.update(model=self.surrogate_model,
                                                      constraint_models=self.constraint_models,
                                                      eta=scalarized_obj(np.atleast_2d(mo_incumbent_value)),
@@ -310,7 +338,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
                 else:
                     self.acquisition_function.update(model=self.surrogate_model,
                                                      constraint_models=self.constraint_models,
-                                                     constraint_perfs=cX,   # for MESMOC
+                                                     constraint_perfs=cY,   # for MESMOC
                                                      eta=mo_incumbent_value,
                                                      num_data=num_config_evaluated,
                                                      X=X, Y=Y)
@@ -332,6 +360,16 @@ class Advisor(object, metaclass=abc.ABCMeta):
             raise ValueError('Unknown optimization strategy: %s.' % self.optimization_strategy)
 
     def update_observation(self, observation: Observation):
+        """
+        Update the current observations.
+        Parameters
+        ----------
+        observation
+
+        Returns
+        -------
+
+        """
         def bilog(y):
             """Magnify the difference between y and 0"""
             if y >= 0:
@@ -367,6 +405,16 @@ class Advisor(object, metaclass=abc.ABCMeta):
             self.failed_configurations.append(config)
 
     def sample_random_configs(self, num_configs=1):
+        """
+        Sample a batch of random configurations.
+        Parameters
+        ----------
+        num_configs
+
+        Returns
+        -------
+
+        """
         configs = list()
         sample_cnt = 0
         while len(configs) < num_configs:
@@ -383,9 +431,21 @@ class Advisor(object, metaclass=abc.ABCMeta):
         return configs
 
     def save_history(self):
+        """
+        Save the history into a json file.
+        Returns
+        -------
+
+        """
         self.history_container.save_json(self.history_file)
 
     def load_history_from_json(self):
+        """
+        Load history from a json file.
+        Returns
+        -------
+
+        """
         return self.history_container.load_history_from_json(self.config_space, self.history_file)
 
     def get_suggestions(self):
