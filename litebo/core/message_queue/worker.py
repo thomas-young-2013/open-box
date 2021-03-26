@@ -3,14 +3,13 @@ import sys
 import traceback
 from litebo.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
 from litebo.utils.limit import time_limit, TimeoutException
-from litebo.utils.util_funcs import get_result
 from litebo.core.message_queue.worker_messager import WorkerMessager
 
 
 class Worker(object):
-    def __init__(self, objective_function, ip="127.0.0.1", port=13579, authkey=b'abc'):
+    def __init__(self, objective_function, ip="127.0.0.1", port=13579):
         self.objective_function = objective_function
-        self.worker_messager = WorkerMessager(ip, port, authkey)
+        self.worker_messager = WorkerMessager(ip, port)
 
     def run(self):
         while True:
@@ -38,19 +37,23 @@ class Worker(object):
                     raise TimeoutException(
                         'Timeout: time limit for this evaluation is %.1fs' % time_limit_per_trial)
                 else:
-                    objs, constraints = get_result(_result, FAILED_PERF=None)
+                    if _result is None:
+                        perf = MAXINT
+                    elif isinstance(_result, dict):
+                        perf = _result['objective_value']
+                    else:
+                        perf = _result
             except Exception as e:
                 if isinstance(e, TimeoutException):
                     trial_state = TIMEOUT
                 else:
                     traceback.print_exc(file=sys.stdout)
                     trial_state = FAILED
-                objs = None
-                constraints = None
-            observation = [config, trial_state, constraints, objs]
+                perf = MAXINT
+            observation = [config, perf, trial_state]
 
             # Send result
-            print("Worker: observation=%s. sending result." % str(observation))
+            print("Worker: perf=%.3f. sending result." % perf)
             try:
                 self.worker_messager.send_message(observation)
             except Exception as e:

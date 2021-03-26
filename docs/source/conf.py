@@ -10,22 +10,22 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-import os
-import sys
+# import os
+# import sys
+# sys.path.insert(0, os.path.abspath('.'))
+
 import sphinx_rtd_theme
 from recommonmark.parser import CommonMarkParser
 from recommonmark.transform import AutoStructify
 
-sys.path.insert(0, os.path.abspath('./../../'))
-
 # -- Project information -----------------------------------------------------
 
-project = 'OpenBox'
+project = 'open-box'
 copyright = '2021, Thomas (Yang) Li'
 author = 'Thomas (Yang) Li'
 
 # The full version, including alpha/beta/rc tags
-release = 'beta'
+release = '0.7'
 
 
 # -- General configuration ---------------------------------------------------
@@ -33,13 +33,7 @@ release = 'beta'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['recommonmark', 'sphinx.ext.autodoc',
-              'sphinx.ext.doctest',
-              'sphinx.ext.intersphinx',
-              'sphinx.ext.todo',
-              'sphinx.ext.coverage',
-              'sphinx.ext.mathjax',
-              'sphinx.ext.napoleon']
+extensions = ['recommonmark']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

@@ -5,7 +5,7 @@ from litebo.utils.util_funcs import get_types
 from litebo.utils.constants import MAXINT
 from collections import namedtuple
 
-Observation = namedtuple('Observation', ['config', 'trial_state', 'constraints', 'objs'])
+Observation = namedtuple('Observation', ['config', 'trial_state', 'constraints', 'objectives'])
 
 acq_dict = {
     'ei': EI,

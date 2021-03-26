@@ -150,15 +150,15 @@ class MCAdvisor(Advisor):
                     self.surrogate_model[i].train(X, Y[:, i])
 
             # train constraint model
-            cY = None
+            cX = None
             if self.num_constraints > 0:
-                cY = []
+                cX = []
                 for c in self.constraint_perfs:
                     failed_c = list() if num_failed_trial == 0 else [max(c)] * num_failed_trial
-                    cY.append(np.array(c + failed_c, dtype=np.float64))
+                    cX.append(np.array(c + failed_c, dtype=np.float64))
 
                 for i, model in enumerate(self.constraint_models):
-                    model.train(X, cY[i])
+                    model.train(X, cX[i])
 
             # update acquisition function
             if self.num_objs == 1:  # MC-EI

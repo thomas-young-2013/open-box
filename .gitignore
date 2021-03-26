@@ -36,5 +36,3 @@ test/.ipynb_checkpoints/
 .mypy_cache/
 
 docs/build/
-
-conf/

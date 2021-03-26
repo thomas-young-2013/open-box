@@ -53,41 +53,6 @@ def get_types(config_space, instance_features=None):
     return types, bounds
 
 
-def get_result(result, FAILED_PERF=None):
-    """
-    Get objs and constraints from result returned by objective function.
-    You must deal with objs=None situation manually if failed_perf is not specified.
-
-    :param result:
-        return value from objective function
-    :param FAILED_PERF:
-        default value of failed trails. usually a list of MAXINT.
-    :return:
-        objs:
-            list/tuple of objective values or FAILED_PERF
-        constraints:
-            list/tuple of constraint values or None
-    """
-    if result is None:
-        objs = FAILED_PERF
-        constraints = None
-    elif isinstance(result, dict):  # recommended usage
-        objs = result['objs']
-        if isinstance(objs, (int, float)):
-            objs = (objs, )
-        constraints = result.get('constraints', None)
-    elif isinstance(result, (int, float)):
-        objs = (result, )
-        constraints = None
-    else:
-        objs = result
-        constraints = None
-
-    if objs is None:
-        objs = FAILED_PERF
-    return objs, constraints
-
-
 def check_random_state(seed):
     """Turn seed into a np.random.RandomState instance
 

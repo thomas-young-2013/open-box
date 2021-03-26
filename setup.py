@@ -1,56 +1,40 @@
-#!/usr/bin/env python
-# This source code is licensed under the MIT license found in the
-# LICENSE file in the root directory of this source tree.
-
-
-import re
+#!/usr/bin/env python3
 import os
-import sys
-import importlib.util
-from pathlib import Path
-from typing import Dict, List
-from distutils.core import setup
-from setuptools import find_packages
+from setuptools import setup, find_packages
 
 
-requirements = dict()
-for extra in ["dev", "main"]:
-    # Skip `package @ git+[repo_url]` because not supported by pypi
-    requirements[extra] = [r
-                           for r in Path("requirements/%s.txt" % extra).read_text().splitlines()
-                           if '@' not in r
-                           ]
+with open('requirements.txt') as fh:
+    requirements = fh.read()
+requirements = requirements.split('\n')
+requirements = [requirement.strip() for requirement in requirements]
 
 
-# Find version number
-spec = importlib.util.spec_from_file_location("litebo.pkginfo", str(Path(__file__).parent / "litebo" / "pkginfo.py"))
-pkginfo = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(pkginfo)
-version = pkginfo.version
+def get_version():
+    version_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "litebo", "__init__.py")
+    for line in open(version_file):
+        if line.startswith("__version__"):
+            version = line.split("=")[1].strip().replace("'", "").replace('"', '')
+            return version
+    raise RuntimeError("Unable to find version string in %s" % version_file)
 
 
-def readme() -> str:
-    return open("README.md").read()
+def get_author():
+    version_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "litebo", "__init__.py")
+    for line in open(version_file):
+        if line.startswith("__author__"):
+            version = line.split("=")[1].strip().replace("'", "").replace('"', '')
+            return version
+    raise RuntimeError("Unable to find author string in %s" % version_file)
 
 
 setup(
     name="lite-bo",
-    version=version,
-    description="Efficient and generalized blackbox optimization (BBO) system",
-    long_description=readme(),
-    long_description_content_type="text/markdown",
-    url='https://github.com/thomas-young-2013/lite-bo',
-    author="Thomas (Yang) Li from DAIM@PKU",
+    author=get_author(),
+    version=get_version(),
+    python_requires=">=3.5.2",
     packages=find_packages(),
-    license="MIT",
-    install_requires=requirements["main"],
-    extras_require={"dev": requirements["dev"]},
-    package_data={"lite-bo": ["py.typed"]},
+    install_requires=requirements,
     include_package_data=True,
-    python_requires='>=3.5.2',
-    entry_points={
-        "console_scripts": [
-            "litebo = litebo.__main__:main",
-        ]
-    }
+    test_suite="nose.collector",
+    tests_require=["mock", "nose"]
 )
