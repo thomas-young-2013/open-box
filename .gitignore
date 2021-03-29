@@ -9,6 +9,7 @@ dist
 
 # IDEs
 .idea
+.vscode
 
 # MACOSX
 .DS_Store

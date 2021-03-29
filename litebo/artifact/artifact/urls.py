@@ -1,4 +1,4 @@
-"""web_service_ URL Configuration
+"""artifact URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/3.1/topics/http/urls/
@@ -19,4 +19,5 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('bo_advice/', include('bo_advice.urls')),
+    path('user_board/', include('user_board.urls')),
 ]
