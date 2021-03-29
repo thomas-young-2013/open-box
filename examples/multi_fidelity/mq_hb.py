@@ -20,12 +20,14 @@ class mqHyperband(mqBaseFacade):
                  method_id='mqHyperband',
                  restart_needed=True,
                  time_limit_per_trial=600,
+                 runtime_limit=None,
                  ip='',
                  port=13579,
                  authkey=b'abc',):
         max_queue_len = 3 * R   # conservative design
         super().__init__(objective_func, method_name=method_id,
                          restart_needed=restart_needed, time_limit_per_trial=time_limit_per_trial,
+                         runtime_limit=runtime_limit,
                          max_queue_len=max_queue_len, ip=ip, port=port, authkey=authkey)
         self.seed = random_state
         self.config_space = config_space
@@ -59,20 +61,20 @@ class mqHyperband(mqBaseFacade):
                 # and keep best (n_configs / eta) configurations.
 
                 n_configs = n * self.eta ** (-i)
-                n_iterations = r * self.eta ** (i)
-                n_iter = n_iterations
+                n_iteration = r * self.eta ** (i)
+                n_iter = n_iteration
                 if last_run_num is not None and not self.restart_needed:
                     n_iter -= last_run_num
-                last_run_num = n_iterations
+                last_run_num = n_iteration
 
                 self.logger.info("%s: %d configurations x %d iterations each"
-                                 % (self.method_name, int(n_configs), int(n_iterations)))
+                                 % (self.method_name, int(n_configs), int(n_iteration)))
 
                 ret_val, early_stops = self.run_in_parallel(T, n_iter, extra_info)
                 val_losses = [item['loss'] for item in ret_val]
                 ref_list = [item['ref_id'] for item in ret_val]
 
-                self.update_incumbent_before_reduce(T, val_losses, n_iterations)
+                self.update_incumbent_before_reduce(T, val_losses, n_iteration)
 
                 # select a number of best configurations for the next loop
                 # filter out early stops, if any
@@ -119,7 +121,7 @@ class mqHyperband(mqBaseFacade):
         # Sample n configurations uniformly.
         return sample_configurations(self.config_space, num_config)
 
-    def update_incumbent_before_reduce(self, T, val_losses, n_iterations):
+    def update_incumbent_before_reduce(self, T, val_losses, n_iteration):
         return
 
     def update_incumbent_after_reduce(self, T, incumbent_loss):

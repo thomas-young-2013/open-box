@@ -14,7 +14,7 @@ except Exception as e:
     pass
 
 
-class mqBaseFacade(object):
+class async_mqBaseFacade(object):
     def __init__(self, objective_func,
                  restart_needed=False,
                  need_lc=False,
@@ -59,6 +59,7 @@ class mqBaseFacade(object):
 
         self.time_limit_per_trial = time_limit_per_trial
         self.runtime_limit = runtime_limit
+        assert self.runtime_limit is not None
 
         max_queue_len = max(300, max_queue_len)
         self.master_messager = MasterMessager(ip, port, authkey, max_queue_len, max_queue_len)
@@ -79,86 +80,58 @@ class mqBaseFacade(object):
         self._history['best_trial_id'].append(trial_id)
         self._history['configuration'].append(config)
 
-    def run_in_parallel(self, configurations, n_iteration, extra_info=None):
-        n_configuration = len(configurations)
-        performance_result = []
-        early_stops = []
+    def run(self):
+        try:
+            worker_num = 0
+            while True:
+                if self.runtime_limit is not None and time.time() - self.global_start_time > self.runtime_limit:
+                    self.logger.info('Runtime budget meets!')
+                    return
 
-        # TODO: need systematic tests.
-        # check configurations, whether it exists the same configs
-        count_dict = dict()
-        for i, config in enumerate(configurations):
-            if config not in count_dict:
-                count_dict[config] = 0
-            count_dict[config] += 1
+                # Get observation from worker
+                observation = self.master_messager.receive_message()  # return_info, time_taken, trial_id, config
+                if observation is None:
+                    # Wait for workers.
+                    # self.logger.info("Master: wait for worker results. sleep 1s.")
+                    time.sleep(1)
+                    continue
 
-        # incorporate ref info.
-        conf_list = []
-        for index, config in enumerate(configurations):
-            extra_conf_dict = dict()
-            if count_dict[config] > 1:
-                extra_conf_dict['uid'] = count_dict[config]
-                count_dict[config] -= 1
+                return_info, time_taken, trial_id, config = observation
+                # worker init
+                if config is None:
+                    worker_num += 1
+                    self.logger.info("Worker %d init." % (worker_num, ))
+                # update observation
+                else:
+                    global_time = time.time() - self.global_start_time
+                    self.logger.info('Master get observation: %s. Global time=%.2fs.' % (str(observation), global_time))
+                    n_iteration = return_info['n_iteration']
+                    perf = return_info['loss']
+                    t = time.time()
+                    self.update_observation(config, perf, n_iteration)
+                    self.logger.info('update_observation() cost %.2fs.' % (time.time() - t,))
+                    self.recorder.append({'trial_id': trial_id, 'time_consumed': time_taken,
+                                          'configuration': config, 'n_iteration': n_iteration,
+                                          'return_info': return_info, 'global_time': global_time})
 
-            if extra_info is not None:
-                extra_conf_dict['reference'] = extra_info[index]
-            extra_conf_dict['need_lc'] = self.record_lc
-            extra_conf_dict['method_name'] = self.method_name
-            conf_list.append((config, extra_conf_dict))
+                # Send new job
+                t = time.time()
+                config, n_iteration, extra_conf = self.get_job()
+                self.logger.info('get_job() cost %.2fs.' % (time.time()-t, ))
+                msg = [config, extra_conf, self.time_limit_per_trial, n_iteration, self.global_trial_counter]
+                self.master_messager.send_message(msg)
+                self.global_trial_counter += 1
+                self.logger.info('Master send job: %s.' % (msg,))
 
-        # Add batch configs to masterQueue.
-        for config, extra_conf in conf_list:
-            msg = [config, extra_conf, self.time_limit_per_trial, n_iteration, self.global_trial_counter]
-            self.master_messager.send_message(msg)
-            self.global_trial_counter += 1
-        self.logger.info('Master: %d configs sent.' % (len(conf_list)))
-        # Get batch results from workerQueue.
-        result_num = 0
-        result_needed = len(conf_list)
-        while True:
-            if self.runtime_limit is not None and time.time() - self.global_start_time > self.runtime_limit:
-                break
-            observation = self.master_messager.receive_message()    # return_info, time_taken, trial_id, config
-            if observation is None:
-                # Wait for workers.
-                # self.logger.info("Master: wait for worker results. sleep 1s.")
-                time.sleep(1)
-                continue
-            # Report result.
-            result_num += 1
-            global_time = time.time() - self.global_start_time
-            self.trial_statistics.append((observation, global_time))
-            self.logger.info('Master: Get the [%d] result, observation is %s.' % (result_num, str(observation)))
-            if result_num == result_needed:
-                break
+        except Exception as e:
+            print(e)
+            self.logger.error(str(e))
 
-        # sort by trial_id. FIX BUG
-        self.trial_statistics.sort(key=lambda x: x[0][2])
+    def get_job(self):
+        raise NotImplementedError
 
-        # get the evaluation statistics
-        for observation, global_time in self.trial_statistics:
-            return_info, time_taken, trial_id, config = observation
-
-            performance = return_info['loss']
-            if performance < self.global_incumbent:
-                self.global_incumbent = performance
-                self.global_incumbent_configuration = config
-
-            self.add_history(global_time, self.global_incumbent, trial_id,
-                             self.global_incumbent_configuration)
-            # TODO: old version => performance_result.append(performance)
-            performance_result.append(return_info)
-            early_stops.append(return_info.get('early_stop', False))
-            self.recorder.append({'trial_id': trial_id, 'time_consumed': time_taken,
-                                  'configuration': config, 'n_iteration': n_iteration,
-                                  'return_info': return_info, 'global_time': global_time})
-
-        self.trial_statistics.clear()
-
-        self.save_intemediate_statistics()
-        if self.runtime_limit is not None and time.time() - self.global_start_time > self.runtime_limit:
-            raise ValueError('Runtime budget meets!')
-        return performance_result, early_stops
+    def update_observation(self, config, perf, n_iteration):
+        raise NotImplementedError
 
     def save_intemediate_statistics(self, save_stage=False):
         # file_name = '%s.npy' % self.method_name
