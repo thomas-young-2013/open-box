@@ -47,6 +47,6 @@ print(inc_value)
 print(history)
 history.plot_convergence(true_minimum=0.397887)
 plt.show()
-#plt.savefig('logs/plot_convergence_branin.png')
+# plt.savefig('logs/plot_convergence_branin.png')
 
-#history.visualize_jupyter()
+# history.visualize_jupyter()

@@ -83,10 +83,11 @@ def test_task():
     item = task.find_one({'task_name': 'task_name-1'})
     pprint.pprint(item)
 
-    items = task.find_all({'owner': ObjectId('605c76e8db226d5d47a5b409')}, ['task_name', 'owner', 'create_time', 'config_space',
-                                                                  'status', 'advisor_type', 'max_run', 'surrogate_type',
-                                                                  'time_limit_per_trial', 'active_worker_num',
-                                                                  'parallel_type'])
+    items = task.find_all({'owner': ObjectId('605c76e8db226d5d47a5b409')},
+                          ['task_name', 'owner', 'create_time', 'config_space',
+                           'status', 'advisor_type', 'max_run', 'surrogate_type',
+                           'time_limit_per_trial', 'active_worker_num',
+                           'parallel_type'])
     pprint.pprint(list(items))
 
     # Update the task status.

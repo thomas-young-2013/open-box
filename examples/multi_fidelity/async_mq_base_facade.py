@@ -37,12 +37,13 @@ class async_mqBaseFacade(object):
         self.logger = self._get_logger(method_name)
 
         self.objective_func = objective_func
-        self.trial_statistics = []
-        self.recorder = []
+        self.trial_statistics = list()
+        self.recorder = list()
 
         self.global_start_time = time.time()
         self.runtime_limit = None
-        self._history = {"time_elapsed": [], "performance": [], "best_trial_id": [], "configuration": []}
+        self._history = {"time_elapsed": list(), "performance": list(),
+                         "best_trial_id": list(), "configuration": list()}
         self.global_incumbent = 1e10
         self.global_incumbent_configuration = None
         self.global_trial_counter = 0
@@ -51,8 +52,8 @@ class async_mqBaseFacade(object):
         self.method_name = method_name
         # evaluation metrics
         self.stage_id = 1
-        self.stage_history = {'stage_id': [], 'performance': []}
-        self.grid_search_perf = []
+        self.stage_history = {'stage_id': list(), 'performance': list()}
+        self.grid_search_perf = list()
 
         if self.method_name is None:
             raise ValueError('Method name must be specified! NOT NONE.')
@@ -85,7 +86,7 @@ class async_mqBaseFacade(object):
             worker_num = 0
             while True:
                 if self.runtime_limit is not None and time.time() - self.global_start_time > self.runtime_limit:
-                    self.logger.info('Runtime budget meets!')
+                    self.logger.info('RUNTIME BUDGET is RUNNING OUT.')
                     return
 
                 # Get observation from worker
@@ -132,33 +133,6 @@ class async_mqBaseFacade(object):
 
     def update_observation(self, config, perf, n_iteration):
         raise NotImplementedError
-
-    def save_intemediate_statistics(self, save_stage=False):
-        # file_name = '%s.npy' % self.method_name
-        # x = np.array(self._history['time_elapsed'])
-        # y = np.array(self._history['performance'])
-        # np.save(os.path.join(self.data_directory, file_name), np.array([x, y]))
-        #
-        # config_file_name = 'config_%s.pkl' % self.method_name
-        # with open(os.path.join(self.data_directory, config_file_name), 'wb') as f:
-        #     pkl.dump(self.global_incumbent_configuration, f)
-        #
-        # record_file_name = 'record_%s.pkl' % self.method_name
-        # with open(os.path.join(self.data_directory, record_file_name), 'wb') as f:
-        #     pkl.dump(self.recorder, f)
-        #
-        # if save_stage:
-        #     stage_file_name = 'stage_%s.npy' % self.method_name
-        #     stage_x = np.array(self.stage_history['stage_id'])
-        #     stage_y = np.array(self.stage_history['performance'])
-        #     np.save(os.path.join(self.data_directory, stage_file_name), np.array([stage_x, stage_y]))
-        #
-        # if PLOT:
-        #     plt.plot(x, y)
-        #     plt.xlabel('Time elapsed (sec)')
-        #     plt.ylabel('Validation error')
-        #     plt.savefig("data/%s.png" % self.method_name)
-        return
 
     def _get_logger(self, name):
         logger_name = name

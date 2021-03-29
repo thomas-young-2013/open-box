@@ -32,7 +32,8 @@ class async_mqMFES(async_mqHyperband):
                  skip_outer_loop=0,
                  rand_prob=0.3,
                  init_weight=None, update_enable=True,
-                 weight_method='rank_loss_p_norm', fusion_method='idp',
+                 weight_method='rank_loss_p_norm',
+                 fusion_method='idp',
                  power_num=3,
                  random_state=1,
                  method_id='mqAsyncMFES',
@@ -62,8 +63,7 @@ class async_mqMFES(async_mqHyperband):
             init_weight = [0.]
             init_weight.extend([1. / self.s_max] * self.s_max)
         assert len(init_weight) == (self.s_max + 1)
-        self.logger.info('Weight method & flag: %s-%s' % (self.weight_method, str(self.update_enable)))
-        self.logger.info("Initial weight is: %s" % init_weight[:self.s_max + 1])
+        self.logger.info("Initialize weight to %s" % init_weight[:self.s_max + 1])
         types, bounds = get_types(config_space)
 
         self.weighted_surrogate = WeightedRandomForestCluster(
@@ -72,7 +72,7 @@ class async_mqMFES(async_mqHyperband):
         self.acquisition_function = EI(model=self.weighted_surrogate)
 
         self.iterate_id = 0
-        self.iterate_r = []
+        self.iterate_r = list()
         self.hist_weights = list()
 
         # Saving evaluation statistics in Hyperband.
@@ -81,8 +81,8 @@ class async_mqMFES(async_mqHyperband):
         for index, item in enumerate(np.logspace(0, self.s_max, self.s_max + 1, base=self.eta)):
             r = int(item)
             self.iterate_r.append(r)
-            self.target_x[r] = []
-            self.target_y[r] = []
+            self.target_x[r] = list()
+            self.target_y[r] = list()
 
         # BO optimizer settings.
         self.history_container = HistoryContainer(task_id=self.method_name)
@@ -117,19 +117,20 @@ class async_mqMFES(async_mqHyperband):
         assert updated
         # print('=== bracket after update_observation:', self.get_bracket_status(self.bracket))
 
-        self.target_x[int(n_iteration)].append(config)
-        self.target_y[int(n_iteration)].append(perf)
+        n_iteration = int(n_iteration)
+        self.target_x[n_iteration].append(config)
+        self.target_y[n_iteration].append(perf)
 
-        if int(n_iteration) == self.R:
+        if n_iteration == self.R:
             self.incumbent_configs.append(config)
             self.incumbent_perfs.append(perf)
             # Update history container.
             self.history_container.add(config, perf)
 
-        # retrain surrogate model
-        normalized_y = std_normalization(self.target_y[int(n_iteration)])
-        self.weighted_surrogate.train(convert_configurations_to_array(self.target_x[int(n_iteration)]),
-                                      np.array(normalized_y, dtype=np.float64), r=int(n_iteration))
+        # Refit the ensemble surrogate model.
+        normalized_y = std_normalization(self.target_y[n_iteration])
+        self.weighted_surrogate.train(convert_configurations_to_array(self.target_x[n_iteration]),
+                                      np.array(normalized_y, dtype=np.float64), r=n_iteration)
 
     def choose_next(self):
         """
@@ -139,7 +140,7 @@ class async_mqMFES(async_mqHyperband):
         next_n_iteration = self.get_next_n_iteration()
         next_rung_id = self.get_rung_id(self.bracket, next_n_iteration)
 
-        # update weight when the inner loop of hyperband is finished
+        # Update weight when the inner loop of hyperband is finished
         if self.last_n_iteration != next_n_iteration:
             if self.update_enable and self.weight_update_id > self.s_max:
                 self.update_weight()
@@ -169,6 +170,7 @@ class async_mqMFES(async_mqHyperband):
         next_extra_conf = {}
         return next_config, next_n_iteration, next_extra_conf
 
+    # TODO: With imputation.
     def get_bo_candidates(self):
         std_incumbent_value = np.min(std_normalization(self.target_y[self.iterate_r[-1]]))
         # Update surrogate model in acquisition function.
@@ -180,20 +182,6 @@ class async_mqMFES(async_mqHyperband):
             num_points=5000,
         )
         return challengers.challengers
-
-    @staticmethod
-    def calculate_ranking_loss(y_pred, y_true):
-        length = len(y_pred)
-        y_pred = np.reshape(y_pred, -1)
-        y_pred1 = np.tile(y_pred, (length, 1))
-        y_pred2 = np.transpose(y_pred1)
-        diff = y_pred1 - y_pred2
-        y_true = np.reshape(y_true, -1)
-        y_true1 = np.tile(y_true, (length, 1))
-        y_true2 = np.transpose(y_true1)
-        y_mask = (y_true1 - y_true2 > 0) + 0
-        loss = np.sum(np.log(1 + np.exp(-diff)) * y_mask) / length
-        return loss
 
     @staticmethod
     def calculate_preserving_order_num(y_pred, y_true):

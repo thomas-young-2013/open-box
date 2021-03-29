@@ -1,6 +1,4 @@
-import time
-import numpy as np
-from math import log, ceil
+from math import ceil
 from .async_mq_sh import async_mqSuccessiveHalving
 from .utils import sample_configuration
 
