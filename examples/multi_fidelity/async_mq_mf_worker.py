@@ -6,15 +6,23 @@ from litebo.utils.limit import time_limit, TimeoutException
 from litebo.core.message_queue.worker_messager import WorkerMessager
 
 
-class mqmfWorker(object):
+class async_mqmfWorker(object):
     """
-    message queue worker for multi-fidelity optimization
+    async message queue worker for multi-fidelity optimization
     """
     def __init__(self, objective_function, ip="127.0.0.1", port=13579, authkey=b'abc'):
         self.objective_function = objective_function
         self.worker_messager = WorkerMessager(ip, port, authkey=authkey)
 
     def run(self):
+        # tell master worker is ready
+        init_observation = [None, None, None, None]
+        try:
+            self.worker_messager.send_message(init_observation)
+        except Exception as e:
+            print("Worker send init message error:", str(e))
+            return
+
         while True:
             # Get config
             try:

@@ -23,12 +23,14 @@ class mqBOHB(mqHyperband):
                  method_id='mqBOHB',
                  restart_needed=True,
                  time_limit_per_trial=600,
+                 runtime_limit=None,
                  ip='',
                  port=13579,
                  authkey=b'abc',):
         super().__init__(objective_func, config_space, R, eta=eta, num_iter=num_iter,
                          random_state=random_state, method_id=method_id,
                          restart_needed=restart_needed, time_limit_per_trial=time_limit_per_trial,
+                         runtime_limit=runtime_limit,
                          ip=ip, port=port, authkey=authkey)
 
         self.rand_prob = rand_prob
@@ -67,8 +69,8 @@ class mqBOHB(mqHyperband):
         assert len(configs) == num_config
         return configs
 
-    def update_incumbent_before_reduce(self, T, val_losses, n_iterations):
-        if int(n_iterations) < self.R:
+    def update_incumbent_before_reduce(self, T, val_losses, n_iteration):
+        if int(n_iteration) < self.R:
             return
         self.incumbent_configs.extend(T)
         self.incumbent_perfs.extend(val_losses)
