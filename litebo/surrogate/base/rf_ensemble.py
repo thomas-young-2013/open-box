@@ -18,7 +18,7 @@ class RandomForestEnsemble(AbstractModel):
         for index, item in enumerate(np.logspace(0, self.s_max, self.s_max + 1, base=self.eta)):
             r = int(item)
             self.surrogate_r.append(r)
-            self.surrogate_weight[r] = self.weight_list[self.s_max - index]
+            self.surrogate_weight[r] = self.weight_list[index]
             self.surrogate_container[r] = RandomForestWithInstances(types=types, bounds=bounds)
 
     def train(self, X: np.ndarray, Y: np.ndarray, r) -> 'AbstractModel':

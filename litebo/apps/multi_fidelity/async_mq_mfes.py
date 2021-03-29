@@ -63,9 +63,8 @@ class async_mqMFES(async_mqHyperband):
         self.weight_changed_cnt = 0
 
         if init_weight is None:
-            init_weight = [0.]
-            init_weight.extend([1. / self.s_max] * self.s_max)
-        assert len(init_weight) == (self.s_max + 1)
+            init_weight = [1. / self.s_max] * self.s_max + [0.]
+            assert len(init_weight) == (self.s_max + 1)
         self.logger.info("Initialize weight to %s" % init_weight[:self.s_max + 1])
         types, bounds = get_types(config_space)
 
