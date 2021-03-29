@@ -9,7 +9,7 @@ from litebo.apps.multi_fidelity.async_mq_hb import async_mqHyperband
 from litebo.apps.multi_fidelity.utils import RUNNING, COMPLETED, PROMOTED
 from litebo.apps.multi_fidelity.utils import sample_configuration
 from litebo.apps.multi_fidelity.utils import minmax_normalization, std_normalization
-from litebo.surrogate.base.weighted_rf_ensemble import WeightedRandomForestCluster
+from litebo.surrogate.base.rf_ensemble import RandomForestEnsemble
 
 from litebo.utils.util_funcs import get_types
 from litebo.utils.config_space import ConfigurationSpace
@@ -25,12 +25,14 @@ class async_mqMFES(async_mqHyperband):
     """
     The implementation of Asynchronous MFES (combine ASHA and MFES)
     """
+
     def __init__(self, objective_func,
                  config_space: ConfigurationSpace,
                  R,
                  eta=3,
                  skip_outer_loop=0,
                  rand_prob=0.3,
+                 use_bohb=False,
                  init_weight=None, update_enable=True,
                  weight_method='rank_loss_p_norm',
                  fusion_method='idp',
@@ -40,16 +42,17 @@ class async_mqMFES(async_mqHyperband):
                  restart_needed=True,
                  time_limit_per_trial=600,
                  runtime_limit=None,
+                 seed=1,
                  ip='',
                  port=13579,
-                 authkey=b'abc',):
+                 authkey=b'abc'):
         super().__init__(objective_func, config_space, R, eta=eta, skip_outer_loop=skip_outer_loop,
                          random_state=random_state, method_id=method_id, restart_needed=restart_needed,
                          time_limit_per_trial=time_limit_per_trial, runtime_limit=runtime_limit,
                          ip=ip, port=port, authkey=authkey)
-
+        self.seed = seed
         self.last_n_iteration = None
-
+        self.use_bohb_strategy = use_bohb
         self.update_enable = update_enable
         self.fusion_method = fusion_method
         # Parameter for weight method `rank_loss_p_norm`.
@@ -66,10 +69,12 @@ class async_mqMFES(async_mqHyperband):
         self.logger.info("Initialize weight to %s" % init_weight[:self.s_max + 1])
         types, bounds = get_types(config_space)
 
-        self.weighted_surrogate = WeightedRandomForestCluster(
-            types, bounds, self.s_max, self.eta, init_weight, self.fusion_method
-        )
-        self.acquisition_function = EI(model=self.weighted_surrogate)
+        if not self.use_bohb_strategy:
+            self.surrogate = RandomForestEnsemble(types, bounds, self.s_max, self.eta,
+                                                  init_weight, self.fusion_method)
+        else:
+            self.surrogate = RandomForestWithInstances(types, bounds, seed=self.seed)
+        self.acquisition_function = EI(model=self.surrogate)
 
         self.iterate_id = 0
         self.iterate_r = list()
@@ -117,6 +122,12 @@ class async_mqMFES(async_mqHyperband):
         assert updated
         # print('=== bracket after update_observation:', self.get_bracket_status(self.bracket))
 
+        configs_running = list()
+        for _config in self.bracket[rung_id]['configs']:
+            if _config not in self.target_x[n_iteration]:
+                configs_running.append(_config)
+        value_imputed = np.median(self.target_y[n_iteration])
+
         n_iteration = int(n_iteration)
         self.target_x[n_iteration].append(config)
         self.target_y[n_iteration].append(perf)
@@ -128,9 +139,14 @@ class async_mqMFES(async_mqHyperband):
             self.history_container.add(config, perf)
 
         # Refit the ensemble surrogate model.
-        normalized_y = std_normalization(self.target_y[n_iteration])
-        self.weighted_surrogate.train(convert_configurations_to_array(self.target_x[n_iteration]),
-                                      np.array(normalized_y, dtype=np.float64), r=n_iteration)
+        configs_train = self.target_x[n_iteration] + configs_running
+        results_train = self.target_y[n_iteration] + [value_imputed] * len(configs_running)
+        results_train = np.array(std_normalization(results_train), dtype=np.float64)
+        if not self.use_bohb_strategy:
+            self.surrogate.train(convert_configurations_to_array(configs_train), results_train, r=n_iteration)
+        else:
+            if n_iteration == self.R:
+                self.surrogate.train(convert_configurations_to_array(configs_train), results_train)
 
     def choose_next(self):
         """
@@ -141,7 +157,7 @@ class async_mqMFES(async_mqHyperband):
         next_rung_id = self.get_rung_id(self.bracket, next_n_iteration)
 
         # Update weight when the inner loop of hyperband is finished
-        if self.last_n_iteration != next_n_iteration:
+        if self.last_n_iteration != next_n_iteration and not self.use_bohb_strategy:
             if self.update_enable and self.weight_update_id > self.s_max:
                 self.update_weight()
             self.weight_update_id += 1
@@ -170,12 +186,11 @@ class async_mqMFES(async_mqHyperband):
         next_extra_conf = {}
         return next_config, next_n_iteration, next_extra_conf
 
-    # TODO: With imputation.
     def get_bo_candidates(self):
         std_incumbent_value = np.min(std_normalization(self.target_y[self.iterate_r[-1]]))
         # Update surrogate model in acquisition function.
-        self.acquisition_function.update(model=self.weighted_surrogate, eta=std_incumbent_value,
-                                         num_data=len(self.history_container.data))
+        self.acquisition_function.update(model=self.surrogate, eta=std_incumbent_value,
+                                         num_data=len(self.incumbent_configs))
 
         challengers = self.acq_optimizer.maximize(
             runhistory=self.history_container,
@@ -204,7 +219,7 @@ class async_mqMFES(async_mqHyperband):
         test_x = convert_configurations_to_array(incumbent_configs)
         test_y = np.array(self.target_y[max_r], dtype=np.float64)
 
-        r_list = self.weighted_surrogate.surrogate_r
+        r_list = self.surrogate.surrogate_r
         K = len(r_list)
 
         if len(test_y) >= 3:
@@ -215,7 +230,7 @@ class async_mqMFES(async_mqHyperband):
                 for i, r in enumerate(r_list):
                     fold_num = 5
                     if i != K - 1:
-                        mean, var = self.weighted_surrogate.surrogate_container[r].predict(test_x)
+                        mean, var = self.surrogate.surrogate_container[r].predict(test_x)
                         tmp_y = np.reshape(mean, -1)
                         preorder_num, pair_num = self.calculate_preserving_order_num(tmp_y, test_y)
                         preserving_order_p.append(preorder_num / pair_num)
@@ -247,7 +262,7 @@ class async_mqMFES(async_mqHyperband):
                 # For basic surrogate i=1:K-1.
                 mean_list, var_list = list(), list()
                 for i, r in enumerate(r_list[:-1]):
-                    mean, var = self.weighted_surrogate.surrogate_container[r].predict(test_x)
+                    mean, var = self.surrogate.surrogate_container[r].predict(test_x)
                     mean_list.append(np.reshape(mean, -1))
                     var_list.append(np.reshape(var, -1))
                 sample_num = 100
@@ -288,7 +303,7 @@ class async_mqMFES(async_mqHyperband):
         else:
             old_weights = list()
             for i, r in enumerate(r_list):
-                _weight = self.weighted_surrogate.surrogate_weight[r]
+                _weight = self.surrogate.surrogate_weight[r]
                 old_weights.append(_weight)
             new_weights = old_weights.copy()
 
@@ -297,7 +312,7 @@ class async_mqMFES(async_mqHyperband):
 
         # Assign the weight to each basic surrogate.
         for i, r in enumerate(r_list):
-            self.weighted_surrogate.surrogate_weight[r] = new_weights[i]
+            self.surrogate.surrogate_weight[r] = new_weights[i]
         self.weight_changed_cnt += 1
         # Save the weight data.
         self.hist_weights.append(new_weights)
@@ -311,3 +326,4 @@ class async_mqMFES(async_mqHyperband):
 
     def get_weights(self):
         return self.hist_weights
+
