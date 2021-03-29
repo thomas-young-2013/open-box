@@ -5,10 +5,10 @@ from math import log, ceil
 from sklearn.model_selection import KFold
 from scipy.optimize import minimize
 
-from .async_mq_hb import async_mqHyperband
-from .utils import RUNNING, COMPLETED, PROMOTED
-from .utils import sample_configuration
-from .utils import minmax_normalization, std_normalization
+from litebo.apps.multi_fidelity.async_mq_hb import async_mqHyperband
+from litebo.apps.multi_fidelity.utils import RUNNING, COMPLETED, PROMOTED
+from litebo.apps.multi_fidelity.utils import sample_configuration
+from litebo.apps.multi_fidelity.utils import minmax_normalization, std_normalization
 from litebo.surrogate.base.weighted_rf_ensemble import WeightedRandomForestCluster
 
 from litebo.utils.util_funcs import get_types

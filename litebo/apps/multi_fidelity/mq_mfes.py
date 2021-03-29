@@ -5,9 +5,9 @@ from math import log, ceil
 from sklearn.model_selection import KFold
 from scipy.optimize import minimize
 
-from .mq_base_facade import mqBaseFacade
-from .utils import sample_configurations, expand_configurations
-from .utils import minmax_normalization, std_normalization
+from litebo.apps.multi_fidelity.mq_base_facade import mqBaseFacade
+from litebo.apps.multi_fidelity.utils import sample_configurations, expand_configurations
+from litebo.apps.multi_fidelity.utils import minmax_normalization, std_normalization
 from litebo.surrogate.base.weighted_rf_ensemble import WeightedRandomForestCluster
 
 from litebo.utils.util_funcs import get_types

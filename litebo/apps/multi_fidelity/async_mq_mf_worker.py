@@ -1,5 +1,5 @@
-import time
 import sys
+import time
 import traceback
 from litebo.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
 from litebo.utils.limit import time_limit, TimeoutException

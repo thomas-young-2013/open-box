@@ -1,8 +1,7 @@
 from math import ceil
-from .async_mq_sh import async_mqSuccessiveHalving
-from .utils import sample_configuration
-
 from litebo.utils.config_space import ConfigurationSpace
+from litebo.apps.multi_fidelity.utils import sample_configuration
+from litebo.apps.multi_fidelity.async_mq_sh import async_mqSuccessiveHalving
 
 
 class async_mqHyperband(async_mqSuccessiveHalving):

@@ -1,8 +1,8 @@
 import time
 import numpy as np
 from math import log, ceil
-from .mq_base_facade import mqBaseFacade
-from .utils import sample_configurations
+from litebo.apps.multi_fidelity.mq_base_facade import mqBaseFacade
+from litebo.apps.multi_fidelity.utils import sample_configurations
 
 from litebo.utils.config_space import ConfigurationSpace
 

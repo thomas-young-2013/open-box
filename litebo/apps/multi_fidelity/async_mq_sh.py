@@ -1,9 +1,9 @@
 import time
 import numpy as np
 from math import log, ceil
-from .async_mq_base_facade import async_mqBaseFacade
-from .utils import RUNNING, COMPLETED, PROMOTED
-from .utils import sample_configuration
+from litebo.apps.multi_fidelity.async_mq_base_facade import async_mqBaseFacade
+from litebo.apps.multi_fidelity.utils import RUNNING, COMPLETED, PROMOTED
+from litebo.apps.multi_fidelity.utils import sample_configuration
 
 from litebo.utils.config_space import ConfigurationSpace
 from litebo.utils.constants import MAXINT
