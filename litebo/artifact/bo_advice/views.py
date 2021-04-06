@@ -1,10 +1,15 @@
+import datetime
+import hashlib
 import json
-from django.http import HttpResponse
+
+from bson import ObjectId
+from django.http import HttpResponse, JsonResponse
 
 from litebo.utils.config_space import json as config_json
 from litebo.utils.config_space import Configuration
 from litebo.core.base import Observation
 
+from litebo.artifact.data_manipulation.db_object import User, Task, Runhistory
 
 # Global mapping from task_id to config advisor
 advisor_dict = {}
@@ -28,7 +33,17 @@ def task_register(request):
     if request.method == 'POST':
         if request.POST:
             # Parse request
-            task_id = request.POST.get('task_id')
+            # task_id = request.POST.get('task_id')
+            email = request.POST.get('email')
+            password = request.POST.get('password')
+            user = User().find_one({'email': email})
+            if user is None:
+                return JsonResponse({'code': 0, 'msg': '[bo_advice/views.py] User does not exist'})
+            else:
+                if user['password'] != hashlib.md5(password.encode(encoding='utf-8')).hexdigest():
+                    return JsonResponse({'code': 0, 'msg': '[bo_advice/views.py] Incorrect Password'})
+
+            # task_id = request.POST.get('task_id')
             config_space_json = request.POST.get('config_space_json')
             config_space = config_json.read(config_space_json)
 
@@ -37,8 +52,30 @@ def task_register(request):
             task_info = {'num_constraints': num_constraints, 'num_objs': num_objs}
             options = json.loads(request.POST.get('options', '{}'))
 
+            time_limit_per_trial = int(request.POST.get('time_limit_per_trial', 300))
+            active_worker_num = int(request.POST.get('time_limit_per_trial', 1))
+            parallel_type = request.POST.get('parallel_type', 'async')
+            task_name = request.POST.get('task_name', 'task')
+            if task_name == 'task':
+                n = Task().find_all().count()
+                task_name += '_' + str(n)
             # Create advisor
             advisor_type = request.POST.get('advisor_type', 'default')
+            max_runs = request.POST.get('max_runs', 200)
+
+            task_id = str(Task().insert_one({'task_name': task_name,
+                                             'owner': str(user['_id']),
+                                             'create_time': datetime.datetime.now(),
+                                             'config_space': json.loads(config_space_json),
+                                             'status': 'running',
+                                             'advisor_type': advisor_type,
+                                             'max_run': max_runs,
+                                             'surrogate_type': options['surrogate_type'],
+                                             'time_limit_per_trial': time_limit_per_trial,
+                                             'active_worker_num': active_worker_num,
+                                             'parallel_type': parallel_type
+                                             }))
+
             if advisor_type == 'default':
                 from litebo.core.generic_advisor import Advisor
                 config_advisor = Advisor(config_space, task_info, task_id=task_id, **options)
@@ -51,11 +88,11 @@ def task_register(request):
             # Save advisor in a global dict
             advisor_dict[task_id] = config_advisor
 
-            return HttpResponse('[bo_advice/views.py] SUCCESS')
+            return JsonResponse({'code': 1, 'msg': 'SUCCESS', 'task_id': task_id})
         else:
-            return HttpResponse('[bo_advice/views.py] empty post data')
+            return JsonResponse({'code': 0, 'msg': 'Empty post data'})
     else:
-        return HttpResponse('[bo_advice/views.py] should be a POST request')
+        return JsonResponse({'code': 0, 'msg': 'Should be a POST request'})
 
 
 def get_suggestion(request):
@@ -75,19 +112,22 @@ def get_suggestion(request):
     if request.method == 'POST':
         if request.POST:
             task_id = request.POST.get('task_id')
+            task = Task().find_one({'_id': ObjectId(task_id)})
+            if task['status'] == 'stopped':
+                return JsonResponse({'code': 0, 'msg': 'The task has stopped' })
             config_advisor = advisor_dict[task_id]
 
             suggestion = config_advisor.get_suggestion()
-            print('-'*21)
+            print('-' * 21)
             print('Get suggestion')
-            print(suggestion, '-'*21, sep='')
+            print(suggestion, '-' * 21, sep='')
             res = json.JSONEncoder().encode(suggestion.get_dictionary())
 
-            return HttpResponse(res)
+            return JsonResponse({'code': 1, 'res': res})
         else:
-            return HttpResponse('[bo_advice/views.py] error6')
+            return JsonResponse({'code': 0, 'msg': 'Empty post data'})
     else:
-        return HttpResponse('[bo_advice/views.py] error7')
+        return JsonResponse({'code': 0, 'msg': 'Should be a POST request'})
 
 
 def update_observation(request):
@@ -111,22 +151,30 @@ def update_observation(request):
             trial_state = int(request.POST.get('trial_state'))
             constraints = json.loads(request.POST.get('constraints'))
             objs = json.loads(request.POST.get('objs'))
-
+            trial_info = json.loads(request.POST.get('trial_info'))
+            item = {
+                'task_id': task_id,
+                'config': config_dict,
+                'result': list(objs),
+                'status': trial_state,
+                'trial_info': trial_info['trial_info'],
+                'worker_id': trial_info['worker_id'],
+                'cost': trial_info['cost']}
+            runhistory_id = Runhistory().insert_one(item)
             observation = Observation(config, trial_state, constraints, objs)
             config_advisor.update_observation(observation)
 
             config_advisor.save_history()
-            # print('config history', config_advisor.load_history_from_json())
 
-            print('-'*21)
+            print('-' * 21)
             print('Update observation')
             print(observation)
-            print('-'*21)
-            return HttpResponse('[bo_advice/views.py] update SUCCESS')
+            print('-' * 21)
+            return JsonResponse({'code': 1, 'msg': 'SUCCESS'})
         else:
-            return HttpResponse('[bo_advice/views.py] error3')
+            return JsonResponse({'code': 0, 'msg': 'Empty post data'})
     else:
-        return HttpResponse('[bo_advice/views.py] error4')
+        return JsonResponse({'code': 0, 'msg': 'Should be a POST request'})
 
 
 def get_result(request):
@@ -151,9 +199,9 @@ def get_result(request):
             incumbents = [(k.get_dictionary(), v) for k, v in incumbents]
             history = config_advisor.history_container.data
             history = [(k.get_dictionary(), v) for k, v in history.items()]
-            print('-'*21)
+            print('-' * 21)
             print('BO result')
-            print(incumbents, '-'*21, sep='')
+            print(incumbents, '-' * 21, sep='')
             res = json.JSONEncoder().encode({'result': json.dumps(incumbents),
                                              'history': json.dumps(history)})
 
