@@ -1,47 +1,66 @@
-import os
-import sys
-import bson
-import pprint
-import datetime
-import numpy as np
 from bson import ObjectId
-from litebo.optimizer import _optimizers
 from litebo.artifact.data_manipulation.db_object import User, Task, Runhistory
-from litebo.utils.config_space.space_utils import get_config_space_from_dict
 
-from django.http import HttpResponseRedirect, HttpResponse
-from django.shortcuts import get_object_or_404, render
-from django.urls import reverse
+from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
+from django.shortcuts import render
+
+from user_board.utils.common import create_token, authenticate_token, get_password
 
 
 def index(request):
-    # TODO: return a proper html for GET that enable the user to post 'username' and 'password'
-    # although now we haven't applied password logic...
     if request.method == 'GET':
-        return HttpResponse('This page should be login.')
-    elif request.method == 'POST':
-        if request.POST:
-            # Parse request
-            owner = request.POST.get('username')
-            config_space_json = request.POST.get('password')
-            return HttpResponseRedirect(reverse('user_board:show_task', args=(owner,)))
+        return render(request, 'login.html')
+
+
+def logout(request):
+    if request.method == 'GET':
+        return render(request, 'logout.html')
+
+
+def register(request):
+    if request.method == 'GET':
+        return render(request, 'register.html')
+
+
+def activate(request, token):
+    if request.method == "GET":
+        acc, payload = authenticate_token(token)
+        if acc == 0:
+            return HttpResponse(payload)
         else:
-            return HttpResponse('[bo_advice/views.py] empty post data')
+            user = User().find_one({'_id': ObjectId(payload['user_id'])})
+            if user is None:
+                return HttpResponse("User does not exist!")
+            if user['is_active'] == 1:
+                return HttpResponse("Email is activated!")
+            User().collection.update_one({'_id': ObjectId(payload['user_id'])}, {"$set": {'is_active': 1}})
+        return render(request, 'login.html', {'is_register': 1})
 
 
-def show_task(request, owner: str):
-    # TODO: add a proper ./templates/user_board/show_task.html & use the commented return render statement instead
+def reset_password(request, param):
     if request.method == 'GET':
-        task = Task()
-        task_list = [x for x in task.find_one({'owner': owner})]
-        return HttpResponse(str(task_list))
-        # return render(request, 'user_board/show_task.html', {'owner': owner, 'task_list': task_list})
+        if param == "send_mail":
+            return render(request, 'reset_password.html', {"change_password": 0})
+        else:
+            return render(request, 'reset_password.html', {"change_password": 1, 'token': param})
 
 
-def detail(request, task_id: str):
-    # TODO: add a proper ./templates/user_board/detail.html & use the commented return render statement instead
+def show_task(request, user_id: str):
     if request.method == 'GET':
-        runhistory = Runhistory()
-        runhistory_list = [x for x in runhistory.find_many({'task_id': task_id})]
-        return HttpResponse(str(runhistory_list))
-        # return render(request, 'user_board/detail.html', {'task_id': task_id, 'runhistory_list': runhistory_list})
+        context = {}
+        context['task_field'] = ['Task Name', 'Configuration', 'Create Time', 'Status', 'Max_run']
+        context['user_id'] = user_id
+        return render(request, 'task_list.html', context)
+
+
+def task_detail(request, task_id: str):
+    if request.method == 'GET':
+        context = {}
+        context['task_field'] = ['Advisor Type', 'Surrogate Type', 'Time Limit Per Trial', 'Active Worker Num',
+                                 'Parallel Type']
+        task = Task().find_one({'_id': ObjectId(task_id)})
+        context['task'] = [task['advisor_type'], task['surrogate_type'], task['time_limit_per_trial'],
+                           task['active_worker_num'], task['parallel_type'], ]
+        context['rh_field'] = ['Result', 'Config', 'Status', 'Trial Info', 'Worker Id', 'Cost']
+        context['task_id'] = task_id
+        return render(request, 'history_list.html', context)
