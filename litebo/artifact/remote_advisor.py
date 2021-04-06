@@ -9,7 +9,8 @@ from litebo.utils.constants import SUCCESS
 
 class RemoteAdvisor(object):
     def __init__(self, config_space,
-                 server_ip, port,
+                 server_ip, port, email, password,
+                 task_name='task',
                  task_id='remote_bo',
                  num_constraints=0,
                  num_objs=1,
@@ -22,10 +23,14 @@ class RemoteAdvisor(object):
                  init_strategy='random_explore_first',
                  initial_configurations=None,
                  initial_runs=3,
-                 random_state=1):
+                 random_state=1,
+                 time_limit_per_trial=300,
+                 active_worker_num=1,
+                 parallel_type='async'
+                 ):
 
-        # Assign task id
-        self.task_id = time.time() if task_id is None else task_id
+        self.email = email
+        self.password = password
 
         # Store and serialize config space
         self.config_space = config_space
@@ -58,10 +63,19 @@ class RemoteAdvisor(object):
         self.base_url = 'http://%s:%d/bo_advice/' % (server_ip, port)
 
         # Register task
-        requests.post(self.base_url + 'task_register/',
-                      data={'task_id': self.task_id, 'config_space_json': config_space_json,
-                            'num_constraints': num_constraints, 'num_objs': num_objs,
-                            'options': json.dumps(options)})
+        res = requests.post(self.base_url + 'task_register/',
+                            data={'email': self.email, 'password': self.password, 'task_name': task_name,
+                                  'config_space_json': config_space_json,
+                                  'num_constraints': num_constraints, 'num_objs': num_objs,
+                                  'max_runs': self.max_iterations,
+                                  'options': json.dumps(options), time_limit_per_trial: time_limit_per_trial,
+                                  active_worker_num: active_worker_num, parallel_type: parallel_type})
+        res = json.loads(res.text)
+
+        if res['code'] == 1:
+            self.task_id = res['task_id']
+        else:
+            raise Exception('Server error %s' % res['msg'])
 
     def check_setup(self):
         """
@@ -134,21 +148,22 @@ class RemoteAdvisor(object):
     def get_suggestion(self):
         res = requests.post(self.base_url + 'get_suggestion/',
                             data={'task_id': self.task_id})
-        if res.status_code != 200:
-            print('Get suggestion failed.')
-            raise Exception('Server error %d' % res.status_code)
-        else:
-            config_dict = res.json()
-            return config_dict
+        res = json.loads(res.text)
 
-    def update_observation(self, config_dict, objs, constraints=[], trial_state=SUCCESS):
+        if res['code'] == 1:
+            config_dict = json.loads(res['res'])
+            return config_dict
+        else:
+            raise Exception('Server error %s' % res['msg'])
+
+    def update_observation(self, config_dict, objs, constraints=[], trial_info={}, trial_state=SUCCESS):
         res = requests.post(self.base_url + 'update_observation/',
                             data={'task_id': self.task_id, 'config': json.dumps(config_dict),
                                   'objs': json.dumps(objs), 'constraints': json.dumps(constraints),
-                                  'trial_state': trial_state})
-        if res.status_code != 200:
-            print('Update observation failed.')
-            raise Exception('Server error %s' % res.status_code)
+                                  'trial_state': trial_state, 'trial_info': json.dumps(trial_info)})
+        res = json.loads(res.text)
+        if res['code'] == 0:
+            raise Exception('Server error %s' % res['msg'])
 
     def get_result(self):
         res = requests.post(self.base_url + 'get_result/', data={'task_id': self.task_id})
