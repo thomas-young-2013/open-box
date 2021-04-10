@@ -41,10 +41,10 @@ def register(request):
         if user is not None:
             if user['is_active'] == 1:
                 return JsonResponse({'code': 0, 'msg': 'Email already exists!'})
-            if (datetime.datetime.now() - user['create_time']).seconds < 3600:
-                return JsonResponse({'code': 0, 'msg': 'Activate your account by the email!'})
+            if (datetime.datetime.now() - user['create_time']).seconds < 60:
+                return JsonResponse({'code': 0, 'msg': 'Please check your email to activate your account!'})
         if user is not None and user['is_active'] == 0:
-            user_id = str(user['id'])
+            user_id = str(user['_id'])
         else:
             user_id = str(User().insert_one({'username': user_name,
                                              'email': email,

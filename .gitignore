@@ -38,4 +38,5 @@ test/.ipynb_checkpoints/
 
 docs/build/
 
-conf/
+conf/*
+!conf/template/
