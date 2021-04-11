@@ -40,3 +40,5 @@ docs/build/
 
 conf/*
 !conf/template/
+
+litebo/artifact/db.sqlite3
