@@ -1,5 +1,7 @@
 import sys
+import time
 import traceback
+import math
 from typing import List
 from collections import OrderedDict
 from tqdm import tqdm
@@ -21,6 +23,7 @@ class SMBO(BOBase):
                  num_objs=1,
                  sample_strategy: str = 'bo',
                  max_runs=200,
+                 runtime_limit=None,
                  time_limit_per_trial=180,
                  advisor_type='default',
                  surrogate_type=None,
@@ -43,8 +46,8 @@ class SMBO(BOBase):
         self.FAILED_PERF = [MAXINT] * num_objs
         super().__init__(objective_function, config_space, task_id=task_id, output_dir=logging_dir,
                          random_state=random_state, initial_runs=initial_runs, max_runs=max_runs,
-                         sample_strategy=sample_strategy, time_limit_per_trial=time_limit_per_trial,
-                         history_bo_data=history_bo_data)
+                         runtime_limit=runtime_limit, sample_strategy=sample_strategy,
+                         time_limit_per_trial=time_limit_per_trial, history_bo_data=history_bo_data)
 
         if advisor_type == 'default':
             from litebo.core.generic_advisor import Advisor
@@ -86,24 +89,31 @@ class SMBO(BOBase):
             raise ValueError('Invalid advisor type!')
 
     def run(self):
-        for i in tqdm(range(self.iteration_id, self.max_iterations)):
-            self.iterate()
+        for _ in tqdm(range(self.iteration_id, self.max_iterations)):
+            if self.budget_left < 0:
+                self.logger.info('Time %f elapsed!' % self.runtime_limit)
+                break
+            start_time = time.time()
+            self.iterate(budget_left=self.budget_left)
+            runtime = time.time() - start_time
+            self.budget_left -= runtime
         return self.get_history()
 
-    def iterate(self):
+    def iterate(self, budget_left=None):
         config = self.config_advisor.get_suggestion()
 
         trial_state, trial_info = SUCCESS, None
+        _time_limit_per_trial = math.ceil(min(self.time_limit_per_trial, budget_left))
 
         if config not in (self.config_advisor.configurations + self.config_advisor.failed_configurations):
             try:
                 args, kwargs = (config,), dict()
                 timeout_status, _result = time_limit(self.objective_function,
-                                                     self.time_limit_per_trial,
+                                                     _time_limit_per_trial,
                                                      args=args, kwargs=kwargs)
                 if timeout_status:
                     raise TimeoutException(
-                        'Timeout: time limit for this evaluation is %.1fs' % self.time_limit_per_trial)
+                        'Timeout: time limit for this evaluation is %.1fs' % _time_limit_per_trial)
                 else:
                     objs, constraints = get_result(_result, FAILED_PERF=self.FAILED_PERF)
             except Exception as e:
@@ -117,7 +127,11 @@ class SMBO(BOBase):
                 trial_info = str(e)
 
             observation = Observation(config, trial_state, constraints, objs)
-            self.config_advisor.update_observation(observation)
+            if _time_limit_per_trial == self.time_limit_per_trial and trial_state == TIMEOUT:
+                # Timeout in the last iteration.
+                pass
+            else:
+                self.config_advisor.update_observation(observation)
         else:
             self.logger.info('This configuration has been evaluated! Skip it.')
             if config in self.config_advisor.configurations:
@@ -134,4 +148,3 @@ class SMBO(BOBase):
             if obj < self.FAILED_PERF[idx]:
                 self.writer.add_scalar('data/objective-%d' % (idx + 1), obj, self.iteration_id)
         return config, trial_state, objs, trial_info
-
