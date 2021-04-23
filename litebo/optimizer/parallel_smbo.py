@@ -130,6 +130,22 @@ class pSMBO(BOBase):
                     # Wait for workers.
                     time.sleep(0.3)
 
+    # Asynchronously evaluate n configs
+    def async_iterate(self, n=1):
+        iter_id = 0
+        with ParallelEvaluation(wrapper, n_worker=self.batch_size) as proc:
+            while iter_id < n:
+                _config = self.config_advisor.get_suggestion()
+                _param = [self.objective_function, _config, self.time_limit_per_trial]
+                # Submit a job to worker.
+                proc.process_pool.apply_async(wrapper, (_param,), callback=self.callback)
+                while len(self.config_advisor.running_configs) >= self.batch_size:
+                    # Wait for workers.
+                    time.sleep(0.3)
+                iter_id += 1
+        return self.config_advisor.total_configurations[-n:], self.config_advisor.total_state[
+                                                              -n:], self.config_advisor.total_perfs[-n:]
+
     def sync_run(self):
         with ParallelEvaluation(wrapper, n_worker=self.batch_size) as proc:
             batch_num = (self.max_iterations + self.batch_size - 1) // self.batch_size

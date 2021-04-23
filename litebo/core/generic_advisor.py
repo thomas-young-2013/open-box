@@ -19,6 +19,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
     """
     Basic Advisor Class, which adopts a policy to sample a configuration.
     """
+
     def __init__(self, config_space,
                  task_info,
                  initial_trials=10,
@@ -64,6 +65,11 @@ class Advisor(object, metaclass=abc.ABCMeta):
         if self.num_constraints > 0:
             self.constraint_perfs = [list() for _ in range(self.num_constraints)]
 
+        # TODO: Total evaluations here. Successful + Failed
+        self.total_configurations = list()
+        self.total_state = list()
+        self.total_perfs = list()
+
         # Init the basic ingredients in Bayesian optimization.
         self.history_bo_data = history_bo_data
         self.surrogate_type = surrogate_type
@@ -87,7 +93,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
                                                                 ref_point)
         elif self.num_objs == 1:
             self.history_container = HistoryContainer(task_id)
-        else:   # multi-objectives
+        else:  # multi-objectives
             self.history_container = MOHistoryContainer(task_id, ref_point)
 
         self.surrogate_model = None
@@ -116,7 +122,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
                 assert self.acq_type in ['ei', 'eips', 'logei', 'pi', 'lcb', 'lpei', ]
                 if self.surrogate_type is None:
                     self.surrogate_type = 'prf'
-            else:   # with constraints
+            else:  # with constraints
                 if self.acq_type is None:
                     self.acq_type = 'eic'
                 assert self.acq_type in ['eic', ]
@@ -140,7 +146,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
                     self.surrogate_type = 'gp_rbf'
                     self.logger.warning('Surrogate model has changed to Gaussian Process with RBF kernel '
                                         'since MESMO is used. Surrogate_type should be set to \'gp_rbf\'.')
-            else:   # with constraints
+            else:  # with constraints
                 if self.acq_type is None:
                     self.acq_type = 'ehvic'
                 assert self.acq_type in ['ehvic', 'mesmoc', 'mesmoc2']
@@ -179,7 +185,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
                                                    config_space=self.config_space,
                                                    rng=self.rng,
                                                    history_hpo_data=self.history_bo_data)
-        else:   # multi-objectives
+        else:  # multi-objectives
             self.surrogate_model = [build_surrogate(func_str=self.surrogate_type,
                                                     config_space=self.config_space,
                                                     rng=self.rng,
@@ -251,7 +257,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
         initial_configs.append(default_config)
 
         for config in src_configs:
-            dis = np.linalg.norm(config.get_array()-default_config.get_array())
+            dis = np.linalg.norm(config.get_array() - default_config.get_array())
             min_dis.append(dis)
         min_dis = np.array(min_dis)
 
@@ -263,7 +269,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
             for j in range(len(src_configs)):
                 if src_configs[j] in initial_configs:
                     continue
-                updated_dis = np.linalg.norm(src_configs[j].get_array()-furthest_config.get_array())
+                updated_dis = np.linalg.norm(src_configs[j].get_array() - furthest_config.get_array())
                 min_dis[j] = min(updated_dis, min_dis[j])
 
         return initial_configs
@@ -305,7 +311,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
                 weights = weights / np.sum(weights)
                 scalarized_obj = get_chebyshev_scalarization(weights, Y)
                 self.surrogate_model.train(X, scalarized_obj(Y))
-            else:   # multi-objectives
+            else:  # multi-objectives
                 for i in range(self.num_objs):
                     self.surrogate_model[i].train(X, Y[:, i])
 
@@ -321,7 +327,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
                                                  constraint_models=self.constraint_models,
                                                  eta=incumbent_value,
                                                  num_data=num_config_evaluated)
-            else:   # multi-objectives
+            else:  # multi-objectives
                 mo_incumbent_value = self.history_container.get_mo_incumbent_value()
                 if self.acq_type == 'parego':
                     self.acquisition_function.update(model=self.surrogate_model,
@@ -338,7 +344,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
                 else:
                     self.acquisition_function.update(model=self.surrogate_model,
                                                      constraint_models=self.constraint_models,
-                                                     constraint_perfs=cY,   # for MESMOC
+                                                     constraint_perfs=cY,  # for MESMOC
                                                      eta=mo_incumbent_value,
                                                      num_data=num_config_evaluated,
                                                      X=X, Y=Y)
@@ -370,6 +376,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
         -------
 
         """
+
         def bilog(y):
             """Magnify the difference between y and 0"""
             if y >= 0:
@@ -403,6 +410,12 @@ class Advisor(object, metaclass=abc.ABCMeta):
             self.max_y = np.max(self.perfs, axis=0)
         else:
             self.failed_configurations.append(config)
+        self.total_configurations.append(config)
+        self.total_state.append(trial_state)
+        if self.num_objs == 1 and isinstance(objs, Iterable):
+            self.total_perfs.append(objs[0])
+        else:
+            self.total_perfs.append(objs)
 
     def sample_random_configs(self, num_configs=1):
         """
