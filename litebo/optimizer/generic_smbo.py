@@ -103,7 +103,8 @@ class SMBO(BOBase):
         config = self.config_advisor.get_suggestion()
 
         trial_state, trial_info = SUCCESS, None
-        _time_limit_per_trial = math.ceil(min(self.time_limit_per_trial, budget_left))
+        _budget_left = int(1e10) if budget_left is None else budget_left
+        _time_limit_per_trial = math.ceil(min(self.time_limit_per_trial, _budget_left))
 
         if config not in (self.config_advisor.configurations + self.config_advisor.failed_configurations):
             try:
