@@ -119,6 +119,7 @@ class pSMBO(BOBase):
         # Parent process: collect the result and increment id.
         self.iteration_id += 1
 
+    # TODO: Wrong logic. Need to wait before return.
     def async_run(self):
         with ParallelEvaluation(wrapper, n_worker=self.batch_size) as proc:
             while self.iteration_id < self.max_iterations:
@@ -133,16 +134,20 @@ class pSMBO(BOBase):
     # Asynchronously evaluate n configs
     def async_iterate(self, n=1):
         iter_id = 0
+        res_list = list()
         with ParallelEvaluation(wrapper, n_worker=self.batch_size) as proc:
             while iter_id < n:
                 _config = self.config_advisor.get_suggestion()
                 _param = [self.objective_function, _config, self.time_limit_per_trial]
                 # Submit a job to worker.
-                proc.process_pool.apply_async(wrapper, (_param,), callback=self.callback)
+                res_list.append(proc.process_pool.apply_async(wrapper, (_param,), callback=self.callback))
                 while len(self.config_advisor.running_configs) >= self.batch_size:
                     # Wait for workers.
                     time.sleep(0.3)
                 iter_id += 1
+            for res in res_list:
+                res.wait()
+
         return self.config_advisor.total_configurations[-n:], self.config_advisor.total_state[
                                                               -n:], self.config_advisor.total_perfs[-n:]
 
