@@ -33,7 +33,6 @@ class Advisor(object, metaclass=abc.ABCMeta):
 
         # Basic components in Advisor.
         self.optimization_strategy = optimization_strategy
-        self.default_obj_value = MAXINT
         self.configurations = list()
         self.failed_configurations = list()
         self.perfs = list()
@@ -152,9 +151,6 @@ class Advisor(object, metaclass=abc.ABCMeta):
     def update_observation(self, observation):
         config, perf, trial_state = observation
         if trial_state == SUCCESS and perf < MAXINT:
-            if len(self.configurations) == 0:
-                self.default_obj_value = perf
-
             self.configurations.append(config)
             self.perfs.append(perf)
             self.history_container.add(config, perf)
@@ -168,15 +164,16 @@ class Advisor(object, metaclass=abc.ABCMeta):
     def sample_random_configs(self, num_configs=1):
         configs = list()
         sample_cnt = 0
+        max_sample_cnt = 1000
         while len(configs) < num_configs:
-            sample_cnt += 1
             config = self.config_space.sample_configuration()
+            sample_cnt += 1
             if config not in (self.configurations + self.failed_configurations + configs):
                 configs.append(config)
                 sample_cnt = 0
-            else:
-                sample_cnt += 1
-            if sample_cnt >= 200:
+                continue
+            if sample_cnt >= max_sample_cnt:
+                self.logger.warning('Cannot sample non duplicate configuration after %d iterations.' % max_sample_cnt)
                 configs.append(config)
                 sample_cnt = 0
         return configs

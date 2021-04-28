@@ -175,8 +175,15 @@ Contents
    :caption: Advanced Usage
 
    advanced_usage/parallel_evaluation
-   advanced_usage/service
    advanced_usage/transfer_learning
+
+.. toctree::
+   :maxdepth: 1
+   :caption: OpenBox as Service
+
+   openbox_as_service/service_introduction
+   openbox_as_service/deploy_service
+   openbox_as_service/use_service
 
 .. toctree::
    :maxdepth: 1

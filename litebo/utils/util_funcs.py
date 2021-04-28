@@ -68,15 +68,16 @@ def get_result(result, FAILED_PERF=None):
         constraints:
             list/tuple of constraint values or None
     """
+    number_typing_list = (int, float, np.int32, np.int64, np.float32, np.float64)
     if result is None:
         objs = FAILED_PERF
         constraints = None
     elif isinstance(result, dict):  # recommended usage
         objs = result['objs']
-        if isinstance(objs, (int, float)):
+        if isinstance(objs, number_typing_list):
             objs = (objs, )
         constraints = result.get('constraints', None)
-    elif isinstance(result, (int, float)):
+    elif isinstance(result, number_typing_list):
         objs = (result, )
         constraints = None
     else:

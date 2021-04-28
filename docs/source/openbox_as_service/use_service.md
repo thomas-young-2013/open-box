@@ -1,3 +1,19 @@
+# Use OpenBox Service
+
+This tutorial helps you use a remote **OpenBox** service.
+
+## Register an Account
+
+Visit <http://127.0.0.1:11425/user_board/index/> (replace "127.0.0.1:11425" by service ip:port) and you will see
+the homepage of **OpenBox** service. Register an account by email to use the service.
+
+You need to activate your account by clicking on the link in the activation email.
+
+## Submit a Task
+
+Here is an example of how to use <font color=#FF0000>**RemoteAdvisor**</font> to interact with **OpenBox** service.
+
+```python
 import datetime
 import time
 import numpy as np
@@ -58,3 +74,30 @@ for idx in range(max_runs):
 
 incumbents, history = config_advisor.get_result()
 print(incumbents)
+```
+
++ Remember to set **server_ip, port** of the service and **email, password** of your account when creating 
+**RemoteAdvisor**. A task is then registered to the service.
+
++ Once you create a task, you can get configuration suggestion from the service by calling
+<font color=#FF0000>**RemoteAdvisor.get_suggestion()**</font>. 
+
++ Run your job locally and send results back to the service by calling 
+<font color=#FF0000>**RemoteAdvisor.update_observation()**</font>. 
+
++ Repeat the **get_suggestion** and **update_observation** process to complete the optimization.
+
+If you are not familiar with setting up problem, please refer to 
+the [Quick Example Tutorial](../getting_started/quick_example).
+
+## Monitor task on the Web Page
+
+You can always monitor your task and see optimization result on **OpenBox** service web page.
+
+Visit <http://127.0.0.1:11425/user_board/index/> (replace "127.0.0.1:11425" by service ip:port)
+and login your account.
+
+You will see all the tasks you created. Click the buttons to further observe the results and manage your tasks.
+
+![](../assets/user_board_example.png)
+

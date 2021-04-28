@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import contextlib
 import time
+import traceback
 
 
 seeds = [4774, 3711, 7238, 3203, 4254, 2137, 1188, 4356,  517, 5887,
@@ -26,12 +27,14 @@ def check_datasets(datasets, data_dir):
         try:
             _ = load_data(_dataset, data_dir)
         except Exception as e:
-            raise ValueError('Dataset - %s does not exist!' % _dataset)
+            print('Dataset - %s load error' % (_dataset))
+            print(traceback.format_exc())
+            raise
 
 
 def load_data(dataset, data_dir):
     """
-    todo: not finished: label encoding...
+    no label encoding...
     """
     data_path = os.path.join(data_dir, "%s.csv" % dataset)
 

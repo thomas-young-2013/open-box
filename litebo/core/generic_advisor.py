@@ -1,7 +1,6 @@
 import os
 import abc
 import numpy as np
-from typing import Iterable
 
 from litebo.utils.util_funcs import get_types
 from litebo.utils.logging_utils import get_logger
@@ -31,7 +30,6 @@ class Advisor(object, metaclass=abc.ABCMeta):
                  acq_type=None,
                  acq_optimizer_type='local_random',
                  ref_point=None,
-                 use_trust_region=False,
                  output_dir='logs',
                  task_id=None,
                  random_state=None):
@@ -54,21 +52,6 @@ class Advisor(object, metaclass=abc.ABCMeta):
 
         # Basic components in Advisor.
         self.optimization_strategy = optimization_strategy
-        self.default_obj_value = [MAXINT] * self.num_objs
-        self.configurations = list()
-        self.failed_configurations = list()
-        self.perfs = list()
-        self.scale_perc = 5
-        self.perc = None
-        self.min_y = None
-        self.max_y = None
-        if self.num_constraints > 0:
-            self.constraint_perfs = [list() for _ in range(self.num_constraints)]
-
-        # TODO: Total evaluations here. Successful + Failed
-        self.total_configurations = list()
-        self.total_state = list()
-        self.total_perfs = list()
 
         # Init the basic ingredients in Bayesian optimization.
         self.history_bo_data = history_bo_data
@@ -81,20 +64,19 @@ class Advisor(object, metaclass=abc.ABCMeta):
         self.config_space.seed(self.rng.randint(MAXINT))
         self.ref_point = ref_point
 
+        # init history container
+        if self.num_objs == 1:
+            self.history_container = HistoryContainer(task_id, self.num_constraints)
+        else:  # multi-objectives
+            self.history_container = MOHistoryContainer(task_id, self.num_objs, self.num_constraints, ref_point)
+
+        # initial design
         if initial_configurations is not None and len(initial_configurations) > 0:
             self.initial_configurations = initial_configurations
             self.init_num = len(initial_configurations)
         else:
             self.initial_configurations = self.create_initial_design(self.init_strategy)
             self.init_num = len(self.initial_configurations)
-
-        if use_trust_region:
-            self.history_container = MultiStartHistoryContainer(task_id, self.num_objs,
-                                                                ref_point)
-        elif self.num_objs == 1:
-            self.history_container = HistoryContainer(task_id)
-        else:  # multi-objectives
-            self.history_container = MOHistoryContainer(task_id, ref_point)
 
         self.surrogate_model = None
         self.constraint_models = None
@@ -274,35 +256,34 @@ class Advisor(object, metaclass=abc.ABCMeta):
 
         return initial_configs
 
-    def get_suggestion(self):
+    def get_suggestion(self, history_container=None):
         """
         Generate a configuration (suggestion) for this query.
         Returns
         -------
         A configuration.
         """
-        if len(self.configurations) == 0:
-            X = np.array([])
-        else:
-            failed_configs = list() if self.max_y is None else self.failed_configurations.copy()
-            X = convert_configurations_to_array(self.configurations + failed_configs)
+        if history_container is None:
+            history_container = self.history_container
 
-        num_failed_trial = len(self.failed_configurations)
-        failed_perfs = list() if self.max_y is None else [self.max_y] * num_failed_trial
-        Y = np.array(self.perfs + failed_perfs, dtype=np.float64)
-        cY = []
-        if self.num_constraints > 0:
-            for c in self.constraint_perfs:
-                failed_c = list() if num_failed_trial == 0 else [max(c)] * num_failed_trial
-                cY.append(np.array(c + failed_c, dtype=np.float64))
+        num_config_evaluated = len(history_container.configurations)
+        num_config_successful = len(history_container.successful_perfs)
 
-        num_config_evaluated = len(self.perfs + self.failed_configurations)
         if num_config_evaluated < self.init_num:
             return self.initial_configurations[num_config_evaluated]
 
         if self.optimization_strategy == 'random':
-            return self.sample_random_configs(1)[0]
-        elif self.optimization_strategy == 'bo':
+            return self.sample_random_configs(1, history_container)[0]
+
+        X = convert_configurations_to_array(history_container.configurations)
+        Y = history_container.get_transformed_perfs()
+        cY = history_container.get_transformed_constraint_perfs()
+
+        if self.optimization_strategy == 'bo':
+            if num_config_successful < max(self.init_num, 1):
+                self.logger.warning('No enough successful initial trials! Sample random configuration.')
+                return self.sample_random_configs(1, history_container)[0]
+
             # train surrogate model
             if self.num_objs == 1:
                 self.surrogate_model.train(X, Y)
@@ -316,19 +297,18 @@ class Advisor(object, metaclass=abc.ABCMeta):
                     self.surrogate_model[i].train(X, Y[:, i])
 
             # train constraint model
-            if self.num_constraints > 0:
-                for i, model in enumerate(self.constraint_models):
-                    model.train(X, cY[i])
+            for i in range(self.num_constraints):
+                self.constraint_models[i].train(X, cY[:, i])
 
             # update acquisition function
             if self.num_objs == 1:
-                incumbent_value = self.history_container.get_incumbents()[0][1]
+                incumbent_value = history_container.get_incumbents()[0][1]
                 self.acquisition_function.update(model=self.surrogate_model,
                                                  constraint_models=self.constraint_models,
                                                  eta=incumbent_value,
                                                  num_data=num_config_evaluated)
             else:  # multi-objectives
-                mo_incumbent_value = self.history_container.get_mo_incumbent_value()
+                mo_incumbent_value = history_container.get_mo_incumbent_value()
                 if self.acq_type == 'parego':
                     self.acquisition_function.update(model=self.surrogate_model,
                                                      constraint_models=self.constraint_models,
@@ -350,14 +330,14 @@ class Advisor(object, metaclass=abc.ABCMeta):
                                                      X=X, Y=Y)
 
             # optimize acquisition function
-            challengers = self.optimizer.maximize(runhistory=self.history_container,
+            challengers = self.optimizer.maximize(runhistory=history_container,
                                                   num_points=5000)
             is_repeated_config = True
             repeated_time = 0
             cur_config = None
             while is_repeated_config:
-                cur_config = challengers.challengers[repeated_time]
-                if cur_config in (self.configurations + self.failed_configurations):
+                cur_config = challengers.challengers[repeated_time]  # todo: test small space
+                if cur_config in history_container.configurations:
                     repeated_time += 1
                 else:
                     is_repeated_config = False
@@ -376,69 +356,36 @@ class Advisor(object, metaclass=abc.ABCMeta):
         -------
 
         """
+        return self.history_container.update_observation(observation)
 
-        def bilog(y):
-            """Magnify the difference between y and 0"""
-            if y >= 0:
-                return np.log(1 + y)
-            else:
-                return -np.log(1 - y)
-
-        config, trial_state, constraints, objs = observation
-        if trial_state == SUCCESS and all(perf < MAXINT for perf in objs):
-            if len(self.configurations) == 0:
-                self.default_obj_value = objs
-
-            if self.num_constraints > 0:
-                # If infeasible, set observation to the largest found objective value
-                if any(c > 0 for c in constraints):
-                    objs = np.max(self.perfs, axis=0) if self.perfs else objs
-                # Update constraint perfs regardless of feasibility
-                for i in range(self.num_constraints):
-                    self.constraint_perfs[i].append(bilog(constraints[i]))
-
-            self.configurations.append(config)
-            if self.num_objs == 1 and isinstance(objs, Iterable):
-                self.perfs.append(objs[0])
-                self.history_container.add(config, objs[0])
-            else:
-                self.perfs.append(objs)
-                self.history_container.add(config, objs)
-
-            self.perc = np.percentile(self.perfs, self.scale_perc, axis=0)
-            self.min_y = np.min(self.perfs, axis=0)
-            self.max_y = np.max(self.perfs, axis=0)
-        else:
-            self.failed_configurations.append(config)
-        self.total_configurations.append(config)
-        self.total_state.append(trial_state)
-        if self.num_objs == 1 and isinstance(objs, Iterable):
-            self.total_perfs.append(objs[0])
-        else:
-            self.total_perfs.append(objs)
-
-    def sample_random_configs(self, num_configs=1):
+    def sample_random_configs(self, num_configs=1, history_container=None):
         """
         Sample a batch of random configurations.
         Parameters
         ----------
         num_configs
 
+        history_container
+
         Returns
         -------
 
         """
+        if history_container is None:
+            history_container = self.history_container
+
         configs = list()
         sample_cnt = 0
+        max_sample_cnt = 1000
         while len(configs) < num_configs:
-            sample_cnt += 1
             config = self.config_space.sample_configuration()
-            if config not in (self.configurations + self.failed_configurations + configs):
+            sample_cnt += 1
+            if config not in (history_container.configurations + configs):
                 configs.append(config)
                 sample_cnt = 0
-            else:
-                sample_cnt += 1
-            if sample_cnt >= 200:
+                continue
+            if sample_cnt >= max_sample_cnt:
+                self.logger.warning('Cannot sample non duplicate configuration after %d iterations.' % max_sample_cnt)
                 configs.append(config)
                 sample_cnt = 0
         return configs

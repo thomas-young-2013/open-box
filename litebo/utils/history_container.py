@@ -3,12 +3,13 @@ import json
 import collections
 from typing import List, Union
 import numpy as np
-from litebo.utils.constants import MAXINT
+from litebo.utils.constants import MAXINT, SUCCESS
 from litebo.utils.config_space import Configuration, ConfigurationSpace
 from litebo.utils.logging_utils import get_logger
 from litebo.utils.multi_objective import Hypervolume, get_pareto_front
 from litebo.utils.config_space.space_utils import get_config_from_dict
 from litebo.utils.visualization.plot_convergence import plot_convergence
+from litebo.core.base import Observation
 
 
 Perf = collections.namedtuple(
@@ -16,15 +17,73 @@ Perf = collections.namedtuple(
 
 
 class HistoryContainer(object):
-    def __init__(self, task_id):
+    def __init__(self, task_id, num_constraints=0):
         self.task_id = task_id
-        self.data = collections.OrderedDict()
+        self.data = collections.OrderedDict()   # todo: old api. only successful data
         self.config_counter = 0
         self.incumbent_value = MAXINT
         self.incumbents = list()
         self.logger = get_logger(self.__class__.__name__)
 
-    def add(self, config: Configuration, perf: Perf):
+        self.num_objs = 1
+        self.num_constraints = num_constraints
+        self.configurations = list()    # all configurations (include successful and failed)
+        self.perfs = list()             # all perfs
+        self.constraint_perfs = list()  # all constraints
+        self.trial_states = list()      # all trial states
+
+        self.successful_perfs = list()  # perfs of successful trials
+        self.failed_index = list()
+        self.transform_perf_index = list()
+
+        self.scale_perc = 5
+        self.perc = None
+        self.min_y = None
+        self.max_y = MAXINT
+
+    def update_observation(self, observation: Observation):
+        config, trial_state, constraints, objs = observation
+        self.configurations.append(config)
+        if self.num_objs == 1:
+            self.perfs.append(objs[0])
+        else:
+            self.perfs.append(objs)
+        self.trial_states.append(trial_state)
+        self.constraint_perfs.append(constraints)   # None if no constraint
+
+        transform_perf = False
+        failed = False
+        if trial_state == SUCCESS and all(perf < MAXINT for perf in objs):
+            if self.num_constraints > 0 and constraints is None:
+                self.logger.error('Constraint is None in a SUCCESS trial!')
+                failed = True
+                transform_perf = True
+            else:
+                if self.num_objs == 1:
+                    self.successful_perfs.append(objs[0])
+                    self.add(config, objs[0])
+                else:
+                    self.successful_perfs.append(objs)
+                    self.add(config, objs)
+
+                self.perc = np.percentile(self.successful_perfs, self.scale_perc, axis=0)
+                self.min_y = np.min(self.successful_perfs, axis=0).tolist()
+                self.max_y = np.max(self.successful_perfs, axis=0).tolist()
+                # If infeasible, transform perf to the largest found objective value
+                if self.num_constraints > 0 and any(c > 0 for c in constraints):
+                    transform_perf = True
+        else:
+            # failed trial
+            failed = True
+            transform_perf = True
+
+        cur_idx = len(self.perfs) - 1
+        if transform_perf:
+            self.transform_perf_index.append(cur_idx)
+        if failed:
+            self.failed_index.append(cur_idx)
+
+    def add(self, config: Configuration, perf: Perf):   # todo: remove this old api
         if config in self.data:
             self.logger.warning('Repeated configuration detected!')
             return
@@ -42,6 +101,36 @@ class HistoryContainer(object):
             self.incumbent_value = perf
             self.incumbents.append((config, perf))
 
+    def get_transformed_perfs(self):
+        transformed_perfs = self.perfs.copy()
+        for i in self.transform_perf_index:
+            transformed_perfs[i] = self.max_y
+        transformed_perfs = np.array(transformed_perfs, dtype=np.float64)
+        return transformed_perfs
+
+    def get_transformed_constraint_perfs(self, bilog_transform=True):
+        def bilog(y: np.ndarray):
+            """Magnify the difference between y and 0"""
+            idx = (y >= 0)
+            y_copy = y.copy()
+            y_copy[idx] = np.log(1 + y_copy[idx])
+            y_copy[~idx] = -np.log(1 - y_copy[~idx])
+            return y_copy
+
+        if self.num_constraints == 0:
+            return None
+
+        transformed_constraint_perfs = self.constraint_perfs.copy()
+        success_constraint_perfs = [c for c in transformed_constraint_perfs if c is not None]
+        max_c = np.max(success_constraint_perfs, axis=0) if success_constraint_perfs else [1.0] * self.num_constraints
+        for i in self.failed_index:
+            transformed_constraint_perfs[i] = max_c
+
+        transformed_constraint_perfs = np.array(transformed_constraint_perfs, dtype=np.float64)
+        if bilog_transform:
+            transformed_constraint_perfs = bilog(transformed_constraint_perfs)
+        return transformed_constraint_perfs
+
     def get_perf(self, config: Configuration):
         return self.data[config]
 
@@ -57,7 +146,7 @@ class HistoryContainer(object):
     def get_incumbents(self):
         return self.incumbents
 
-    def get_str(self):
+    def get_str(self):  # todo all configs
         from terminaltables import AsciiTable
         incumbents = self.get_incumbents()
         if not incumbents:
@@ -84,7 +173,7 @@ class HistoryContainer(object):
         table_data = ([configs_title] +
                       configs_table +
                       [["Optimal Objective Value"] + [perf for config, perf in incumbents]] +
-                      [["Num Configs"] + [str(self.config_counter)]]  # todo: no failed configs
+                      [["Num Configs"] + [str(self.config_counter)]]  # todo: all configs
                       )
 
         M = 2
@@ -146,7 +235,7 @@ class HistoryContainer(object):
         ax : `Axes`
             The matplotlib axes.
         """
-        losses = list(self.data.values())
+        losses = list(self.data.values())   # todo: all perfs
 
         n_calls = len(losses)
         iterations = range(1, n_calls + 1)
@@ -167,7 +256,7 @@ class HistoryContainer(object):
                               "HiPlot requires Python 3.6 or newer.")
             raise
 
-        visualize_data_premature = self.data
+        visualize_data_premature = self.data    # todo: all configs
         visualize_data = []
         for config, perf in visualize_data_premature.items():
             config_perf = config.get_dictionary()
@@ -185,12 +274,12 @@ class HistoryContainer(object):
         fn : str
             file name
         """
-        data = [(k.get_dictionary(), float(v)) for k, v in self.data.items()]
+        data = [(k.get_dictionary(), float(v)) for k, v in self.data.items()]   # todo: all configs
 
         with open(fn, "w") as fp:
             json.dump({"data": data}, fp, indent=2)
 
-    def load_history_from_json(self, cs: ConfigurationSpace, fn: str = "history_container.json"):
+    def load_history_from_json(self, cs: ConfigurationSpace, fn: str = "history_container.json"):   # todo: all configs
         """Load and runhistory in json representation from disk.
         Parameters
         ----------
@@ -221,24 +310,18 @@ class MOHistoryContainer(HistoryContainer):
     """
     Multi-Objective History Container
     """
-    def __init__(self, task_id, ref_point=None):
-        self.task_id = task_id
-        self.data = collections.OrderedDict()
-        self.config_counter = 0
+    def __init__(self, task_id, num_objs, num_constraints=0, ref_point=None):
+        super().__init__(task_id=task_id, num_constraints=num_constraints)
         self.pareto = collections.OrderedDict()
-        self.num_objs = None
-        self.mo_incumbent_value = None
-        self.mo_incumbents = None
+        self.num_objs = num_objs
+        self.mo_incumbent_value = [MAXINT] * self.num_objs
+        self.mo_incumbents = [list()] * self.num_objs
         self.ref_point = ref_point
         self.hv_data = list()
-        self.logger = get_logger(self.__class__.__name__)
+
+        self.max_y = [MAXINT] * self.num_objs
 
     def add(self, config: Configuration, perf: List[Perf]):
-        if self.num_objs is None:
-            self.num_objs = len(perf)
-            self.mo_incumbent_value = [MAXINT] * self.num_objs
-            self.mo_incumbents = [list()] * self.num_objs
-
         assert self.num_objs == len(perf)
 
         if config in self.data:
@@ -313,22 +396,31 @@ class MOHistoryContainer(HistoryContainer):
             hv = 0
         return hv
 
+    def plot_convergence(self, *args, **kwargs):
+        raise NotImplementedError('plot_convergence only supports single objective!')
+
+    def visualize_jupyter(self, *args, **kwargs):
+        raise NotImplementedError('visualize_jupyter only supports single objective!')
+
 
 class MultiStartHistoryContainer(object):
     """
     History container for multistart algorithms.
     """
-    def __init__(self, task_id, num_objs=1, ref_point=None):
+    def __init__(self, task_id, num_objs=1, num_constraints=0, ref_point=None):
         self.task_id = task_id
         self.num_objs = num_objs
+        self.num_constraints = num_constraints
         self.history_containers = []
+        self.ref_point = ref_point
+        self.current = None
         self.restart()
 
     def restart(self):
         if self.num_objs == 1:
-            self.current = HistoryContainer(self.task_id)
+            self.current = HistoryContainer(self.task_id, self.num_constraints)
         else:
-            self.current = MOHistoryContainer(self.task_id, ref_point)
+            self.current = MOHistoryContainer(self.task_id, self.num_objs, self.num_constraints, self.ref_point)
         self.history_containers.append(self.current)
 
     def get_configs_for_all_restarts(self):
@@ -358,8 +450,37 @@ class MultiStartHistoryContainer(object):
         Y = np.vstack([hc.get_pareto_front() for hc in self.history_containers])
         return get_pareto_front(Y).tolist()
 
+    def update_observation(self, observation: Observation):
+        return self.current.update_observation(observation)
+
     def add(self, config: Configuration, perf: Perf):
         self.current.add(config, perf)
+
+    @property
+    def configurations(self):
+        return self.current.configurations
+
+    @property
+    def perfs(self):
+        return self.current.perfs
+
+    @property
+    def constraint_perfs(self):
+        return self.current.constraint_perfs
+
+    @property
+    def trial_states(self):
+        return self.current.trial_states
+
+    @property
+    def successful_perfs(self):
+        return self.current.successful_perfs
+
+    def get_transformed_perfs(self):
+        return self.current.get_transformed_perfs
+
+    def get_transformed_constraint_perfs(self):
+        return self.current.get_transformed_constraint_perfs
 
     def get_perf(self, config: Configuration):
         for history_container in self.history_containers:

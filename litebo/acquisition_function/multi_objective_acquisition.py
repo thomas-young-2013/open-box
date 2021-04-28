@@ -44,7 +44,7 @@ class EHVI(AbstractAcquisitionFunction):
             list(product(*[[0, 1] for _ in range(ref_point.shape[0])]))
         )
 
-    def psi(self, lower: np.ndarray, upper: np.ndarray, mu: np.ndarray, sigma: np.ndarray) -> None:
+    def psi(self, lower: np.ndarray, upper: np.ndarray, mu: np.ndarray, sigma: np.ndarray) -> np.ndarray:
         r"""Compute Psi function for minimization.
 
         For each cell i and outcome k:
@@ -68,7 +68,7 @@ class EHVI(AbstractAcquisitionFunction):
         u = (upper - mu) / sigma
         return sigma * norm.pdf(u) + (mu - lower) * (1 - norm.cdf(u))
 
-    def nu(self, lower: np.ndarray, upper: np.ndarray, mu: np.ndarray, sigma: np.ndarray) -> None:
+    def nu(self, lower: np.ndarray, upper: np.ndarray, mu: np.ndarray, sigma: np.ndarray) -> np.ndarray:
         r"""Compute Nu function for minimization.
 
         For each cell i and outcome k:
@@ -186,12 +186,12 @@ class EHVIC(EHVI):
         return acq
 
 
-class MaxvalueEntropySearch(object):  # todo name min?
+class MaxvalueEntropySearch(object):
     def __init__(self, model, X, Y, beta=1e6, random_state=1):
         self.model = model  # GP model
         self.X = X
         self.Y = Y
-        self.beta = beta  # todo what is beta?
+        self.beta = beta
         self.rbf_features = None
         self.weights_mu = None
         self.L = None
@@ -244,7 +244,7 @@ class MaxvalueEntropySearch(object):  # todo name min?
 
         minimum = min(minimum, min(self.Y) - 5 / self.beta)
 
-        normalized_min = (m - minimum) / s  # todo confirm
+        normalized_min = (m - minimum) / s
         pdf = norm.pdf(normalized_min)
         cdf = norm.cdf(normalized_min)
         cdf[cdf == 0.0] = 1e-30
@@ -292,6 +292,7 @@ class MESMO(AbstractAcquisitionFunction):
         self.long_name = 'Multi-Objective Max-value Entropy Search'
         self.sample_num = sample_num
         self.random_state = random_state
+        self.rng = np.random.RandomState(self.random_state)
         self.types = np.asarray(types)
         self.bounds = np.asarray(bounds)
         self.X = None
@@ -322,7 +323,7 @@ class MESMO(AbstractAcquisitionFunction):
         self.Multiplemes = [None] * self.Y_dim
         for i in range(self.Y_dim):
             self.Multiplemes[i] = MaxvalueEntropySearch(self.model[i], self.X, self.Y[:, i],
-                                                        random_state=self.random_state)
+                                                        random_state=self.rng.randint(10000))
             self.Multiplemes[i].Sampling_RFM()
 
         self.min_samples = []
@@ -417,6 +418,7 @@ class MESMOC(AbstractAcquisitionFunction):
         self.long_name = 'Multi-Objective Max-value Entropy Search with Constraints'
         self.sample_num = sample_num
         self.random_state = random_state
+        self.rng = np.random.RandomState(random_state)
         self.types = np.asarray(types)
         self.bounds = np.asarray(bounds)
         self.constraint_models = constraint_models
@@ -454,12 +456,12 @@ class MESMOC(AbstractAcquisitionFunction):
         self.Multiplemes_constraints = [None] * self.num_constraints
         for i in range(self.Y_dim):
             self.Multiplemes[i] = MaxvalueEntropySearch(self.model[i], self.X, self.Y[:, i],
-                                                        random_state=self.random_state)
+                                                        random_state=self.rng.randint(10000))
             self.Multiplemes[i].Sampling_RFM()
         for i in range(self.num_constraints):
-            # Caution dim of self.constraint_perfs!
             self.Multiplemes_constraints[i] = MaxvalueEntropySearch(self.constraint_models[i],
-                                                                    self.X, self.constraint_perfs[i])
+                                                                    self.X, self.constraint_perfs[:, i],
+                                                                    random_state=self.rng.randint(10000))
             self.Multiplemes_constraints[i].Sampling_RFM()
 
         self.min_samples = []
@@ -487,7 +489,7 @@ class MESMOC(AbstractAcquisitionFunction):
             cheap_constraints_values = [list(solution.constraints) for solution in algorithm.result]
             # picking the min over the pareto: best case
             min_of_functions = [min(f) for f in list(zip(*cheap_pareto_front))]
-            min_of_constraints = [min(f) for f in list(zip(*cheap_constraints_values))]  # todo confirm
+            min_of_constraints = [min(f) for f in list(zip(*cheap_constraints_values))]
             self.min_samples.append(min_of_functions)
             self.min_samples_constraints.append(min_of_constraints)
 
@@ -515,7 +517,6 @@ class MESMOC(AbstractAcquisitionFunction):
             for i in range(self.Y_dim):
                 multi_obj_acq_sample += self.Multiplemes[i](X, self.min_samples[j][i])
             for i in range(self.num_constraints):
-                # todo confirm +-
                 multi_obj_acq_sample += self.Multiplemes_constraints[i](X, self.min_samples_constraints[j][i])
             multi_obj_acq_total += multi_obj_acq_sample
         acq = multi_obj_acq_total / self.sample_num
@@ -526,7 +527,7 @@ class MESMOC(AbstractAcquisitionFunction):
             m, _ = self.constraint_models[i].predict_marginalized_over_instances(X)
             constraints.append(m)
         constraints = np.hstack(constraints)
-        unsatisfied_idx = np.where(np.any(constraints > 0, axis=1, keepdims=True))  # todo confirm
+        unsatisfied_idx = np.where(np.any(constraints > 0, axis=1, keepdims=True))
         acq[unsatisfied_idx] = -1e10
         return acq
 
@@ -687,7 +688,7 @@ class USeMO(AbstractAcquisitionFunction):
         cheap_pareto_set = [solution.variables for solution in algorithm.result]
         # cheap_pareto_set_unique = []
         # for i in range(len(cheap_pareto_set)):
-        #     if not any((cheap_pareto_set[i] == x).all() for x in self.X):   # todo convert problem? no this step?
+        #     if not any((cheap_pareto_set[i] == x).all() for x in self.X):
         #         cheap_pareto_set_unique.append(cheap_pareto_set[i])
         cheap_pareto_set_unique = cheap_pareto_set
 

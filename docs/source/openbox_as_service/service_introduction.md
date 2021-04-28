@@ -1,4 +1,4 @@
-# OpenBox as Service
+# Introduction of OpenBox as Service
 
 The design of **OpenBox** follows the philosophy of providing “BBO as a service”.
 
