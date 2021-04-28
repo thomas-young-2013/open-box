@@ -63,7 +63,7 @@ for dataset in dataset_list:
               time_limit_per_trial=time_limit_per_trial, task_id='mo', random_state=seed)
     bo.config_advisor.optimizer.random_chooser.prob = rand_prob     # set rand_prob, default 0
     bo.config_advisor.acquisition_function.sample_num = sample_num  # set sample_num
-    bo.config_advisor.acquisition_function.random_state = seed      # set random_state
+    #bo.config_advisor.acquisition_function.random_state = seed      # set random_state
     bo.config_advisor.optimizer.num_mc = 10000  # MESMO optimizer only
     bo.config_advisor.optimizer.num_opt = 10    # MESMO optimizer only
     print(mth, '===== start =====')

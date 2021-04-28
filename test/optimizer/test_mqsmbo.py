@@ -78,11 +78,11 @@ class LightGBM:
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--dataset', type=str)
+parser.add_argument('--dataset', type=str, default='spambase')
 parser.add_argument('--n', type=int, default=50)
 parser.add_argument('--role', type=str, choices=['master', 'worker'])
 parser.add_argument('--batch_size', type=int, default=4)
-parser.add_argument('--ip', type=str)
+parser.add_argument('--ip', type=str, default='127.0.0.1')
 parser.add_argument('--port', type=int, default=13579)
 parser.add_argument('--parallel', type=str, default="sync")
 
@@ -102,7 +102,7 @@ if role == 'master':
     parallel = args.parallel
 
     bo = mqSMBO(None, cs, max_runs=run_count, time_limit_per_trial=60, logging_dir='logs',
-                parallel_strategy=parallel, batch_size=batch_size, ip=ip, port=port, task_id='test_mqsmbo')
+                parallel_strategy=parallel, batch_size=batch_size, ip='', port=port, task_id='test_mqsmbo')
     bo.run()
     inc_value = bo.get_incumbent()
     print('Message Queue SMBO', '=' * 30)
