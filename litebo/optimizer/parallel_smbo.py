@@ -148,8 +148,12 @@ class pSMBO(BOBase):
             for res in res_list:
                 res.wait()
 
-        return self.config_advisor.total_configurations[-n:], self.config_advisor.total_state[
-                                                              -n:], self.config_advisor.total_perfs[-n:]
+        history = self.get_history()
+        iter_config = history.configurations[-n:]
+        iter_trial_state = history.trial_states[-n:]
+        iter_constraints = history.constraint_perfs[-n:] if self.task_info['num_constraints'] > 0 else None
+        iter_objs = history.perfs[-n:]     # caution: one dim if num_objs==1, different from SMBO.iterate()
+        return iter_config, iter_trial_state, iter_constraints, iter_objs
 
     def sync_run(self):
         with ParallelEvaluation(wrapper, n_worker=self.batch_size) as proc:
@@ -170,8 +174,12 @@ class pSMBO(BOBase):
                         _objs = self.FAILED_PERF
                     _observation = [_config, SUCCESS, _constraints, _objs]
                     self.config_advisor.update_observation(_observation)
-                    self.logger.info('In the %d-th batch [%d], using config %s, result is: %s'
-                                     % (batch_id, idx, str(_config), str(_objs)))
+                    if self.task_info['num_constraints'] > 0:
+                        self.logger.info('In the %d-th batch [%d], config: %s, objective value: %s, constraints: %s.'
+                                         % (batch_id, idx, _config, _objs, _constraints))
+                    else:
+                        self.logger.info('In the %d-th batch [%d], config: %s, objective value: %s.'
+                                         % (batch_id, idx, _config, _objs))
                 batch_id += 1
 
     def run(self):

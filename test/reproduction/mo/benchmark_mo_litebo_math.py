@@ -82,22 +82,20 @@ def evaluate(mth, run_i, seed):
 
     # bo.run()
     hv_diffs = []
-    config_list = []
-    perf_list = []
     time_list = []
     global_start_time = time.time()
     for i in range(max_runs):
-        config, trial_state, objs, trial_info = bo.iterate()
+        config, trial_state, _, objs = bo.iterate()
         global_time = time.time() - global_start_time
-        print(seed, i, objs, config, trial_state, trial_info, 'time=', global_time)
+        print(seed, i, objs, config, trial_state, 'time=', global_time)
         hv = Hypervolume(problem.ref_point).compute(bo.get_history().get_pareto_front())
         hv_diff = problem.max_hv - hv
         print(seed, i, 'hypervolume =', hv)
         print(seed, i, 'hv diff =', hv_diff)
         hv_diffs.append(hv_diff)
-        config_list.append(config)
-        perf_list.append(objs)
         time_list.append(global_time)
+    config_list = bo.get_history().configurations
+    perf_list = bo.get_history().perfs
     pf = np.asarray(bo.get_history().get_pareto_front())
 
     # plot for debugging
