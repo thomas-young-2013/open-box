@@ -64,13 +64,15 @@ class TPE_Advisor:
         # store precomputed probs for the categorical parameters
         self.cat_probs = []
 
-        self.config_array = list()
         self.configurations = list()
         self.failed_configurations = list()
-        self.perfs = list()
+
         self.good_config_rankings = dict()
         self.kde_models = dict()
         self.logger = logging.getLogger(self.__class__.__name__)
+
+    def update_observation(self, observation: Observation):
+        self.history_container.update_observation(observation)
 
     def get_suggestion(self):
         self.logger.debug('Start sampling a new configuration.')
@@ -83,6 +85,8 @@ class TPE_Advisor:
 
         if len(self.history_container.configurations) == 0:
             sample = self.configspace.get_default_configuration()
+        else:
+            self.fit_kde_models()
 
         best = np.inf
         best_vector = None
@@ -208,62 +212,55 @@ class TPE_Advisor:
             return_array[i, :] = datum
         return return_array
 
-    def update_observation(self, observation: Observation):
-        # Minimize perf
-        config, trial_state, constraints, objs = observation
-        self.history_container.update_observation(observation)
-        perf = objs[0]
+    def fit_kde_models(self):
+        config_array = [config.get_array() for config in self.history_container.configurations]
+        # TODO: impute the failed perf values.
+        perfs = self.history_container.perfs.copy()
 
-        if trial_state == SUCCESS and perf < MAXINT:
-            self.config_array.append(config.get_array())
-            self.configurations.append(config)
-            self.perfs.append(perf)
+        if len(config_array) <= self.min_points_in_model - 1:
+            self.logger.debug("Only %i run(s) available, need more than %s -> can't build model!" % (
+                len(config_array), self.min_points_in_model + 1))
+            return
 
-            if len(self.config_array) <= self.min_points_in_model - 1:
-                self.logger.debug("Only %i run(s) available, need more than %s -> can't build model!" % (
-                    len(self.config_array), self.min_points_in_model + 1))
-                return
+        train_configs = np.array(config_array)
+        train_losses = np.array(perfs)
 
-            train_configs = np.array(self.config_array)
-            train_losses = np.array(self.perfs)
+        n_good = max(self.min_points_in_model, (self.top_n_percent * train_configs.shape[0]) // 100)
+        # n_bad = min(max(self.min_points_in_model, ((100-self.top_n_percent)*train_configs.shape[0])//100), 10)
+        n_bad = max(self.min_points_in_model, ((100 - self.top_n_percent) * train_configs.shape[0]) // 100)
 
-            n_good = max(self.min_points_in_model, (self.top_n_percent * train_configs.shape[0]) // 100)
-            # n_bad = min(max(self.min_points_in_model, ((100-self.top_n_percent)*train_configs.shape[0])//100), 10)
-            n_bad = max(self.min_points_in_model, ((100 - self.top_n_percent) * train_configs.shape[0]) // 100)
+        # Refit KDE for the current budget
+        idx = np.argsort(train_losses)
 
-            # Refit KDE for the current budget
-            idx = np.argsort(train_losses)
+        train_data_good = self.impute_conditional_data(train_configs[idx[:n_good]])
+        train_data_bad = self.impute_conditional_data(train_configs[idx[n_good:n_good + n_bad]])
 
-            train_data_good = self.impute_conditional_data(train_configs[idx[:n_good]])
-            train_data_bad = self.impute_conditional_data(train_configs[idx[n_good:n_good + n_bad]])
+        if train_data_good.shape[0] <= train_data_good.shape[1]:
+            return
+        if train_data_bad.shape[0] <= train_data_bad.shape[1]:
+            return
 
-            if train_data_good.shape[0] <= train_data_good.shape[1]:
-                return
-            if train_data_bad.shape[0] <= train_data_bad.shape[1]:
-                return
+        # more expensive crossvalidation method
+        # bw_estimation = 'cv_ls'
 
-            # more expensive crossvalidation method
-            # bw_estimation = 'cv_ls'
+        # quick rule of thumb
+        bw_estimation = 'normal_reference'
 
-            # quick rule of thumb
-            bw_estimation = 'normal_reference'
+        bad_kde = sm.nonparametric.KDEMultivariate(data=train_data_bad, var_type=self.kde_vartypes,
+                                                   bw=bw_estimation)
+        good_kde = sm.nonparametric.KDEMultivariate(data=train_data_good, var_type=self.kde_vartypes,
+                                                    bw=bw_estimation)
 
-            bad_kde = sm.nonparametric.KDEMultivariate(data=train_data_bad, var_type=self.kde_vartypes,
-                                                       bw=bw_estimation)
-            good_kde = sm.nonparametric.KDEMultivariate(data=train_data_good, var_type=self.kde_vartypes,
-                                                        bw=bw_estimation)
+        bad_kde.bw = np.clip(bad_kde.bw, self.min_bandwidth, None)
+        good_kde.bw = np.clip(good_kde.bw, self.min_bandwidth, None)
 
-            bad_kde.bw = np.clip(bad_kde.bw, self.min_bandwidth, None)
-            good_kde.bw = np.clip(good_kde.bw, self.min_bandwidth, None)
+        self.kde_models = {
+            'good': good_kde,
+            'bad': bad_kde
+        }
 
-            self.kde_models = {
-                'good': good_kde,
-                'bad': bad_kde
-            }
+        # update probs for the categorical parameters for later sampling
+        self.logger.debug(
+            'done building a new model based on %i/%i split\nBest loss for this budget:%f\n\n\n\n\n' % (
+                n_good, n_bad, np.min(train_losses)))
 
-            # update probs for the categorical parameters for later sampling
-            self.logger.debug(
-                'done building a new model based on %i/%i split\nBest loss for this budget:%f\n\n\n\n\n' % (
-                    n_good, n_bad, np.min(train_losses)))
-        else:
-            self.failed_configurations.append(config)
