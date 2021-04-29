@@ -4,7 +4,7 @@ from litebo.core.generic_advisor import Advisor
 
 class RandomAdvisor(Advisor):
     """
-    Basic Advisor Class, which adopts a policy to sample a configuration.
+    Random Advisor Class, which adopts the random policy to sample a configuration.
     """
 
     def __init__(self, config_space,
