@@ -81,6 +81,9 @@ class TPE_Advisor:
         if len(self.kde_models.keys()) == 0 or self.rng.rand() < self.random_fraction:
             sample = self.configspace.sample_configuration()
 
+        if len(self.history_container.configurations) == 0:
+            sample = self.configspace.get_default_configuration()
+
         best = np.inf
         best_vector = None
 
