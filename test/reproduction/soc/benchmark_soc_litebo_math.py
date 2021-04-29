@@ -71,23 +71,19 @@ def evaluate(mth, run_i, seed):
     time_list = []
     global_start_time = time.time()
     for i in range(max_runs):
-        config, trial_state, objs, trial_info = bo.iterate()
+        config, trial_state, constraints, objs = bo.iterate()
         global_time = time.time() - global_start_time
-        print(seed, i, objs, config, trial_state, trial_info, 'time=', global_time)
-        # if any(c > 0 for c in constraints):
-        #     objs = np.max(self.perfs, axis=0) if self.perfs else objs
+        origin_perf = objs[0]
+        if any(c > 0 for c in constraints):
+            perf = 9999999.0
+        else:
+            perf = origin_perf
+        print(seed, i, perf, config, constraints, trial_state, 'time=', global_time)
         config_list.append(config)
-        perf_list.append(objs[0])
+        perf_list.append(perf)
         time_list.append(global_time)
 
-    _perf_list = []
-    for i, c in enumerate(bo.config_advisor.constraint_perfs[0]):
-        if c > 0:
-            _perf_list.append(9999999)
-        else:
-            _perf_list.append(perf_list[i])
-
-    return config_list, _perf_list, time_list
+    return config_list, perf_list, time_list
 
 
 with timeit('%s all' % (mth,)):

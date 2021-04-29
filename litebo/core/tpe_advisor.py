@@ -9,6 +9,7 @@ import statsmodels.api as sm
 
 from litebo.utils.history_container import HistoryContainer
 from litebo.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
+from litebo.core.base import Observation
 
 
 class TPE_Advisor:
@@ -21,9 +22,11 @@ class TPE_Advisor:
                  bandwidth_factor=3,
                  min_bandwidth=1e-3,
                  task_id=None,
-                 output_dir='logs'):
+                 output_dir='logs',
+                 random_state=1):
         self.top_n_percent = top_n_percent
         self.configspace = configspace
+        self.configspace.seed(random_state)
         self.bw_factor = bandwidth_factor
         self.min_bandwidth = min_bandwidth
 
@@ -39,6 +42,9 @@ class TPE_Advisor:
 
         self.num_samples = num_samples
         self.random_fraction = random_fraction
+
+        self.random_state = random_state
+        self.rng = np.random.RandomState(random_state)
 
         hps = self.configspace.get_hyperparameters()
 
@@ -72,7 +78,7 @@ class TPE_Advisor:
         sample = None
 
         # If no model is available, sample random config
-        if len(self.kde_models.keys()) == 0 or np.random.rand() < self.random_fraction:
+        if len(self.kde_models.keys()) == 0 or self.rng.rand() < self.random_fraction:
             sample = self.configspace.sample_configuration()
 
         best = np.inf
@@ -89,7 +95,7 @@ class TPE_Advisor:
                 kde_bad = self.kde_models['bad']
 
                 for i in range(self.num_samples):
-                    idx = np.random.randint(0, len(kde_good.data))
+                    idx = self.rng.randint(0, len(kde_good.data))
                     datum = kde_good.data[idx]
                     vector = []
 
@@ -107,10 +113,10 @@ class TPE_Advisor:
                                 self.logger.warning("data in the KDE:\n%s" % kde_good.data)
                         else:
 
-                            if np.random.rand() < (1 - bw):
+                            if self.rng.rand() < (1 - bw):
                                 vector.append(int(m))
                             else:
-                                vector.append(np.random.randint(t))
+                                vector.append(self.rng.randint(t))
                     val = minimize_me(vector)
 
                     if not np.isfinite(val):
@@ -184,30 +190,31 @@ class TPE_Advisor:
 
                 if len(valid_indices) > 0:
                     # pick one of them at random and overwrite all NaN values
-                    row_idx = np.random.choice(valid_indices)
+                    row_idx = self.rng.choice(valid_indices)
                     datum[nan_indices] = array[row_idx, nan_indices]
 
                 else:
                     # no good point in the data has this value activated, so fill it with a valid but random value
                     t = self.vartypes[nan_idx]
                     if t == 0:
-                        datum[nan_idx] = np.random.rand()
+                        datum[nan_idx] = self.rng.rand()
                     else:
-                        datum[nan_idx] = np.random.randint(t)
+                        datum[nan_idx] = self.rng.randint(t)
 
                 nan_indices = np.argwhere(np.isnan(datum)).flatten()
             return_array[i, :] = datum
         return return_array
 
-    def update_observation(self, observation):
+    def update_observation(self, observation: Observation):
         # Minimize perf
-        config, perf, trial_state = observation
+        config, trial_state, constraints, objs = observation
+        self.history_container.update_observation(observation)
+        perf = objs[0]
 
         if trial_state == SUCCESS and perf < MAXINT:
             self.config_array.append(config.get_array())
             self.configurations.append(config)
             self.perfs.append(perf)
-            self.history_container.add(config, perf)
 
             if len(self.config_array) <= self.min_points_in_model - 1:
                 self.logger.debug("Only %i run(s) available, need more than %s -> can't build model!" % (

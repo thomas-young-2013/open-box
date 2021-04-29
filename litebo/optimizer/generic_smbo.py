@@ -85,7 +85,7 @@ class SMBO(BOBase):
         elif advisor_type == 'tpe':
             from litebo.core.tpe_advisor import TPE_Advisor
             assert num_objs == 1 and num_constraints == 0
-            self.config_advisor = TPE_Advisor(config_space)
+            self.config_advisor = TPE_Advisor(config_space, task_id=task_id, random_state=random_state)
         else:
             raise ValueError('Invalid advisor type!')
 
@@ -103,16 +103,11 @@ class SMBO(BOBase):
     def iterate(self, budget_left=None):
         config = self.config_advisor.get_suggestion()
 
-        trial_state, trial_info = SUCCESS, None
+        trial_state = SUCCESS
         _budget_left = int(1e10) if budget_left is None else budget_left
         _time_limit_per_trial = math.ceil(min(self.time_limit_per_trial, _budget_left))
 
-        if self.advisor_type == 'tpe':  # todo: update api for tpe advisor
-            all_configurations = self.config_advisor.configurations + self.config_advisor.failed_configurations
-        else:
-            all_configurations = self.config_advisor.history_container.configurations
-
-        if config not in all_configurations:
+        if config not in self.config_advisor.history_container.configurations:
             try:
                 args, kwargs = (config,), dict()
                 timeout_status, _result = time_limit(self.objective_function,
@@ -125,18 +120,15 @@ class SMBO(BOBase):
                     objs, constraints = get_result(_result, FAILED_PERF=self.FAILED_PERF)
             except Exception as e:
                 if isinstance(e, TimeoutException):
+                    self.logger.warning(str(e))
                     trial_state = TIMEOUT
                 else:
-                    traceback.print_exc(file=sys.stdout)
+                    self.logger.warning('Exception when calling objective function: %s' % traceback.format_exc())
                     trial_state = FAILED
                 objs = self.FAILED_PERF
                 constraints = None
-                trial_info = str(e)
 
-            if self.advisor_type == 'tpe':
-                observation = [config, objs[0], trial_state]
-            else:
-                observation = Observation(config, trial_state, constraints, objs)
+            observation = Observation(config, trial_state, constraints, objs)
             if _time_limit_per_trial != self.time_limit_per_trial and trial_state == TIMEOUT:
                 # Timeout in the last iteration.
                 pass
@@ -144,27 +136,24 @@ class SMBO(BOBase):
                 self.config_advisor.update_observation(observation)
         else:
             self.logger.info('This configuration has been evaluated! Skip it: %s' % config)
-            if self.advisor_type == 'tpe':
-                if config in self.config_advisor.configurations:
-                    config_idx = self.config_advisor.configurations.index(config)
-                    trial_state, objs = SUCCESS, self.config_advisor.perfs[config_idx]
-                    if self.task_info['num_objs'] == 1:
-                        objs = (objs,)
-                else:
-                    trial_state, objs = FAILED, self.FAILED_PERF
-            else:
-                config_idx = all_configurations.index(config)
-                objs = self.config_advisor.history_container.perfs[config_idx]
-                trial_state = self.config_advisor.history_container.trial_states[config_idx]
-                if self.task_info['num_objs'] == 1:
-                    objs = (objs,)
+            history = self.get_history()
+            config_idx = history.configurations.index(config)
+            trial_state = history.trial_states[config_idx]
+            objs = history.perfs[config_idx]
+            constraints = history.constraint_perfs[config_idx] if self.task_info['num_constraints'] > 0 else None
+            if self.task_info['num_objs'] == 1:
+                objs = (objs,)
 
         self.iteration_id += 1
         # Logging.
-        self.logger.info('Iteration %d, objective value: %s' % (self.iteration_id, str(objs)))
+        if self.task_info['num_constraints'] > 0:
+            self.logger.info('Iteration %d, objective value: %s. constraints: %s.'
+                             % (self.iteration_id, objs, constraints))
+        else:
+            self.logger.info('Iteration %d, objective value: %s.' % (self.iteration_id, objs))
 
         # Visualization.
         for idx, obj in enumerate(objs):
             if obj < self.FAILED_PERF[idx]:
                 self.writer.add_scalar('data/objective-%d' % (idx + 1), obj, self.iteration_id)
-        return config, trial_state, objs, trial_info
+        return config, trial_state, constraints, objs

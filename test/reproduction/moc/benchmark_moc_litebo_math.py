@@ -90,15 +90,13 @@ def evaluate(mth, run_i, seed):
     time_list = []
     global_start_time = time.time()
     for i in range(max_runs):
-        config, trial_state, origin_objs, trial_info = bo.iterate()
+        config, trial_state, constraints, origin_objs = bo.iterate()
         global_time = time.time() - global_start_time
-        constraints = [bo.config_advisor.constraint_perfs[i][-1] for i in range(problem.num_constraints)]
         if any(c > 0 for c in constraints):
             objs = [9999999.0] * problem.num_objs
         else:
             objs = origin_objs
-        print(seed, i, origin_objs, objs, constraints, config, trial_state, trial_info, 'time=', global_time)
-        assert len(bo.config_advisor.constraint_perfs[0]) == i+1    # make sure no repeat or failed config
+        print(seed, i, origin_objs, objs, constraints, config, trial_state, 'time=', global_time)
         config_list.append(config)
         perf_list.append(objs)
         time_list.append(global_time)

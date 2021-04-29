@@ -67,17 +67,15 @@ def evaluate(mth, run_i, seed):
               max_runs=max_runs,
               time_limit_per_trial=time_limit_per_trial, task_id=task_id, random_state=seed)
     # bo.run()
-    config_list = []
-    perf_list = []
     time_list = []
     global_start_time = time.time()
     for i in range(max_runs):
-        config, trial_state, objs, trial_info = bo.iterate()
+        config, trial_state, _, objs = bo.iterate()
         global_time = time.time() - global_start_time
-        print(seed, i, objs, config, trial_state, trial_info, 'time=', global_time)
-        config_list.append(config)
-        perf_list.append(objs[0])
+        print(seed, i, objs, config, trial_state, 'time=', global_time)
         time_list.append(global_time)
+    config_list = bo.get_history().configurations
+    perf_list = bo.get_history().perfs
 
     return config_list, perf_list, time_list
 
