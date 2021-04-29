@@ -8,13 +8,13 @@ import scipy.stats as sps
 import statsmodels.api as sm
 
 from litebo.utils.history_container import HistoryContainer
-from litebo.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
 from litebo.core.base import Observation
+from litebo.utils.config_space.util import convert_configurations_to_array
 
 
 class TPE_Advisor:
     # TODO：Add warm start
-    def __init__(self, configspace,
+    def __init__(self, config_space,
                  min_points_in_model=None,
                  top_n_percent=15,
                  num_samples=64,
@@ -25,8 +25,8 @@ class TPE_Advisor:
                  output_dir='logs',
                  random_state=1):
         self.top_n_percent = top_n_percent
-        self.configspace = configspace
-        self.configspace.seed(random_state)
+        self.config_space = config_space
+        self.config_space.seed(random_state)
         self.bw_factor = bandwidth_factor
         self.min_bandwidth = min_bandwidth
 
@@ -35,10 +35,10 @@ class TPE_Advisor:
 
         self.min_points_in_model = min_points_in_model
         if min_points_in_model is None:
-            self.min_points_in_model = len(self.configspace.get_hyperparameters()) + 1
+            self.min_points_in_model = len(self.config_space.get_hyperparameters()) + 1
 
-        if self.min_points_in_model < len(self.configspace.get_hyperparameters()) + 1:
-            self.min_points_in_model = len(self.configspace.get_hyperparameters()) + 1
+        if self.min_points_in_model < len(self.config_space.get_hyperparameters()) + 1:
+            self.min_points_in_model = len(self.config_space.get_hyperparameters()) + 1
 
         self.num_samples = num_samples
         self.random_fraction = random_fraction
@@ -46,7 +46,7 @@ class TPE_Advisor:
         self.random_state = random_state
         self.rng = np.random.RandomState(random_state)
 
-        hps = self.configspace.get_hyperparameters()
+        hps = self.config_space.get_hyperparameters()
 
         self.kde_vartypes = ""
         self.vartypes = []
@@ -64,9 +64,6 @@ class TPE_Advisor:
         # store precomputed probs for the categorical parameters
         self.cat_probs = []
 
-        self.configurations = list()
-        self.failed_configurations = list()
-
         self.good_config_rankings = dict()
         self.kde_models = dict()
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -74,113 +71,113 @@ class TPE_Advisor:
     def update_observation(self, observation: Observation):
         self.history_container.update_observation(observation)
 
-    def get_suggestion(self):
-        self.logger.debug('Start sampling a new configuration.')
+    def get_suggestion(self, history_container=None):
+        if history_container is None:
+            history_container = self.history_container
 
-        sample = None
+        # use default as first config
+        num_config_evaluated = len(history_container.configurations)
+        if num_config_evaluated == 0:
+            return self.config_space.get_default_configuration()
+
+        # fit
+        self.fit_kde_models(history_container)
 
         # If no model is available, sample random config
         if len(self.kde_models.keys()) == 0 or self.rng.rand() < self.random_fraction:
-            sample = self.configspace.sample_configuration()
-
-        if len(self.history_container.configurations) == 0:
-            sample = self.configspace.get_default_configuration()
-        else:
-            self.fit_kde_models()
+            return self.sample_random_configs(1, history_container)[0]
 
         best = np.inf
         best_vector = None
 
-        if sample is None:
-            try:
-                l = self.kde_models['good'].pdf
-                g = self.kde_models['bad'].pdf
+        try:
+            l = self.kde_models['good'].pdf
+            g = self.kde_models['bad'].pdf
 
-                minimize_me = lambda x: max(1e-32, g(x)) / max(l(x), 1e-32)
+            minimize_me = lambda x: max(1e-32, g(x)) / max(l(x), 1e-32)
 
-                kde_good = self.kde_models['good']
-                kde_bad = self.kde_models['bad']
+            kde_good = self.kde_models['good']
+            kde_bad = self.kde_models['bad']
 
-                for i in range(self.num_samples):
-                    idx = self.rng.randint(0, len(kde_good.data))
-                    datum = kde_good.data[idx]
-                    vector = []
+            for i in range(self.num_samples):
+                idx = self.rng.randint(0, len(kde_good.data))
+                datum = kde_good.data[idx]
+                vector = []
 
-                    for m, bw, t in zip(datum, kde_good.bw, self.vartypes):
+                for m, bw, t in zip(datum, kde_good.bw, self.vartypes):
 
-                        bw = max(bw, self.min_bandwidth)
-                        if t == 0:
-                            bw = self.bw_factor * bw
-                            try:
-                                vector.append(sps.truncnorm.rvs(-m / bw, (1 - m) / bw, loc=m, scale=bw))
-                            except:
-                                self.logger.warning(
-                                    "Truncated Normal failed for:\ndatum=%s\nbandwidth=%s\nfor entry with value %s" % (
-                                        datum, kde_good.bw, m))
-                                self.logger.warning("data in the KDE:\n%s" % kde_good.data)
+                    bw = max(bw, self.min_bandwidth)
+                    if t == 0:
+                        bw = self.bw_factor * bw
+                        try:
+                            vector.append(sps.truncnorm.rvs(-m / bw, (1 - m) / bw, loc=m, scale=bw))
+                        except:
+                            self.logger.warning(
+                                "Truncated Normal failed for:\ndatum=%s\nbandwidth=%s\nfor entry with value %s" % (
+                                    datum, kde_good.bw, m))
+                            self.logger.warning("data in the KDE:\n%s" % kde_good.data)
+                    else:
+
+                        if self.rng.rand() < (1 - bw):
+                            vector.append(int(m))
                         else:
+                            vector.append(self.rng.randint(t))
+                val = minimize_me(vector)
 
-                            if self.rng.rand() < (1 - bw):
-                                vector.append(int(m))
-                            else:
-                                vector.append(self.rng.randint(t))
-                    val = minimize_me(vector)
+                if not np.isfinite(val):
+                    self.logger.warning('sampled vector: %s has EI value %s' % (vector, val))
+                    self.logger.warning("data in the KDEs:\n%s\n%s" % (kde_good.data, kde_bad.data))
+                    self.logger.warning("bandwidth of the KDEs:\n%s\n%s" % (kde_good.bw, kde_bad.bw))
+                    self.logger.warning("l(x) = %s" % (l(vector)))
+                    self.logger.warning("g(x) = %s" % (g(vector)))
 
-                    if not np.isfinite(val):
-                        self.logger.warning('sampled vector: %s has EI value %s' % (vector, val))
-                        self.logger.warning("data in the KDEs:\n%s\n%s" % (kde_good.data, kde_bad.data))
-                        self.logger.warning("bandwidth of the KDEs:\n%s\n%s" % (kde_good.bw, kde_bad.bw))
-                        self.logger.warning("l(x) = %s" % (l(vector)))
-                        self.logger.warning("g(x) = %s" % (g(vector)))
-
-                        # right now, this happens because a KDE does not contain all values for a categorical parameter
-                        # this cannot be fixed with the statsmodels KDE, so for now, we are just going to evaluate this one
-                        # if the good_kde has a finite value, i.e. there is no config with that value in the bad kde, so it shouldn't be terrible.
-                        if np.isfinite(l(vector)):
-                            best_vector = vector
-                            break
-
-                    if val < best:
-                        best = val
+                    # right now, this happens because a KDE does not contain all values for a categorical parameter
+                    # this cannot be fixed with the statsmodels KDE, so for now, we are just going to evaluate this one
+                    # if the good_kde has a finite value, i.e. there is no config with that value in the bad kde, so it shouldn't be terrible.
+                    if np.isfinite(l(vector)):
                         best_vector = vector
+                        break
 
-                if best_vector is None:
-                    self.logger.debug(
-                        "Sampling based optimization with %i samples failed -> using random configuration" % self.num_samples)
-                    sample = self.configspace.sample_configuration().get_dictionary()
-                else:
-                    self.logger.debug(
-                        'best_vector: {}, {}, {}, {}'.format(best_vector, best, l(best_vector), g(best_vector)))
-                    for i, hp_value in enumerate(best_vector):
-                        if isinstance(
-                                self.configspace.get_hyperparameter(
-                                    self.configspace.get_hyperparameter_by_idx(i)
-                                ),
-                                ConfigSpace.hyperparameters.CategoricalHyperparameter
-                        ):
-                            best_vector[i] = int(np.rint(best_vector[i]))
-                    sample = ConfigSpace.Configuration(self.configspace, vector=best_vector).get_dictionary()
+                if val < best:
+                    best = val
+                    best_vector = vector
 
-                    try:
-                        sample = ConfigSpace.util.deactivate_inactive_hyperparameters(
-                            configuration_space=self.configspace,
-                            configuration=sample
-                        )
+            if best_vector is None:
+                self.logger.debug(
+                    "Sampling based optimization with %i samples failed -> using random configuration" % self.num_samples)
+                sample = self.sample_random_configs(1, history_container)[0].get_dictionary()
+            else:
+                self.logger.debug(
+                    'best_vector: {}, {}, {}, {}'.format(best_vector, best, l(best_vector), g(best_vector)))
+                for i, hp_value in enumerate(best_vector):
+                    if isinstance(
+                            self.config_space.get_hyperparameter(
+                                self.config_space.get_hyperparameter_by_idx(i)
+                            ),
+                            ConfigSpace.hyperparameters.CategoricalHyperparameter
+                    ):
+                        best_vector[i] = int(np.rint(best_vector[i]))
+                sample = ConfigSpace.Configuration(self.config_space, vector=best_vector).get_dictionary()
 
-                    except Exception as e:
-                        self.logger.warning(("=" * 50 + "\n") * 3 + \
-                                            "Error converting configuration:\n%s" % sample + \
-                                            "\n here is a traceback:" + \
-                                            traceback.format_exc())
-                        raise e
+                try:
+                    sample = ConfigSpace.util.deactivate_inactive_hyperparameters(
+                        configuration_space=self.config_space,
+                        configuration=sample
+                    )
 
-            except:
-                self.logger.warning(
-                    "Sampling based optimization with %i samples failed\n %s \nUsing random configuration" % (
-                        self.num_samples, traceback.format_exc()))
-                sample = self.configspace.sample_configuration()
+                except Exception as e:
+                    self.logger.warning(("=" * 50 + "\n") * 3 + \
+                                        "Error converting configuration:\n%s" % sample + \
+                                        "\n here is a traceback:" + \
+                                        traceback.format_exc())
+                    raise e
 
-        self.logger.debug('done sampling a new configuration.')
+        except:
+            self.logger.warning(
+                "Sampling based optimization with %i samples failed\n %s \nUsing random configuration" % (
+                    self.num_samples, traceback.format_exc()))
+            sample = self.sample_random_configs(1, history_container)[0]
+
         return sample
 
     def impute_conditional_data(self, array):
@@ -212,18 +209,15 @@ class TPE_Advisor:
             return_array[i, :] = datum
         return return_array
 
-    def fit_kde_models(self):
-        config_array = [config.get_array() for config in self.history_container.configurations]
-        # TODO: impute the failed perf values.
-        perfs = self.history_container.perfs.copy()
-
-        if len(config_array) <= self.min_points_in_model - 1:
+    def fit_kde_models(self, history_container):
+        num_config_successful = len(history_container.successful_perfs)
+        if num_config_successful <= self.min_points_in_model - 1:
             self.logger.debug("Only %i run(s) available, need more than %s -> can't build model!" % (
-                len(config_array), self.min_points_in_model + 1))
+                num_config_successful, self.min_points_in_model + 1))
             return
 
-        train_configs = np.array(config_array)
-        train_losses = np.array(perfs)
+        train_configs = convert_configurations_to_array(history_container.configurations)
+        train_losses = history_container.get_transformed_perfs()
 
         n_good = max(self.min_points_in_model, (self.top_n_percent * train_configs.shape[0]) // 100)
         # n_bad = min(max(self.min_points_in_model, ((100-self.top_n_percent)*train_configs.shape[0])//100), 10)
@@ -263,4 +257,36 @@ class TPE_Advisor:
         self.logger.debug(
             'done building a new model based on %i/%i split\nBest loss for this budget:%f\n\n\n\n\n' % (
                 n_good, n_bad, np.min(train_losses)))
+
+    def sample_random_configs(self, num_configs=1, history_container=None):
+        """
+        Sample a batch of random configurations.
+        Parameters
+        ----------
+        num_configs
+
+        history_container
+
+        Returns
+        -------
+
+        """
+        if history_container is None:
+            history_container = self.history_container
+
+        configs = list()
+        sample_cnt = 0
+        max_sample_cnt = 1000
+        while len(configs) < num_configs:
+            config = self.config_space.sample_configuration()
+            sample_cnt += 1
+            if config not in (history_container.configurations + configs):
+                configs.append(config)
+                sample_cnt = 0
+                continue
+            if sample_cnt >= max_sample_cnt:
+                self.logger.warning('Cannot sample non duplicate configuration after %d iterations.' % max_sample_cnt)
+                configs.append(config)
+                sample_cnt = 0
+        return configs
 
