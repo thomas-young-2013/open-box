@@ -24,7 +24,7 @@ We use [LightGBM](https://lightgbm.readthedocs.io/en/latest/), a gradient boosti
 as classification model.
 
 ```python
-from litebo.utils.config_space import ConfigurationSpace
+from litebo.utils.config_space import ConfigurationSpace, Configuration
 from litebo.utils.config_space import UniformFloatHyperparameter, \
     CategoricalHyperparameter, Constant, UniformIntegerHyperparameter
 from sklearn.metrics import balanced_accuracy_score
@@ -45,7 +45,7 @@ def get_configspace():
     return cs
 
 
-def objective_function(config):
+def objective_function(config: Configuration):
     params = config.get_dictionary()
     params['n_jobs'] = 2
     params['random_state'] = 47

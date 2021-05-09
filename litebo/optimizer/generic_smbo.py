@@ -131,13 +131,13 @@ class SMBO(BOBase):
                     raise TimeoutException(
                         'Timeout: time limit for this evaluation is %.1fs' % _time_limit_per_trial)
                 else:
-                    objs, constraints = get_result(_result, FAILED_PERF=self.FAILED_PERF)
+                    objs, constraints = get_result(_result)
             except Exception as e:
                 if isinstance(e, TimeoutException):
                     self.logger.warning(str(e))
                     trial_state = TIMEOUT
                 else:
-                    self.logger.warning('Exception when calling objective function: %s' % traceback.format_exc())
+                    self.logger.warning('Exception when calling objective function: %s' % str(e))
                     trial_state = FAILED
                 objs = self.FAILED_PERF
                 constraints = None

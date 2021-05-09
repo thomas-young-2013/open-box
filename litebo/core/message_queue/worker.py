@@ -38,7 +38,7 @@ class Worker(object):
                     raise TimeoutException(
                         'Timeout: time limit for this evaluation is %.1fs' % time_limit_per_trial)
                 else:
-                    objs, constraints = get_result(_result, FAILED_PERF=None)
+                    objs, constraints = get_result(_result)
             except Exception as e:
                 if isinstance(e, TimeoutException):
                     trial_state = TIMEOUT

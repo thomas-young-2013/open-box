@@ -3,7 +3,7 @@ import numpy as np
 from typing import List
 from litebo.utils.config_space import Configuration, ConfigurationSpace
 from ConfigSpace import ConfigurationSpace, UniformIntegerHyperparameter, UniformFloatHyperparameter, \
-    CategoricalHyperparameter
+    CategoricalHyperparameter, Constant
 from ConfigSpace import EqualsCondition, InCondition
 from ConfigSpace import ForbiddenEqualsClause, ForbiddenAndConjunction, ForbiddenInClause
 from ConfigSpace.util import deactivate_inactive_hyperparameters
@@ -183,9 +183,9 @@ def get_config_space_from_dict(space_dict: dict):
             optional_args = dict()
             if 'default' in param_dict:
                 optional_args['default_value'] = param_dict['default']
-            elif 'log' in param_dict:
+            if 'log' in param_dict:
                 optional_args['log'] = parse_bool(param_dict['log'])
-            elif 'q' in param_dict:
+            if 'q' in param_dict:
                 optional_args['q'] = param_dict['q']
 
             if param_type == 'float':
@@ -199,6 +199,10 @@ def get_config_space_from_dict(space_dict: dict):
             if 'default' in param_dict:
                 optional_args['default_value'] = param_dict['default']
             param = CategoricalHyperparameter(key, choices, **optional_args)
+
+        elif param_type == 'const':
+            value = param_dict['value']
+            param = Constant(key, value)
 
         else:
             raise ValueError("Parameter type %s not supported!" % param_type)

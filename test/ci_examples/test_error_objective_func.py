@@ -33,9 +33,9 @@ def branin(config):
     seed = int(time.time() * 10000 % 10000)
     np.random.seed(seed)
     if np.random.rand() < 0.4:
-        raise ValueError('rand fail')
+        raise ValueError('don\'t worry. testing rand fail in objective function.')
     if x1 < 3:
-        raise ValueError('cond fail')
+        raise ArithmeticError('don\'t worry. testing cond fail in objective function.')
     return ret
 
 

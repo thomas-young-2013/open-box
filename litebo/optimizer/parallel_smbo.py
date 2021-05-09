@@ -23,7 +23,7 @@ def wrapper(param):
         if timeout_status:
             raise TimeoutException('Timeout: time limit for this evaluation is %.1fs' % time_limit_per_trial)
         else:
-            objs, constraints = get_result(_result, FAILED_PERF=None)
+            objs, constraints = get_result(_result)
     except Exception as e:
         if isinstance(e, TimeoutException):
             trial_state = TIMEOUT
@@ -100,7 +100,7 @@ class pSMBO(BOBase):
                                                     task_id=task_id,
                                                     output_dir=logging_dir,
                                                     random_state=random_state)
-            self.update_lock = Lock()
+            self.advisor_lock = Lock()
         else:
             raise ValueError('Invalid parallel strategy - %s.' % parallel_strategy)
 
@@ -113,7 +113,7 @@ class pSMBO(BOBase):
             _objs = self.FAILED_PERF
         _observation = [_config, SUCCESS, _constraints, _objs]
         # Report the result, and remove the config from the running queue.
-        with self.update_lock:
+        with self.advisor_lock:
             self.config_advisor.update_observation(_observation)
             self.logger.info('Update observation %d: %s.' % (self.iteration_id, str(_observation)))
         # Parent process: collect the result and increment id.
@@ -123,7 +123,8 @@ class pSMBO(BOBase):
     def async_run(self):
         with ParallelEvaluation(wrapper, n_worker=self.batch_size) as proc:
             while self.iteration_id < self.max_iterations:
-                _config = self.config_advisor.get_suggestion()
+                with self.advisor_lock:
+                    _config = self.config_advisor.get_suggestion()
                 _param = [self.objective_function, _config, self.time_limit_per_trial]
                 # Submit a job to worker.
                 proc.process_pool.apply_async(wrapper, (_param,), callback=self.callback)
@@ -137,7 +138,8 @@ class pSMBO(BOBase):
         res_list = list()
         with ParallelEvaluation(wrapper, n_worker=self.batch_size) as proc:
             while iter_id < n:
-                _config = self.config_advisor.get_suggestion()
+                with self.advisor_lock:
+                    _config = self.config_advisor.get_suggestion()
                 _param = [self.objective_function, _config, self.time_limit_per_trial]
                 # Submit a job to worker.
                 res_list.append(proc.process_pool.apply_async(wrapper, (_param,), callback=self.callback))

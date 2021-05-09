@@ -53,25 +53,22 @@ def get_types(config_space, instance_features=None):
     return types, bounds
 
 
-def get_result(result, FAILED_PERF=None):
+def get_result(result):
     """
     Get objs and constraints from result returned by objective function.
-    You must deal with objs=None situation manually if failed_perf is not specified.
+    Raise ValueError if objs is None as time_limit() function doesn't raise Exception
 
     :param result:
         return value from objective function
-    :param FAILED_PERF:
-        default value of failed trails. usually a list of MAXINT.
     :return:
         objs:
-            list/tuple of objective values or FAILED_PERF
+            list/tuple of objective values
         constraints:
             list/tuple of constraint values or None
     """
     number_typing_list = (int, float, np.int32, np.int64, np.float32, np.float64)
     if result is None:
-        objs = FAILED_PERF
-        constraints = None
+        raise ValueError('result is None!')
     elif isinstance(result, dict):  # recommended usage
         objs = result['objs']
         if isinstance(objs, number_typing_list):
@@ -85,7 +82,7 @@ def get_result(result, FAILED_PERF=None):
         constraints = None
 
     if objs is None:
-        objs = FAILED_PERF
+        raise ValueError('objs is None!')
     return objs, constraints
 
 

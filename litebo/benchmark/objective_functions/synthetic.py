@@ -114,7 +114,7 @@ class Ackley(BaseTestProblem):
         params = {f'x{i}': (lb, ub, (lb + ub)/2)
                   for i in range(1, dim+1)}
         config_space = ConfigurationSpace()
-        config_space.add_hyperparameters([UniformFloatHyperparameter(e, *params[e]) for e in params])
+        config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
         super().__init__(config_space, noise_std, optimal_value=0, random_state=random_state)
 
     def _evaluate(self, X):
@@ -139,7 +139,7 @@ class Beale(BaseTestProblem):
         params = {f'x{i}': (lb, ub, (lb + ub)/2)
                   for i in range(1, dim+1)}
         config_space = ConfigurationSpace()
-        config_space.add_hyperparameters([UniformFloatHyperparameter(e, *params[e]) for e in params])
+        config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
         super().__init__(config_space, noise_std, optimal_value=0, random_state=random_state)
 
     def _evaluate(self, X):
@@ -166,10 +166,10 @@ class Branin(BaseTestProblem):
     """
 
     def __init__(self, noise_std=0, random_state=None):
-        params = {'x1': (-5, 10, 2.5),
-                  'x2': (0, 15, 7.5)}
+        params = {'x1': (-5, 10, 0),
+                  'x2': (0, 15, 0)}
         config_space = ConfigurationSpace()
-        config_space.add_hyperparameters([UniformFloatHyperparameter(e, *params[e]) for e in params])
+        config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
         super().__init__(config_space, noise_std,
                          optimal_value=0.397887,
                          optimal_point=[(-np.pi, 12.275), (np.pi, 2.275), (9.42478, 2.475)],
@@ -194,7 +194,7 @@ class Bukin(BaseTestProblem):
         params = {'x1': (-15.0, -5.0, -10.0),
                   'x2': (-3.0, 3.0, 0)}
         config_space = ConfigurationSpace()
-        config_space.add_hyperparameters([UniformFloatHyperparameter(e, *params[e]) for e in params])
+        config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
         super().__init__(config_space, noise_std,
                          optimal_value=0,
                          optimal_point=[(-10.0, 1.0)],
@@ -224,7 +224,7 @@ class Rosenbrock(BaseTestProblem):
         self.constrained = constrained
         params = {f'x{i}': (-5.0, 10.0, 2.5) for i in range(1, 1+self.dim)}
         config_space = ConfigurationSpace()
-        config_space.add_hyperparameters([UniformFloatHyperparameter(e, *params[e]) for e in params])
+        config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
         super().__init__(config_space, noise_std,
                          optimal_value=0,
                          optimal_point=[tuple(1.0 for _ in range(self.dim))],
@@ -246,7 +246,7 @@ class Mishra(BaseTestProblem):
     def __init__(self, noise_std=0, random_state=None):
         params = {'x1': (-10, 0, -5), 'x2': (-6.5, 0, -3.25)}
         config_space = ConfigurationSpace()
-        config_space.add_hyperparameters([UniformFloatHyperparameter(e, *params[e]) for e in params])
+        config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
         super().__init__(config_space, noise_std,
                          optimal_value=-106.7645367,
                          optimal_point=[(-3.1302468, -1.5821422)],
@@ -279,7 +279,7 @@ class Keane(BaseTestProblem):
         self.dim = dim
         params = {f'x{i}': (0, 10, 5) for i in range(1, 1+self.dim)}
         config_space = ConfigurationSpace()
-        config_space.add_hyperparameters([UniformFloatHyperparameter(e, *params[e]) for e in params])
+        config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
         super().__init__(config_space, noise_std, optimal_value=0, random_state=random_state)
 
     def _evaluate(self, X):
@@ -297,7 +297,7 @@ class Simionescu(BaseTestProblem):
     def __init__(self, noise_std=0, random_state=None):
         params = {f'x{i}': (-1.25, 1.25, 1) for i in [1, 2]}
         config_space = ConfigurationSpace()
-        config_space.add_hyperparameters([UniformFloatHyperparameter(e, *params[e]) for e in params])
+        config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
         super().__init__(config_space, noise_std,
                          optimal_value=-0.072,
                          optimal_point=[(0.84852813, -0.84852813), (-0.84852813, 0.84852813)],
@@ -351,7 +351,7 @@ class DTLZ(BaseTestProblem):
         self.ref_point = [self._ref_val for _ in range(num_objs)]
         params = {f'x{i}': (0, 1, i/dim) for i in range(1, dim+1)}
         config_space = ConfigurationSpace()
-        config_space.add_hyperparameters([UniformFloatHyperparameter(e, *params[e]) for e in params])
+        config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
         super().__init__(config_space, noise_std, num_objs, num_constraints, random_state=random_state)
 
 
@@ -500,7 +500,7 @@ class BraninCurrin(BaseTestProblem):
         params = {'x1': (0, 1, 0.5),
                   'x2': (0, 1, 0.5)}
         config_space = ConfigurationSpace()
-        config_space.add_hyperparameters([UniformFloatHyperparameter(e, *params[e]) for e in params])
+        config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
         super().__init__(config_space, noise_std,
                          num_objs=2,
                          num_constraints=num_constraints,
@@ -542,7 +542,7 @@ class VehicleSafety(BaseTestProblem):
 
         params = {f'x{i}': (1.0, 3.0) for i in range(1, 6)}
         config_space = ConfigurationSpace()
-        config_space.add_hyperparameters([UniformFloatHyperparameter(e, *params[e]) for e in params])
+        config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
         super().__init__(config_space, noise_std,
                          num_objs=3,
                          random_state=random_state)
@@ -601,7 +601,7 @@ class ZDT(BaseTestProblem):
         self.ref_point = [11.0, 11.0]
         params = {f'x{i}': (0, 1) for i in range(1, dim+1)}
         config_space = ConfigurationSpace()
-        config_space.add_hyperparameters([UniformFloatHyperparameter(e, *params[e]) for e in params])
+        config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
         super().__init__(config_space, noise_std,
                          num_objs=2, num_constraints=num_constraints,
                          random_state=random_state)
@@ -741,7 +741,7 @@ class BNH(BaseTestProblem):
         params = {'x1': (0.0, 5.0),
                   'x2': (0.0, 3.0)}
         config_space = ConfigurationSpace()
-        config_space.add_hyperparameters([UniformFloatHyperparameter(e, *params[e]) for e in params])
+        config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
         super().__init__(config_space, noise_std,
                          num_objs=2, num_constraints=2,
                          random_state=random_state)
@@ -772,7 +772,7 @@ class SRN(BaseTestProblem):
         params = {'x1': (-20.0, 20.0),
                   'x2': (-20.0, 20.0)}
         config_space = ConfigurationSpace()
-        config_space.add_hyperparameters([UniformFloatHyperparameter(e, *params[e]) for e in params])
+        config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
         super().__init__(config_space, noise_std,
                          num_objs=2,
                          num_constraints=2,
@@ -804,7 +804,7 @@ class CONSTR(BaseTestProblem):
         params = {'x1': (0.1, 10.0),
                   'x2': (0.0, 5.0)}
         config_space = ConfigurationSpace()
-        config_space.add_hyperparameters([UniformFloatHyperparameter(e, *params[e]) for e in params])
+        config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
         super().__init__(config_space, noise_std,
                          num_objs=2, num_constraints=2,
                          random_state=random_state)

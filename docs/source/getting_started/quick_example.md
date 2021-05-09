@@ -39,13 +39,16 @@ Here we use the **Branin** function.
 
 ```python
 import numpy as np
+from litebo.utils.config_space import Configuration
 
 # Define Objective Function
-def branin(config):
+def branin(config: Configuration):
+    # convert Configuration to dict
     config_dict = config.get_dictionary()
     x1 = config_dict['x1']
     x2 = config_dict['x2']
 
+    # calculate
     a = 1.
     b = 5.1 / (4. * np.pi ** 2)
     c = 5. / np.pi
@@ -54,6 +57,7 @@ def branin(config):
     t = 1. / (8. * np.pi)
     y = a * (x2 - b * x1 ** 2 + c * x1 - r) ** 2 + s * (1 - t) * np.cos(x1) + s
 
+    # return result dictionary
     ret = dict(
         objs=(y, )
     )
