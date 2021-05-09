@@ -9,9 +9,9 @@ to <font color=#FF0000>**minimize**</font>. Here we use the constrained **Mishra
 
 ```python
 import numpy as np
-from litebo.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter
+from litebo.utils.config_space import ConfigurationSpace, Configuration, UniformFloatHyperparameter
 
-def mishra(config):
+def mishra(config: Configuration):
     config_dict = config.get_dictionary()
     X = np.array([config_dict['x%d' % i] for i in range(2)])
     x, y = X[0], X[1]

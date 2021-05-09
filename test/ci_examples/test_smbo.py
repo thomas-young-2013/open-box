@@ -1,46 +1,14 @@
-import numpy as np
-from litebo.utils.start_smbo import create_smbo
+from litebo.benchmark.objective_functions.synthetic import Branin
+from litebo.optimizer.generic_smbo import SMBO
 
-
-def branin(x):
-    xs = x.get_dictionary()
-    x1 = xs['x1']
-    x2 = xs['x2']
-    a = 1.
-    b = 5.1 / (4. * np.pi ** 2)
-    c = 5. / np.pi
-    r = 6.
-    s = 10.
-    t = 1. / (8. * np.pi)
-    ret = a * (x2 - b * x1 ** 2 + c * x1 - r) ** 2 + s * (1 - t) * np.cos(x1) + s
-    return {'objs': (ret,)}
-
-
-config_dict = {
-    "optimizer": "SMBO",
-    "parameters": {
-        "x1": {
-            "type": "float",
-            "bound": [-5, 10],
-            "default": 0
-        },
-        "x2": {
-            "type": "float",
-            "bound": [0, 15]
-        },
-    },
-    "advisor_type": 'default',
-    "max_runs": 50,
-    "surrogate_type": 'gp',
-    "time_limit_per_trial": 5,
-    "logging_dir": 'logs',
-    "task_id": 'hp1'
-}
-
-bo = create_smbo(branin, **config_dict)
+branin = Branin()
+bo = SMBO(branin.evaluate,      # objective function
+          branin.config_space,  # config space
+          num_objs=branin.num_objs,  # number of objectives
+          num_constraints=branin.num_constraints,  # number of constraints
+          max_runs=50,          # number of optimization rounds
+          surrogate_type='gp',
+          time_limit_per_trial=180,
+          task_id='quick_start')
 history = bo.run()
-inc_value = bo.get_incumbent()
-print('BO', '=' * 30)
-print(inc_value)
-
 print(history)
