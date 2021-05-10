@@ -7,9 +7,9 @@ import numpy as np
 from bson import ObjectId
 sys.path.insert(0, os.getcwd())
 
-from litebo.optimizer import _optimizers
-from litebo.artifact.data_manipulation.db_object import User, Task, Runhistory
-from litebo.utils.config_space.space_utils import get_config_space_from_dict
+from openbox.optimizer import _optimizers
+from openbox.artifact.data_manipulation.db_object import User, Task, Runhistory
+from openbox.utils.config_space.space_utils import get_config_space_from_dict
 
 
 def branin(x):

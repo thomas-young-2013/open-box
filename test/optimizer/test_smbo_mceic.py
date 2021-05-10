@@ -1,6 +1,6 @@
 import numpy as np
-from litebo.optimizer.generic_smbo import SMBO
-from litebo.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter
+from openbox.optimizer.generic_smbo import SMBO
+from openbox.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter
 
 
 def townsend(config):

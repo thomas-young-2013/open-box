@@ -1,4 +1,4 @@
-from litebo.optimizer.message_queue_smbo import mqSMBO
+from openbox.optimizer.message_queue_smbo import mqSMBO
 import time
 
 

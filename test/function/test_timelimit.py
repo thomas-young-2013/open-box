@@ -1,7 +1,7 @@
 import os
 import sys
 sys.path.append(os.getcwd())
-from litebo.utils.limit import time_limit
+from openbox.utils.limit import time_limit
 
 
 # def test_func(*args, **kwargs):

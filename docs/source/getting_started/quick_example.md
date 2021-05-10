@@ -7,7 +7,7 @@ This tutorial helps you run your first example with **OpenBox**.
 First, define a configuration space using **ConfigSpace** for searching.
 
 ```python
-from litebo.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter
+from openbox.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter
 
 # Define Configuration Space
 config_space = ConfigurationSpace()
@@ -23,7 +23,7 @@ Other types of hyperparameter are also supported in **ConfigSpace**.
 Here are examples of how to define **Integer** and **Categorical** hyperparameters:
 
 ```python
-from litebo.utils.config_space import UniformIntegerHyperparameter, CategoricalHyperparameter
+from openbox.utils.config_space import UniformIntegerHyperparameter, CategoricalHyperparameter
 
 i = UniformIntegerHyperparameter("i", 0, 100) 
 kernel = CategoricalHyperparameter("kernel", ["rbf", "poly", "sigmoid"], default_value="rbf")
@@ -39,7 +39,7 @@ Here we use the **Branin** function.
 
 ```python
 import numpy as np
-from litebo.utils.config_space import Configuration
+from openbox.utils.config_space import Configuration
 
 # Define Objective Function
 def branin(config: Configuration):
@@ -87,7 +87,7 @@ After we define the configuration space and the objective function, we could run
 search over the configuration space and try to find <font color=#FF0000>**minimum**</font> value of the objective.
 
 ```python
-from litebo.optimizer.generic_smbo import SMBO
+from openbox.optimizer.generic_smbo import SMBO
 
 # Run Optimization
 bo = SMBO(branin,

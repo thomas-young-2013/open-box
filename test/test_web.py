@@ -2,9 +2,9 @@ import datetime
 import time
 import numpy as np
 
-from litebo.artifact.remote_advisor import RemoteAdvisor
-from litebo.utils.constants import SUCCESS, FAILED, TIMEOUT, MEMOUT
-from litebo.utils.config_space import Configuration, ConfigurationSpace, UniformFloatHyperparameter
+from openbox.artifact.remote_advisor import RemoteAdvisor
+from openbox.utils.constants import SUCCESS, FAILED, TIMEOUT, MEMOUT
+from openbox.utils.config_space import Configuration, ConfigurationSpace, UniformFloatHyperparameter
 
 
 def townsend(config):

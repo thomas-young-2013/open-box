@@ -13,8 +13,8 @@ import pickle as pkl
 
 sys.path.insert(0, os.getcwd())
 from test.reproduction.soc.soc_benchmark_function import get_problem
-from litebo.optimizer.generic_smbo import SMBO
-from litebo.test_utils import timeit, seeds
+from openbox.optimizer.generic_smbo import SMBO
+from openbox.test_utils import timeit, seeds
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--problem', type=str, default='townsend')
@@ -42,7 +42,7 @@ else:
     raise ValueError('Unknown optimizer %s' % args.optimizer)
 rep = args.rep
 start_id = args.start_id
-mth = 'litebo'
+mth = 'openbox'
 
 problem = get_problem(problem_str)
 cs = problem.get_configspace(optimizer='smac')

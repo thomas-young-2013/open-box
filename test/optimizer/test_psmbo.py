@@ -1,7 +1,7 @@
 import numpy as np
-from litebo.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter
-from litebo.optimizer.parallel_smbo import pSMBO
-from litebo.utils.visualization.visualizatoin_for_test_psmbo import visualize
+from openbox.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter
+from openbox.optimizer.parallel_smbo import pSMBO
+from openbox.utils.visualization.visualizatoin_for_test_psmbo import visualize
 
 # Define Configuration Space
 config_space = ConfigurationSpace()

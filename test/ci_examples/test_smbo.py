@@ -1,5 +1,5 @@
-from litebo.benchmark.objective_functions.synthetic import Branin
-from litebo.optimizer.generic_smbo import SMBO
+from openbox.benchmark.objective_functions.synthetic import Branin
+from openbox.optimizer.generic_smbo import SMBO
 
 branin = Branin()
 bo = SMBO(branin.evaluate,      # objective function

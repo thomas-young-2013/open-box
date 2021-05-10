@@ -7,7 +7,7 @@ In this tutorial, we illustrate how to optimize multiple objectives problem with
 We use multi-objective problem ZDT2 with 3 input dims in this example.
 
 ```python
-from litebo.benchmark.objective_functions.synthetic import ZDT2
+from openbox.benchmark.objective_functions.synthetic import ZDT2
 
 dim = 3
 prob = ZDT2(dim=dim)
@@ -26,7 +26,7 @@ Constraints less than zero (**"<=0"**) implies feasibility.
 ## Run Optimization
 
 ```python
-from litebo.optimizer.generic_smbo import SMBO
+from openbox.optimizer.generic_smbo import SMBO
 bo = SMBO(prob.evaluate,
           prob.config_space,
           num_objs=prob.num_objs,

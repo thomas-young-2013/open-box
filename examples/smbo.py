@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from litebo.utils.start_smbo import create_smbo
+from openbox.utils.start_smbo import create_smbo
 
 
 def branin(x):

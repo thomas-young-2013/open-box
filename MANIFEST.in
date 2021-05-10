@@ -1,3 +1,4 @@
-include litebo/utils/logging.yaml
-recursive-include litebo *.pyx
-include requirements.txt
+include openbox/utils/logging.yaml
+recursive-include openbox *.pyx
+include requirements/main.txt
+include requirements/dev.txt

@@ -17,9 +17,9 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import balanced_accuracy_score
 
 sys.path.append(os.getcwd())
-from litebo.optimizer.smbo import SMBO
-from litebo.optimizer.parallel_smbo import pSMBO
-from litebo.utils.visualization.visualization_for_tslv import visualize
+from openbox.optimizer.smbo import SMBO
+from openbox.optimizer.parallel_smbo import pSMBO
+from openbox.utils.visualization.visualization_for_tslv import visualize
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--datasets', type=str)  # 要使用的数据集的名称（无后缀）

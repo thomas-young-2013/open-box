@@ -1,5 +1,5 @@
-from litebo.benchmark.objective_functions.synthetic import *
-from litebo.optimizer.generic_smbo import SMBO
+from openbox.benchmark.objective_functions.synthetic import *
+from openbox.optimizer.generic_smbo import SMBO
 
 
 problem = Bukin()

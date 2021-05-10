@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 
 sys.path.insert(0, os.getcwd())
 
-from litebo.optimizer.generic_smbo import SMBO
-from litebo.benchmark.objective_functions.synthetic import CONSTR
+from openbox.optimizer.generic_smbo import SMBO
+from openbox.benchmark.objective_functions.synthetic import CONSTR
 
 num_inputs = 2
 prob = CONSTR()

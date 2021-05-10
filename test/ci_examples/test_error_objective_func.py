@@ -1,8 +1,8 @@
 import numpy as np
 import time
-from litebo.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter, \
+from openbox.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter, \
     UniformIntegerHyperparameter, CategoricalHyperparameter
-from litebo.optimizer.generic_smbo import SMBO
+from openbox.optimizer.generic_smbo import SMBO
 
 
 # Define Configuration Space

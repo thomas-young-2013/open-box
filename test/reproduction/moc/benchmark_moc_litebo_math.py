@@ -13,8 +13,8 @@ import pickle as pkl
 
 sys.path.insert(0, os.getcwd())
 from moc_benchmark_function import get_problem, plot_pf
-from litebo.optimizer.generic_smbo import SMBO
-from litebo.utils.multi_objective import Hypervolume
+from openbox.optimizer.generic_smbo import SMBO
+from openbox.utils.multi_objective import Hypervolume
 from test.reproduction.test_utils import timeit, seeds
 
 parser = argparse.ArgumentParser()
@@ -49,9 +49,9 @@ rep = args.rep
 start_id = args.start_id
 plot_mode = args.plot_mode
 if acq_type == 'ehvic':
-    mth = 'litebo'
+    mth = 'openbox'
 else:
-    mth = 'litebo-%s' % acq_type
+    mth = 'openbox-%s' % acq_type
 
 problem = get_problem(problem_str)
 if initial_runs == 0:

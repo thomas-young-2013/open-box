@@ -12,10 +12,10 @@ import matplotlib.pyplot as plt
 from functools import partial
 
 sys.path.insert(0, os.getcwd())
-from litebo.optimizer.generic_smbo import SMBO
-from litebo.utils.config_space import Configuration
+from openbox.optimizer.generic_smbo import SMBO
+from openbox.utils.config_space import Configuration
 from test.test_utils import check_datasets, load_data
-from litebo.utils.multi_objective import Hypervolume
+from openbox.utils.multi_objective import Hypervolume
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--n', type=int, default=200)

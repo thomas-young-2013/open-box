@@ -7,7 +7,7 @@ In this tutorial, we illustrate how to optimize constrained multiple objectives 
 We use constrained multi-objective problem CONSTR in this example.
 
 ```python
-from litebo.benchmark.objective_functions.synthetic import CONSTR
+from openbox.benchmark.objective_functions.synthetic import CONSTR
 
 prob = CONSTR()
 dim = 2
@@ -26,7 +26,7 @@ Constraints less than zero (**"<=0"**) implies feasibility.
 ## Run Optimization
 
 ```python
-from litebo.optimizer.generic_smbo import SMBO
+from openbox.optimizer.generic_smbo import SMBO
 bo = SMBO(prob.evaluate,
           prob.config_space,
           num_objs=prob.num_objs,

@@ -4,9 +4,9 @@ import pymongo
 import datetime
 import numpy as np
 import configparser
-from litebo.optimizer import _optimizers
-from litebo.utils.start_smbo import create_smbo
-from litebo.utils.config_space.space_utils import get_config_space_from_dict
+from openbox.optimizer import _optimizers
+from openbox.utils.start_smbo import create_smbo
+from openbox.utils.config_space.space_utils import get_config_space_from_dict
 
 # Read configuration from file.
 conf_dir = './conf'

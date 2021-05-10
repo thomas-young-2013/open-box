@@ -5,8 +5,8 @@ import numpy as np
 from ConfigSpace.hyperparameters import UniformFloatHyperparameter
 
 sys.path.append(os.getcwd())
-from litebo.optimizer.generic_smbo import SMBO
-from litebo.utils.config_space import ConfigurationSpace
+from openbox.optimizer.generic_smbo import SMBO
+from openbox.utils.config_space import ConfigurationSpace
 
 
 def branin(x):

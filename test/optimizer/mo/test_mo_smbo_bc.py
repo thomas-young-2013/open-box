@@ -11,9 +11,9 @@ import argparse
 import matplotlib.pyplot as plt
 
 sys.path.insert(0, os.getcwd())
-from litebo.optimizer.generic_smbo import SMBO
-from litebo.utils.config_space import Configuration
-from litebo.utils.multi_objective import Hypervolume
+from openbox.optimizer.generic_smbo import SMBO
+from openbox.utils.config_space import Configuration
+from openbox.utils.multi_objective import Hypervolume
 
 # set problem
 from mo_benchmark_function import get_setup_bc  # todo

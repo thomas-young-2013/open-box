@@ -3,7 +3,7 @@ import math
 from copy import deepcopy
 import time
 
-from litebo.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter, UniformIntegerHyperparameter
+from openbox.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter, UniformIntegerHyperparameter
 from platypus import NSGAII, Problem, Real
 
 

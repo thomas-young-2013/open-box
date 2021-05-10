@@ -14,8 +14,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import balanced_accuracy_score
 
 sys.path.insert(0, os.getcwd())
-from litebo.optimizer.message_queue_smbo import mqSMBO
-from litebo.core.message_queue.worker import Worker
+from openbox.optimizer.message_queue_smbo import mqSMBO
+from openbox.core.message_queue.worker import Worker
 from test.test_utils import check_datasets, load_data
 
 

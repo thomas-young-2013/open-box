@@ -12,8 +12,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import balanced_accuracy_score
 
 sys.path.insert(0, os.getcwd())
-from litebo.optimizer.generic_smbo import SMBO
-from litebo.optimizer.parallel_smbo import pSMBO
+from openbox.optimizer.generic_smbo import SMBO
+from openbox.optimizer.parallel_smbo import pSMBO
 from test.test_utils import check_datasets, load_data
 
 parser = argparse.ArgumentParser()

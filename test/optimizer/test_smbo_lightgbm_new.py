@@ -1,4 +1,4 @@
-from litebo.utils.start_smbo import create_smbo
+from openbox.utils.start_smbo import create_smbo
 import matplotlib.pyplot as plt
 
 from sklearn.model_selection import train_test_split

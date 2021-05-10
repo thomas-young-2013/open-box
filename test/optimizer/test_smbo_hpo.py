@@ -6,8 +6,8 @@ X, y = load_digits(return_X_y=True)
 x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=1)
 
 
-from litebo.utils.config_space import ConfigurationSpace
-from litebo.utils.config_space import UniformFloatHyperparameter, \
+from openbox.utils.config_space import ConfigurationSpace
+from openbox.utils.config_space import UniformFloatHyperparameter, \
     CategoricalHyperparameter, Constant, UniformIntegerHyperparameter
 from sklearn.metrics import balanced_accuracy_score
 from lightgbm import LGBMClassifier
@@ -40,7 +40,7 @@ def objective_function(config):
     return dict(objs=(loss, ))
 
 
-from litebo.optimizer.generic_smbo import SMBO
+from openbox.optimizer.generic_smbo import SMBO
 import matplotlib.pyplot as plt
 
 # Run Optimization

@@ -3,9 +3,9 @@ import sys
 import time
 import argparse
 sys.path.append(os.getcwd())
-import litebo.core.distributed.nameserver as hpns
-from litebo.optimizer.distributed_smbo import DistributedSMBO
-from litebo.examples.worker_example import BraninWorker
+import openbox.core.distributed.nameserver as hpns
+from openbox.optimizer.distributed_smbo import DistributedSMBO
+from openbox.examples.worker_example import BraninWorker
 
 
 parser = argparse.ArgumentParser(description='Cluster Parallel Experiments.')

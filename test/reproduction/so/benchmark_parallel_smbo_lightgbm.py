@@ -89,7 +89,7 @@ except Exception as e:
 
 
 def evaluate_parallel(problem, mth, batch_size, seed, ip, port):
-    from litebo.core.message_queue.worker import Worker
+    from openbox.core.message_queue.worker import Worker
     from test.reproduction.mqsmbo_modified import mqSMBO_modified
 
     assert mth in ['sync', 'async', 'random']
@@ -159,7 +159,7 @@ def evaluate(problem, seed):
         res['constraints'] = None
         return res
 
-    from litebo.optimizer.generic_smbo import SMBO
+    from openbox.optimizer.generic_smbo import SMBO
     bo = SMBO(objective_function, cs,
               surrogate_type=surrogate_type,            # default: prf
               acq_optimizer_type=acq_optimizer_type,    # default: local_random

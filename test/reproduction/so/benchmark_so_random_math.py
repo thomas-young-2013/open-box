@@ -13,7 +13,7 @@ import pickle as pkl
 
 sys.path.insert(0, os.getcwd())
 from test.reproduction.so.so_benchmark_function import get_problem
-from litebo.optimizer.generic_smbo import SMBO
+from openbox.optimizer.generic_smbo import SMBO
 from test.reproduction.test_utils import timeit, seeds
 
 parser = argparse.ArgumentParser()

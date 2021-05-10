@@ -23,7 +23,7 @@ for extra in ["dev", "main"]:
 
 
 # Find version number
-spec = importlib.util.spec_from_file_location("litebo.pkginfo", str(Path(__file__).parent / "litebo" / "pkginfo.py"))
+spec = importlib.util.spec_from_file_location("openbox.pkginfo", str(Path(__file__).parent / "openbox" / "pkginfo.py"))
 pkginfo = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(pkginfo)
 version = pkginfo.version
@@ -34,7 +34,7 @@ def readme() -> str:
 
 
 setup(
-    name="lite-bo",
+    name="open-box",
     version=version,
     description="Efficient and generalized blackbox optimization (BBO) system",
     long_description=readme(),
@@ -45,12 +45,12 @@ setup(
     license="MIT",
     install_requires=requirements["main"],
     extras_require={"dev": requirements["dev"]},
-    package_data={"lite-bo": ["py.typed"]},
+    package_data={"open-box": ["py.typed"]},
     include_package_data=True,
     python_requires='>=3.5.2',
     entry_points={
         "console_scripts": [
-            "litebo = litebo.__main__:main",
+            "openbox = openbox.__main__:main",
         ]
     }
 )

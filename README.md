@@ -101,7 +101,7 @@ to install `pyrfr` correctly first.
 
 ```python
 import numpy as np
-from litebo.utils.start_smbo import create_smbo
+from openbox.utils.start_smbo import create_smbo
 
 
 def branin(x):

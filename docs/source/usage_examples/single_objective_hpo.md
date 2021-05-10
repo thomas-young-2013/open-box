@@ -24,8 +24,8 @@ We use [LightGBM](https://lightgbm.readthedocs.io/en/latest/), a gradient boosti
 as classification model.
 
 ```python
-from litebo.utils.config_space import ConfigurationSpace, Configuration
-from litebo.utils.config_space import UniformFloatHyperparameter, \
+from openbox.utils.config_space import ConfigurationSpace, Configuration
+from openbox.utils.config_space import UniformFloatHyperparameter, \
     CategoricalHyperparameter, Constant, UniformIntegerHyperparameter
 from sklearn.metrics import balanced_accuracy_score
 from lightgbm import LGBMClassifier
@@ -93,7 +93,7 @@ After we define the configuration space and the objective function, we could run
 search over the configuration space and try to find <font color=#FF0000>**minimum**</font> value of the objective.
 
 ```python
-from litebo.optimizer.generic_smbo import SMBO
+from openbox.optimizer.generic_smbo import SMBO
 
 # Run Optimization
 bo = SMBO(objective_function,

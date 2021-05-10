@@ -8,12 +8,12 @@ from sklearn import svm, datasets
 from sklearn.model_selection import cross_val_score
 
 # Import ConfigSpace and different types of parameters
-from litebo.utils.config_space import ConfigurationSpace
+from openbox.utils.config_space import ConfigurationSpace
 from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
     UniformFloatHyperparameter, UniformIntegerHyperparameter
 from ConfigSpace.conditions import InCondition
 
-from litebo.facade.bo_facade import BayesianOptimization
+from openbox.facade.bo_facade import BayesianOptimization
 
 # We load the iris-dataset (a widely used benchmark)
 iris = datasets.load_iris()
