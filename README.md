@@ -80,7 +80,7 @@ CONSTR             | SRN
 For Windows and Linux users, you can install by
 
 ```bash
-pip install open-box
+pip install openbox
 ```
 
 For macOS users, you need to install `pyrfr` correctly first, and then `pip install open-box`. 
@@ -91,7 +91,7 @@ The tips for installing `pyrfr` on macOS is [here](docs/source/installation/inst
 
  ```bash
 git clone https://github.com/thomas-young-2013/open-box.git && cd open-box
-cat requirements.txt | xargs -n 1 -L 1 pip install
+cat requirements/main.txt | xargs -n 1 -L 1 pip install
 python setup.py install
  ```
 macOS users still need to follow the [tips](docs/source/installation/install-pyrfr-on-macos.md) 
