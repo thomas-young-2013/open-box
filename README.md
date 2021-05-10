@@ -1,16 +1,16 @@
 <p align="center">
-<img src="https://raw.githubusercontent.com/thomas-young-2013/lite-bo/master/docs/logos/logo.png" width="68%">
+<img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/logos/logo.png" width="68%">
 </p>
 
 -----------
 
-[![license](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)](https://github.com/thomas-young-2013/lite-bo/blob/master/LICENSE)
-[![Build Status](https://api.travis-ci.org/thomas-young-2013/lite-bo.svg?branch=master)](https://api.travis-ci.org/thomas-young-2013)
-[![Issues](https://img.shields.io/github/issues-raw/thomas-young-2013/lite-bo.svg)](https://github.com/thomas-young-2013/lite-bo/issues?q=is%3Aissue+is%3Aopen)
-[![Bugs](https://img.shields.io/github/issues/thomas-young-2013/lite-bo/bug.svg)](https://github.com/thomas-young-2013/lite-bo/issues?q=is%3Aissue+is%3Aopen+label%3Abug)
-[![Pull Requests](https://img.shields.io/github/issues-pr-raw/thomas-young-2013/lite-bo.svg)](https://github.com/thomas-young-2013/lite-bo/pulls?q=is%3Apr+is%3Aopen)
-[![Version](https://img.shields.io/github/release/thomas-young-2013/lite-bo.svg)](https://github.com/thomas-young-2013/lite-bo/releases) [![Join the chat at https://gitter.im/bbo-open-box](https://badges.gitter.im/bbo-open-box.svg)](https://gitter.im/bbo-open-box?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![Documentation Status](https://readthedocs.org/projects/lite-bo/badge/?version=latest)](https://lite-bo.readthedocs.io/en/latest/?badge=latest)
+[![license](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)](https://github.com/thomas-young-2013/open-box/blob/master/LICENSE)
+[![Build Status](https://api.travis-ci.org/thomas-young-2013/open-box.svg?branch=master)](https://api.travis-ci.org/thomas-young-2013)
+[![Issues](https://img.shields.io/github/issues-raw/thomas-young-2013/open-box.svg)](https://github.com/thomas-young-2013/open-box/issues?q=is%3Aissue+is%3Aopen)
+[![Bugs](https://img.shields.io/github/issues/thomas-young-2013/open-box/bug.svg)](https://github.com/thomas-young-2013/open-box/issues?q=is%3Aissue+is%3Aopen+label%3Abug)
+[![Pull Requests](https://img.shields.io/github/issues-pr-raw/thomas-young-2013/open-box.svg)](https://github.com/thomas-young-2013/open-box/pulls?q=is%3Apr+is%3Aopen)
+[![Version](https://img.shields.io/github/release/thomas-young-2013/open-box.svg)](https://github.com/thomas-young-2013/open-box/releases) [![Join the chat at https://gitter.im/bbo-open-box](https://badges.gitter.im/bbo-open-box.svg)](https://gitter.im/bbo-open-box?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Documentation Status](https://readthedocs.org/projects/open-box/badge/?version=latest)](https://open-box.readthedocs.io/en/latest/?badge=latest)
 
 
 ## OpenBox: Generalized and Efficient Blackbox Optimization System.
@@ -44,34 +44,34 @@ through which users can easily track and manage the tasks.
 
 ## Links
 + Blog post: [to appear soon]()
-+ Documentation: https://lite-bo.readthedocs.io/en/latest/?badge=latest
-+ Pypi package: https://pypi.org/project/lite-bo/
++ Documentation: https://open-box.readthedocs.io/en/latest/?badge=latest
++ Pypi package: https://pypi.org/project/open-box/
 + Conda package: [to appear soon]()
-+ Examples: https://github.com/thomas-young-2013/lite-bo/tree/master/examples
++ Examples: https://github.com/thomas-young-2013/open-box/tree/master/examples
 
 ## Benchmark Results
 
 Single-objective problems
 Ackley-4                  | Hartmann
 :-------------------------:|:-------------------------:
-![](https://raw.githubusercontent.com/thomas-young-2013/lite-bo/master/docs/experiments/so_math_ackley-4.png)  |  ![](https://raw.githubusercontent.com/thomas-young-2013/lite-bo/master/docs/experiments/so_math_hartmann.png)
+![](https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/experiments/so_math_ackley-4.png)  |  ![](https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/experiments/so_math_hartmann.png)
 
 Single-objective problems with constraints
 Mishra                  | Keane-10
 :-------------------------:|:-------------------------:
-![](https://raw.githubusercontent.com/thomas-young-2013/lite-bo/master/docs/experiments/soc_math_mishra.png)  |  ![](https://raw.githubusercontent.com/thomas-young-2013/lite-bo/master/docs/experiments/soc_math_keane.png)
+![](https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/experiments/soc_math_mishra.png)  |  ![](https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/experiments/soc_math_keane.png)
 
 Multi-objective problems
 
 DTLZ1-6-5             | ZDT2-3 
 :-------------------------:|:-------------------------:
-![](https://raw.githubusercontent.com/thomas-young-2013/lite-bo/master/docs/experiments/mo_math_dtlz1-6-5.png)  |  ![](https://raw.githubusercontent.com/thomas-young-2013/lite-bo/master/docs/experiments/mo_math_zdt2-3.png)
+![](https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/experiments/mo_math_dtlz1-6-5.png)  |  ![](https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/experiments/mo_math_zdt2-3.png)
 
 Multi-objective problems with constraints
 
 CONSTR             | SRN 
 :-------------------------:|:-------------------------:
-![](https://raw.githubusercontent.com/thomas-young-2013/lite-bo/master/docs/experiments/moc_math_constr.png)  |  ![](https://raw.githubusercontent.com/thomas-young-2013/lite-bo/master/docs/experiments/moc_math_srn.png)
+![](https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/experiments/moc_math_constr.png)  |  ![](https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/experiments/moc_math_srn.png)
 
 ## Installation
 
@@ -80,17 +80,17 @@ CONSTR             | SRN
 For Windows and Linux users, you can install by
 
 ```bash
-pip install lite-bo
+pip install open-box
 ```
 
-For macOS users, you need to install `pyrfr` correctly first, and then `pip install lite-bo`. 
+For macOS users, you need to install `pyrfr` correctly first, and then `pip install open-box`. 
 
 The tips for installing `pyrfr` on macOS is [here](docs/source/installation/install-pyrfr-on-macos.md).
 
 **Manual installation from the github source**
 
  ```bash
-git clone https://github.com/thomas-young-2013/lite-bo.git && cd lite-bo
+git clone https://github.com/thomas-young-2013/open-box.git && cd open-box
 cat requirements.txt | xargs -n 1 -L 1 pip install
 python setup.py install
  ```
@@ -146,19 +146,19 @@ print(inc_value)
 ```
 
 ## **Releases and Contributing**
-OpenBox has a frequent release cycle. Please let us know if you encounter a bug by [filling an issue](https://github.com/thomas-young-2013/lite-bo/issues/new/choose).
+OpenBox has a frequent release cycle. Please let us know if you encounter a bug by [filling an issue](https://github.com/thomas-young-2013/open-box/issues/new/choose).
 
 We appreciate all contributions. If you are planning to contribute any bug-fixes, please do so without further discussions.
 
 If you plan to contribute new features, new modules, etc. please first open an issue or reuse an existing issue, and discuss the feature with us.
 
-To learn more about making a contribution to OpenBox, please refer to our [How-to contribution page](https://github.com/thomas-young-2013/lite-bo/blob/master/CONTRIBUTING.md). 
+To learn more about making a contribution to OpenBox, please refer to our [How-to contribution page](https://github.com/thomas-young-2013/open-box/blob/master/CONTRIBUTING.md). 
 
 We appreciate all contributions and thank all the contributors!
 
 
 ## **Feedback**
-* [File an issue](https://github.com/thomas-young-2013/lite-bo/issues) on GitHub.
+* [File an issue](https://github.com/thomas-young-2013/open-box/issues) on GitHub.
 * Email us via *liyang.cs@pku.edu.cn*.
 
 
