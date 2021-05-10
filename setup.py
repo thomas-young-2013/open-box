@@ -2,13 +2,8 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-
-import re
-import os
-import sys
 import importlib.util
 from pathlib import Path
-from typing import Dict, List
 from distutils.core import setup
 from setuptools import find_packages
 
@@ -39,8 +34,8 @@ setup(
     description="Efficient and generalized blackbox optimization (BBO) system",
     long_description=readme(),
     long_description_content_type="text/markdown",
-    url='https://github.com/thomas-young-2013/lite-bo',
-    author="Thomas (Yang) Li from DAIM@PKU",
+    url='https://github.com/thomas-young-2013/open-box',
+    author="Thomas (Yang) Li from DIR Lab@PKU",
     packages=find_packages(),
     license="MIT",
     install_requires=requirements["main"],
