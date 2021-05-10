@@ -31,6 +31,7 @@ class HistoryContainer(object):
         self.perfs = list()             # all perfs
         self.constraint_perfs = list()  # all constraints
         self.trial_states = list()      # all trial states
+        self.elapsed_times = list()     # all elapsed times
 
         self.successful_perfs = list()  # perfs of successful trials
         self.failed_index = list()
@@ -42,7 +43,7 @@ class HistoryContainer(object):
         self.max_y = MAXINT
 
     def update_observation(self, observation: Observation):
-        config, trial_state, constraints, objs = observation
+        config, trial_state, constraints, objs, elapsed_time = observation
         self.configurations.append(config)
         if self.num_objs == 1:
             self.perfs.append(objs[0])
@@ -50,6 +51,7 @@ class HistoryContainer(object):
             self.perfs.append(objs)
         self.trial_states.append(trial_state)
         self.constraint_perfs.append(constraints)   # None if no constraint
+        self.elapsed_times.append(elapsed_time)
 
         transform_perf = False
         failed = False

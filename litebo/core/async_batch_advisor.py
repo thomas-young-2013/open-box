@@ -4,7 +4,6 @@ import numpy as np
 from litebo.utils.config_space.util import convert_configurations_to_array
 from litebo.utils.constants import MAXINT, SUCCESS
 from litebo.core.base import Observation
-from litebo.utils.multi_objective import get_chebyshev_scalarization, NondominatedPartitioning
 from litebo.core.generic_advisor import Advisor
 
 
@@ -92,7 +91,7 @@ class AsyncBatchAdvisor(Advisor):
             batch_history_container = copy.deepcopy(history_container)
             # imputation
             for config in self.running_configs:
-                observation = Observation(config, SUCCESS, estimated_c, estimated_y)
+                observation = Observation(config, SUCCESS, estimated_c, estimated_y, None)
                 batch_history_container.update_observation(observation)
 
             # use super class get_suggestion
@@ -118,7 +117,7 @@ class AsyncBatchAdvisor(Advisor):
         return _config
 
     def update_observation(self, observation: Observation):
-        config, trial_state, constraints, objs = observation
+        config, trial_state, constraints, objs, elapsed_time = observation
         assert config in self.running_configs
         self.running_configs.remove(config)
         super().update_observation(observation)

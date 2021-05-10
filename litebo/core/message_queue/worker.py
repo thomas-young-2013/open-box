@@ -5,6 +5,7 @@ from litebo.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
 from litebo.utils.limit import time_limit, TimeoutException
 from litebo.utils.util_funcs import get_result
 from litebo.core.message_queue.worker_messager import WorkerMessager
+from litebo.core.base import Observation
 
 
 class Worker(object):
@@ -29,6 +30,7 @@ class Worker(object):
 
             # Start working
             trial_state = SUCCESS
+            start_time = time.time()
             try:
                 args, kwargs = (config,), dict()
                 timeout_status, _result = time_limit(self.objective_function,
@@ -47,7 +49,9 @@ class Worker(object):
                     trial_state = FAILED
                 objs = None
                 constraints = None
-            observation = [config, trial_state, constraints, objs]
+
+            elapsed_time = time.time() - start_time
+            observation = Observation(config, trial_state, constraints, objs, elapsed_time)
 
             # Send result
             print("Worker: observation=%s. sending result." % str(observation))

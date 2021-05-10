@@ -122,6 +122,7 @@ class SMBO(BOBase):
         _time_limit_per_trial = math.ceil(min(self.time_limit_per_trial, _budget_left))
 
         if config not in self.config_advisor.history_container.configurations:
+            start_time = time.time()
             try:
                 args, kwargs = (config,), dict()
                 timeout_status, _result = time_limit(self.objective_function,
@@ -142,7 +143,8 @@ class SMBO(BOBase):
                 objs = self.FAILED_PERF
                 constraints = None
 
-            observation = Observation(config, trial_state, constraints, objs)
+            elapsed_time = time.time() - start_time
+            observation = Observation(config, trial_state, constraints, objs, elapsed_time)
             if _time_limit_per_trial != self.time_limit_per_trial and trial_state == TIMEOUT:
                 # Timeout in the last iteration.
                 pass
