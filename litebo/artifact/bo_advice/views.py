@@ -161,7 +161,7 @@ def update_observation(request):
                 'worker_id': trial_info['worker_id'],
                 'cost': trial_info['cost']}
             runhistory_id = Runhistory().insert_one(item)
-            observation = Observation(config, trial_state, constraints, objs)
+            observation = Observation(config, trial_state, constraints, objs, trial_info['cost'])
             config_advisor.update_observation(observation)
 
             config_advisor.save_history()

@@ -98,7 +98,7 @@ class SyncBatchAdvisor(Advisor):
                 curr_batch_config = super().get_suggestion(batch_history_container)
 
                 # imputation
-                observation = Observation(curr_batch_config, SUCCESS, estimated_c, estimated_y)
+                observation = Observation(curr_batch_config, SUCCESS, estimated_c, estimated_y, None)
                 batch_history_container.update_observation(observation)
                 batch_configs_list.append(curr_batch_config)
 

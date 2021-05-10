@@ -11,11 +11,14 @@ from litebo.utils.limit import time_limit, TimeoutException
 from litebo.utils.util_funcs import get_result
 from litebo.core.sync_batch_advisor import SyncBatchAdvisor
 from litebo.core.async_batch_advisor import AsyncBatchAdvisor
+from litebo.core.base import Observation
 from litebo.optimizer.base import BOBase
 
 
 def wrapper(param):
     objective_function, config, time_limit_per_trial = param
+    trial_state = SUCCESS
+    start_time = time.time()
     try:
         args, kwargs = (config,), dict()
         timeout_status, _result = time_limit(objective_function, time_limit_per_trial,
@@ -32,7 +35,8 @@ def wrapper(param):
             trial_state = FAILED
         objs = None
         constraints = None
-    return [config, constraints, objs]
+    elapsed_time = time.time() - start_time
+    return Observation(config, trial_state, constraints, objs, elapsed_time)
 
 
 class pSMBO(BOBase):
@@ -107,15 +111,14 @@ class pSMBO(BOBase):
         self.parallel_strategy = parallel_strategy
         self.batch_size = batch_size
 
-    def callback(self, result):
-        _config, _constraints, _objs = result
-        if _objs is None:
-            _objs = self.FAILED_PERF
-        _observation = [_config, SUCCESS, _constraints, _objs]
+    def callback(self, observation: Observation):
+        # Observation: config, trial_state, constraints, objs, elapsed_time
+        if observation[3] is None:  # objs
+            observation[3] = self.FAILED_PERF
         # Report the result, and remove the config from the running queue.
         with self.advisor_lock:
-            self.config_advisor.update_observation(_observation)
-            self.logger.info('Update observation %d: %s.' % (self.iteration_id, str(_observation)))
+            self.config_advisor.update_observation(observation)
+            self.logger.info('Update observation %d: %s.' % (self.iteration_id, str(observation)))
         # Parent process: collect the result and increment id.
         self.iteration_id += 1
 
@@ -168,20 +171,20 @@ class pSMBO(BOBase):
                 self.logger.info('Running on %d configs in the %d-th batch.' % (len(configs), batch_id))
                 params = [(self.objective_function, config, self.time_limit_per_trial) for config in configs]
                 # Wait all workers to complete their corresponding jobs.
-                results = proc.parallel_execute(params)
+                observations = proc.parallel_execute(params)
                 # Report their results.
-                for idx, _result in enumerate(results):
-                    _config, _constraints, _objs = _result
-                    if _objs is None:
-                        _objs = self.FAILED_PERF
-                    _observation = [_config, SUCCESS, _constraints, _objs]
-                    self.config_advisor.update_observation(_observation)
+                for idx, observation in enumerate(observations):
+                    # Observation: config, trial_state, constraints, objs, elapsed_time
+                    if observation[3] is None:  # objs
+                        observation[3] = self.FAILED_PERF
+                    self.config_advisor.update_observation(observation)
+                    _config, _trial_state, _constraints, _objs, _elapsed_time = observation
                     if self.task_info['num_constraints'] > 0:
-                        self.logger.info('In the %d-th batch [%d], config: %s, objective value: %s, constraints: %s.'
-                                         % (batch_id, idx, _config, _objs, _constraints))
+                        self.logger.info('In the %d-th batch [%d/%d], config: %s, objective value: %s, constraints: %s.'
+                                         % (batch_id, idx+1, len(configs), _config, _objs, _constraints))
                     else:
-                        self.logger.info('In the %d-th batch [%d], config: %s, objective value: %s.'
-                                         % (batch_id, idx, _config, _objs))
+                        self.logger.info('In the %d-th batch [%d/%d], config: %s, objective value: %s.'
+                                         % (batch_id, idx+1, len(configs), _config, _objs))
                 batch_id += 1
 
     def run(self):
