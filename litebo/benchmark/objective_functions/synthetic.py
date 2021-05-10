@@ -53,8 +53,7 @@ class BaseTestProblem(object):
             return self._max_hv
         except AttributeError:
             raise NotImplementedError(
-                f"Problem {self.__class__.__name__} does not specify maximal "
-                "hypervolume."
+                "Problem %s does not specify maximal hypervolume." % (self.__class__.__name__,)
             )
 
     @max_hv.setter
@@ -111,7 +110,7 @@ class Ackley(BaseTestProblem):
         else:
             lb, ub = bounds
 
-        params = {f'x{i}': (lb, ub, (lb + ub)/2)
+        params = {'x%d' % i: (lb, ub, (lb + ub)/2)
                   for i in range(1, dim+1)}
         config_space = ConfigurationSpace()
         config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
@@ -136,7 +135,7 @@ class Beale(BaseTestProblem):
     def __init__(self, noise_std=0, random_state=None):
         lb, ub = -4.5, 4.5
         dim = 2
-        params = {f'x{i}': (lb, ub, (lb + ub)/2)
+        params = {'x%d' % i: (lb, ub, (lb + ub)/2)
                   for i in range(1, dim+1)}
         config_space = ConfigurationSpace()
         config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
@@ -222,7 +221,7 @@ class Rosenbrock(BaseTestProblem):
     def __init__(self, dim=2, constrained=False, noise_std=0, random_state=None):
         self.dim = dim
         self.constrained = constrained
-        params = {f'x{i}': (-5.0, 10.0, 2.5) for i in range(1, 1+self.dim)}
+        params = {'x%d' % i: (-5.0, 10.0, 2.5) for i in range(1, 1+self.dim)}
         config_space = ConfigurationSpace()
         config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
         super().__init__(config_space, noise_std,
@@ -277,7 +276,7 @@ class Keane(BaseTestProblem):
     def __init__(self, dim=2, bounds=None,
                  noise_std=0, random_state=None):
         self.dim = dim
-        params = {f'x{i}': (0, 10, 5) for i in range(1, 1+self.dim)}
+        params = {'x%d' % i: (0, 10, 5) for i in range(1, 1+self.dim)}
         config_space = ConfigurationSpace()
         config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
         super().__init__(config_space, noise_std, optimal_value=0, random_state=random_state)
@@ -295,7 +294,7 @@ class Keane(BaseTestProblem):
 class Simionescu(BaseTestProblem):
 
     def __init__(self, noise_std=0, random_state=None):
-        params = {f'x{i}': (-1.25, 1.25, 1) for i in [1, 2]}
+        params = {'x%d' % i: (-1.25, 1.25, 1) for i in [1, 2]}
         config_space = ConfigurationSpace()
         config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
         super().__init__(config_space, noise_std,
@@ -349,7 +348,7 @@ class DTLZ(BaseTestProblem):
         self.k = self.dim - num_objs + 1
         self.bounds = [(0.0, 1.0) for _ in range(self.dim)]
         self.ref_point = [self._ref_val for _ in range(num_objs)]
-        params = {f'x{i}': (0, 1, i/dim) for i in range(1, dim+1)}
+        params = {'x%d' % i: (0, 1, i/dim) for i in range(1, dim+1)}
         config_space = ConfigurationSpace()
         config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
         super().__init__(config_space, noise_std, num_objs, num_constraints, random_state=random_state)
@@ -540,7 +539,7 @@ class VehicleSafety(BaseTestProblem):
     def __init__(self, noise_std=0, random_state=None):
         self.ref_point = [1864.72022, 11.81993945, 0.2903999384]
 
-        params = {f'x{i}': (1.0, 3.0) for i in range(1, 6)}
+        params = {'x%d' % i: (1.0, 3.0) for i in range(1, 6)}
         config_space = ConfigurationSpace()
         config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
         super().__init__(config_space, noise_std,
@@ -599,7 +598,7 @@ class ZDT(BaseTestProblem):
     def __init__(self, dim: int, num_constraints=0, noise_std=0, random_state=None):
         self.dim = dim
         self.ref_point = [11.0, 11.0]
-        params = {f'x{i}': (0, 1) for i in range(1, dim+1)}
+        params = {'x%d' % i: (0, 1) for i in range(1, dim+1)}
         config_space = ConfigurationSpace()
         config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
         super().__init__(config_space, noise_std,
