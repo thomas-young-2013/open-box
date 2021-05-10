@@ -22,6 +22,7 @@ spec = importlib.util.spec_from_file_location("openbox.pkginfo", str(Path(__file
 pkginfo = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(pkginfo)
 version = pkginfo.version
+package_name = pkginfo.package_name
 
 
 def readme() -> str:
@@ -29,7 +30,7 @@ def readme() -> str:
 
 
 setup(
-    name="open-box",
+    name=package_name,
     version=version,
     description="Efficient and generalized blackbox optimization (BBO) system",
     long_description=readme(),
