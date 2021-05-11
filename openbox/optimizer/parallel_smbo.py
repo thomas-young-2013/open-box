@@ -112,9 +112,9 @@ class pSMBO(BOBase):
         self.batch_size = batch_size
 
     def callback(self, observation: Observation):
-        # Observation: config, trial_state, constraints, objs, elapsed_time
-        if observation[3] is None:  # objs
-            observation[3] = self.FAILED_PERF
+        config, trial_state, constraints, objs, elapsed_time = observation
+        if objs is None:
+            observation = Observation(config, trial_state, constraints, self.FAILED_PERF, elapsed_time)
         # Report the result, and remove the config from the running queue.
         with self.advisor_lock:
             self.config_advisor.update_observation(observation)
@@ -174,17 +174,17 @@ class pSMBO(BOBase):
                 observations = proc.parallel_execute(params)
                 # Report their results.
                 for idx, observation in enumerate(observations):
-                    # Observation: config, trial_state, constraints, objs, elapsed_time
-                    if observation[3] is None:  # objs
-                        observation[3] = self.FAILED_PERF
+                    config, trial_state, constraints, objs, elapsed_time = observation
+                    if objs is None:
+                        objs = self.FAILED_PERF
+                        observation = Observation(config, trial_state, constraints, self.FAILED_PERF, elapsed_time)
                     self.config_advisor.update_observation(observation)
-                    _config, _trial_state, _constraints, _objs, _elapsed_time = observation
                     if self.task_info['num_constraints'] > 0:
                         self.logger.info('In the %d-th batch [%d/%d], config: %s, objective value: %s, constraints: %s.'
-                                         % (batch_id, idx+1, len(configs), _config, _objs, _constraints))
+                                         % (batch_id, idx+1, len(configs), config, objs, constraints))
                     else:
                         self.logger.info('In the %d-th batch [%d/%d], config: %s, objective value: %s.'
-                                         % (batch_id, idx+1, len(configs), _config, _objs))
+                                         % (batch_id, idx+1, len(configs), config, objs))
                 batch_id += 1
 
     def run(self):
