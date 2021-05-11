@@ -60,7 +60,7 @@ class NameServer(object):
 		self.host, self.port = self.pyro_ns.locationStr.split(':')
 		self.port = int(self.port)
 		
-		thread = threading.Thread(target=self.pyro_ns.requestLoop, name='Pyro4 nameserver started by Lite-BO')
+		thread = threading.Thread(target=self.pyro_ns.requestLoop, name='Pyro4 nameserver started by OpenBox')
 
 		thread.start()
 

@@ -89,7 +89,7 @@ class Dispatcher(object):
 		self.shutdown_all_threads = False
 
 		if logger is None:
-			self.logger = logging.getLogger('[Lite-BO] dispatcher')
+			self.logger = logging.getLogger('[OpenBox] dispatcher')
 		else:
 			self.logger = logger
 

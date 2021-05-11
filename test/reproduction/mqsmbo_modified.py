@@ -1,4 +1,5 @@
 from openbox.optimizer.message_queue_smbo import mqSMBO
+from openbox.core.base import Observation
 import time
 
 
@@ -23,7 +24,6 @@ class mqSMBO_modified(mqSMBO):
 
             # Get results from workerQueue.
             while True:
-                # Observation: config, trial_state, constraints, objs, elapsed_time
                 observation = self.master_messager.receive_message()
                 if observation is None:
                     # Wait for workers.
@@ -32,8 +32,9 @@ class mqSMBO_modified(mqSMBO):
                     break
                 # Report result.
                 result_num += 1
-                if observation[3] is None:  # objs
-                    observation[3] = self.FAILED_PERF
+                config, trial_state, constraints, objs, elapsed_time = observation
+                if objs is None:
+                    observation = Observation(config, trial_state, constraints, self.FAILED_PERF, elapsed_time)
                 self.config_advisor.update_observation(observation)
                 self.logger.info('Master: Get %d observation: %s' % (result_num, str(observation)))
 
@@ -72,8 +73,9 @@ class mqSMBO_modified(mqSMBO):
                     continue
                 # Report result.
                 result_num += 1
-                if observation[3] is None:  # objs
-                    observation[3] = self.FAILED_PERF
+                config, trial_state, constraints, objs, elapsed_time = observation
+                if objs is None:
+                    observation = Observation(config, trial_state, constraints, self.FAILED_PERF, elapsed_time)
                 self.config_advisor.update_observation(observation)
                 self.logger.info('Master: In the %d-th batch [%d], observation is: %s'
                                  % (batch_id, result_num, str(observation)))

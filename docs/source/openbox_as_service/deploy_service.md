@@ -20,8 +20,8 @@ Then, clone the source code from Github to the server you want to deploy OpenBox
 Please use the following command on the command line:
 
 ```bash
-git clone https://github.com/thomas-young-2013/lite-bo.git
-cd lite-bo
+git clone https://github.com/thomas-young-2013/open-box.git
+cd open-box
 python setup.py install
 ```
 
@@ -44,10 +44,10 @@ Please record the **IP** and **port** of your database.
 
 ### 2.2 Modify service.conf File
 
-After starting MongoDB, modify <font color=#FF0000>**"lite-bo/conf/service.conf"**</font> to set database information.
+After starting MongoDB, modify <font color=#FF0000>**"open-box/conf/service.conf"**</font> to set database information.
 If this is your first time running the service, create the <font color=#FF0000>**service.conf**</font> file by copying 
-the template config file from <font color=#FF0000>**"lite-bo/conf/template/service.conf.template"**</font> to 
-<font color=#FF0000>**"lite-bo/conf/"**</font> and rename it to <font color=#FF0000>**service.conf**</font>.
+the template config file from <font color=#FF0000>**"open-box/conf/template/service.conf.template"**</font> to 
+<font color=#FF0000>**"open-box/conf/"**</font> and rename it to <font color=#FF0000>**service.conf**</font>.
 
 The contents of **service.conf** are as follows:
 
@@ -100,7 +100,7 @@ Finally, after setting up database and registration service email, you can start
 To **start the service**, run the <font color=#FF0000>**manage_service.sh script**</font> by the following command:
 
 ```bash
-cd <path to the source code>/lite-bo
+cd <path to the source code>/open-box
 ./scripts/manage_service.sh start
 ```
 
@@ -115,7 +115,7 @@ For more detailed guidance, please refer to the [Service User Tutorial](./use_se
 To **stop the service**, run the <font color=#FF0000>**manage_service.sh script**</font> by the following command:
 
 ```bash
-cd <path to the source code>/lite-bo
+cd <path to the source code>/open-box
 ./scripts/manage_service.sh stop
 ```
 

@@ -18,7 +18,7 @@ To install SWIG, please refer to [SWIG Installation Guide](./install_swig.md)
 To install OpenBox from PyPI:
 
 ```bash
-pip install lite-bo
+pip install openbox
 ```
 
 
@@ -27,8 +27,8 @@ pip install lite-bo
 To install OpenBox from command line, please type the following commands on the command line:
 
  ```bash
-git clone https://github.com/thomas-young-2013/lite-bo.git
-cd lite-bo
+git clone https://github.com/thomas-young-2013/open-box.git
+cd open-box
 cat requirements.txt | xargs -n 1 -L 1 pip install
 python setup.py install
  ```
