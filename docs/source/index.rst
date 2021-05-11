@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-:github_url: https://github.com/thomas-young-2013/lite-bo
+:github_url: https://github.com/thomas-young-2013/open-box
 
 OpenBox: Generalized and Efficient Blackbox Optimization System
 ================================================================
