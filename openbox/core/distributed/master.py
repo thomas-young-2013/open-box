@@ -49,7 +49,7 @@ class Master(object):
 		self.config_directory = config_directory
 
 		if logger is None:
-			self.logger = logging.getLogger('Lite-BO[MASTER]')
+			self.logger = logging.getLogger('OpenBox[MASTER]')
 		else:
 			self.logger = logger
 		self.logger.setLevel(logging.DEBUG)
@@ -95,7 +95,7 @@ class Master(object):
 		self.dispatcher_thread.start()
 
 	def shutdown(self, shutdown_workers=False):
-		self.logger.debug('Lite-BO[MASTER]: shutdown initiated, shutdown_workers = %s' % (str(shutdown_workers)))
+		self.logger.debug('OpenBox[MASTER]: shutdown initiated, shutdown_workers = %s' % (str(shutdown_workers)))
 		self.dispatcher.shutdown(shutdown_workers)
 		self.dispatcher_thread.join()
 
@@ -111,7 +111,7 @@ class Master(object):
 		self.logger.debug('wait_for_workers trying to get the condition')
 		with self.thread_cond:
 			while self.dispatcher.number_of_workers() < min_n_workers:
-				self.logger.info('Lite-BO[MASTER]: only %i worker(s) available, waiting for at least %i.' % (self.dispatcher.number_of_workers(), min_n_workers))
+				self.logger.info('OpenBox[MASTER]: only %i worker(s) available, waiting for at least %i.' % (self.dispatcher.number_of_workers(), min_n_workers))
 				self.thread_cond.wait(1)
 				self.dispatcher.trigger_discover_worker()
 
@@ -155,7 +155,7 @@ class Master(object):
 		if self.time_ref is None:
 			self.time_ref = time.time()
 			self.config['time_ref'] = self.time_ref
-			self.logger.info('Lite-BO[MASTER]: starting run at %s' % str(self.time_ref))
+			self.logger.info('OpenBox[MASTER]: starting run at %s' % str(self.time_ref))
 
 		self.thread_cond.acquire()
 
@@ -165,7 +165,7 @@ class Master(object):
 			_config = self.config_advisor.get_suggestion()
 			_config_id = self.iteration_id
 			self.config_history[_config_id] = _config
-			self.logger.info('Lite-BO[MASTER]: schedule new run for iteration %i' % self.iteration_id)
+			self.logger.info('OpenBox[MASTER]: schedule new run for iteration %i' % self.iteration_id)
 			self._submit_job(_config_id, _config)
 
 			self.iteration_id += 1
@@ -178,13 +178,13 @@ class Master(object):
 		# Implementation needed! return the result.
 
 	def adjust_queue_size(self, number_of_workers=None):
-		self.logger.debug('Lite-BO[MASTER]: number of workers changed to %s' % str(number_of_workers))
+		self.logger.debug('OpenBox[MASTER]: number of workers changed to %s' % str(number_of_workers))
 		with self.thread_cond:
 			self.logger.debug('adjust_queue_size: lock accquired')
 			if self.dynamic_queue_size:
 				nw = self.dispatcher.number_of_workers() if number_of_workers is None else number_of_workers
 				self.job_queue_sizes = (self.user_job_queue_sizes[0] + nw, self.user_job_queue_sizes[1] + nw)
-				self.logger.info('Lite-BO[MASTER]: adjusted queue size to %s'%str(self.job_queue_sizes))
+				self.logger.info('OpenBox[MASTER]: adjusted queue size to %s'%str(self.job_queue_sizes))
 			self.thread_cond.notify_all()
 
 	def job_callback(self, job):
@@ -215,7 +215,7 @@ class Master(object):
 			self.config_advisor.update_observation(_observation)
 
 			if self.num_running_jobs <= self.job_queue_sizes[0]:
-				self.logger.debug("Lite-BO[MASTER]: Trying to run another job!")
+				self.logger.debug("OpenBox[MASTER]: Trying to run another job!")
 				self.thread_cond.notify()
 
 		self.logger.debug('job_callback for %s finished' % str(job.id))
@@ -226,7 +226,7 @@ class Master(object):
 		"""
 		if self.num_running_jobs >= self.job_queue_sizes[1]:
 			while self.num_running_jobs > self.job_queue_sizes[0]:
-				self.logger.debug('Lite-BO[MASTER]: running jobs: %i, queue sizes: %s -> wait' %
+				self.logger.debug('OpenBox[MASTER]: running jobs: %i, queue sizes: %s -> wait' %
 								  (self.num_running_jobs, str(self.job_queue_sizes)))
 				self.thread_cond.wait()
 
@@ -237,15 +237,15 @@ class Master(object):
 		This function handles the actual submission in a
 		(hopefully) thread save way
 		"""
-		self.logger.debug('Lite-BO[MASTER]: trying submitting job %s to dispatcher' % str(config_id))
+		self.logger.debug('OpenBox[MASTER]: trying submitting job %s to dispatcher' % str(config_id))
 		self.config_advisor.running_configs.append(config)
 		with self.thread_cond:
-			self.logger.info('Lite-BO[MASTER]: submitting job %s to dispatcher' % str(config_id))
+			self.logger.info('OpenBox[MASTER]: submitting job %s to dispatcher' % str(config_id))
 			self.dispatcher.submit_job(config_id, config=config.get_dictionary(), budget=budget)
 			self.num_running_jobs += 1
 
 		# shouldn't the next line be executed while holding the condition?
-		self.logger.debug("Lite-BO[MASTER]: job %s submitted to dispatcher"%str(config_id))
+		self.logger.debug("OpenBox[MASTER]: job %s submitted to dispatcher"%str(config_id))
 
 	def __del__(self):
 		pass
