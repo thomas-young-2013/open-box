@@ -3,7 +3,7 @@
 ## System Requirements
 
 Installation Requirements:
-+ Python >= 3.5
++ Python >= 3.6
 + SWIG == 3.0
 
 Make sure to install SWIG correctly before you install OpenBox.

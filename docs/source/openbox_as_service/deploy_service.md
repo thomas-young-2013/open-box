@@ -8,7 +8,7 @@ the [Service User Tutorial](./use_service).
 
 Installation Requirements:
 
-+ Python >= 3.5
++ Python >= 3.6
 
 + SWIG == 3.0
 
