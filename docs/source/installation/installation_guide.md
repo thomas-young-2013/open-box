@@ -3,15 +3,12 @@
 ## System Requirements
 
 Installation Requirements:
-
 + Python >= 3.5
-
 + SWIG == 3.0
 
 Make sure to install SWIG correctly before you install OpenBox.
 
 To install SWIG, please refer to [SWIG Installation Guide](./install_swig.md)
-
 
 ## Installation from PyPI
 
@@ -21,18 +18,15 @@ To install OpenBox from PyPI:
 pip install openbox
 ```
 
-
 ## Manual Installation from Source
 
 To install OpenBox from command line, please type the following commands on the command line:
 
- ```bash
-git clone https://github.com/thomas-young-2013/open-box.git
-cd open-box
-cat requirements.txt | xargs -n 1 -L 1 pip install
+```bash
+git clone https://github.com/thomas-young-2013/open-box.git && cd open-box
+cat requirements/main.txt | xargs -n 1 -L 1 pip install
 python setup.py install
- ```
-
+```
 
 ## Trouble Shooting
 

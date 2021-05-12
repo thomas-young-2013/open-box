@@ -49,6 +49,10 @@ through which users can easily track and manage the tasks.
 + Conda package: [to appear soon]()
 + Examples: https://github.com/thomas-young-2013/open-box/tree/master/examples
 
+## Tutorials
++ Tuning LightGBM: 
++ Tuning XGBoost: 
+
 ## Benchmark Results
 
 Single-objective problems
@@ -75,74 +79,59 @@ CONSTR             | SRN
 
 ## Installation
 
-**Installation via pip**
+### System Requirements
 
-For Windows and Linux users, you can install by
+Installation Requirements:
++ Python >= 3.5
++ SWIG == 3.0
+
+Make sure to install SWIG correctly before you install OpenBox.
+
+To install SWIG, please refer to [SWIG Installation Guide](./install_swig.md)
+
+### Installation from PyPI
+
+To install OpenBox from PyPI:
 
 ```bash
 pip install openbox
 ```
 
-For macOS users, you need to install `pyrfr` correctly first, and then `pip install open-box`. 
+### Manual Installation from Source
 
-The tips for installing `pyrfr` on macOS is [here](docs/source/installation/install-pyrfr-on-macos.md).
+To install OpenBox from command line, please type the following commands on the command line:
 
-**Manual installation from the github source**
-
- ```bash
+```bash
 git clone https://github.com/thomas-young-2013/open-box.git && cd open-box
 cat requirements/main.txt | xargs -n 1 -L 1 pip install
 python setup.py install
- ```
-macOS users still need to follow the [tips](docs/source/installation/install-pyrfr-on-macos.md) 
-to install `pyrfr` correctly first.
+```
+
+The tips for installing `pyrfr` on macOS is [here](docs/source/installation/install-pyrfr-on-macos.md). Please make sure you installed `pyrfr` correctly.
 
 ## Quick Start
 
 ```python
 import numpy as np
-from openbox.utils.start_smbo import create_smbo
+from openbox.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter
+from openbox.optimizer.generic_smbo import SMBO
 
+# Define Configuration Space
+config_space = ConfigurationSpace()
+x1 = UniformFloatHyperparameter("x1", -5, 10, default_value=0)
+x2 = UniformFloatHyperparameter("x2", 0, 15, default_value=0)
+config_space.add_hyperparameters([x1, x2])
 
-def branin(x):
-    xs = x.get_dictionary()
-    x1 = xs['x1']
-    x2 = xs['x2']
-    a = 1.
-    b = 5.1 / (4. * np.pi ** 2)
-    c = 5. / np.pi
-    r = 6.
-    s = 10.
-    t = 1. / (8. * np.pi)
-    ret = a * (x2 - b * x1 ** 2 + c * x1 - r) ** 2 + s * (1 - t) * np.cos(x1) + s
-    return {'objs': (ret,)}
+# Define Objective Function
+def branin(config):
+    x1, x2 = config['x1'], config['x2']
+    y = (x2-5.1/(4*np.pi**2)*x1**2+5/np.pi*x1-6)**2+10*(1-1/(8*np.pi))*np.cos(x1)+10
+    return y
 
-
-config_dict = {
-    "optimizer": "SMBO",
-    "parameters": {
-        "x1": {
-            "type": "float",
-            "bound": [-5, 10],
-            "default": 0
-        },
-        "x2": {
-            "type": "float",
-            "bound": [0, 15]
-        },
-    },
-    "advisor_type": 'default',
-    "max_runs": 90,
-    "time_limit_per_trial": 5,
-    "logging_dir": 'logs',
-    "task_id": 'hp1'
-}
-
-bo = create_smbo(branin, **config_dict)
-bo.run()
-inc_value = bo.get_incumbent()
-print('BO', '=' * 30)
-print(inc_value)
+# Run
+bo = SMBO(branin, config_space, max_runs=50, task_id='quick_start')
+history = bo.run()
+print(history)
 ```
 
 ## **Releases and Contributing**

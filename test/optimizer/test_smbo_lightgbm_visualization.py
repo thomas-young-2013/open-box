@@ -94,7 +94,7 @@ def load_data(dataset, data_dir):
 
 def get_cs():
     cs = ConfigurationSpace()
-    n_estimators = UniformFloatHyperparameter("n_estimators", 100, 1000, default_value=500, q=50)
+    n_estimators = UniformIntegerHyperparameter("n_estimators", 100, 1000, default_value=500, q=50)
     num_leaves = UniformIntegerHyperparameter("num_leaves", 31, 2047, default_value=128)
     # max_depth = Constant('max_depth', 15)
     max_depth = UniformIntegerHyperparameter("max_depth", 5, 15, default_value=10)
