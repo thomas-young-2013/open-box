@@ -166,31 +166,35 @@ class AbstractModel(object):
         vars : np.ndarray  of shape = [n_samples, n_objectives]
             Predictive variance
         """
-        if len(X.shape) != 2:
-            raise ValueError('Expected 2d array, got %dd array!' % len(X.shape))
-        if X.shape[1] != len(self._initial_types):
-            raise ValueError('Rows in X should have %d entries but have %d!' % (len(self._initial_types), X.shape[1]))
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=UserWarning)
 
-        if self.pca:
-            try:
-                X_feats = X[:, -self.n_feats:]
-                X_feats = self.scaler.transform(X_feats)
-                X_feats = self.pca.transform(X_feats)
-                X = np.hstack((X[:, :self.n_params], X_feats))
-            except NotFittedError:
-                pass  # PCA not fitted if only one training sample
+            if len(X.shape) != 2:
+                raise ValueError('Expected 2d array, got %dd array!' % len(X.shape))
+            if X.shape[1] != len(self._initial_types):
+                raise ValueError('Rows in X should have %d entries but have %d!' % (len(self._initial_types), X.shape[1]))
 
-        if X.shape[1] != len(self.types):
-            raise ValueError('Rows in X should have %d entries but have %d!' % (len(self.types), X.shape[1]))
+            if self.pca:
+                try:
+                    X_feats = X[:, -self.n_feats:]
+                    X_feats = self.scaler.transform(X_feats)
+                    X_feats = self.pca.transform(X_feats)
+                    X = np.hstack((X[:, :self.n_params], X_feats))
+                except NotFittedError:
+                    pass  # PCA not fitted if only one training sample
 
-        mean, var = self._predict(X)
+            if X.shape[1] != len(self.types):
+                raise ValueError('Rows in X should have %d entries but have %d!' % (len(self.types), X.shape[1]))
 
-        if len(mean.shape) == 1:
-            mean = mean.reshape((-1, 1))
-        if len(var.shape) == 1:
-            var = var.reshape((-1, 1))
+            mean, var = self._predict(X)
 
-        return mean, var
+            if len(mean.shape) == 1:
+                mean = mean.reshape((-1, 1))
+            if len(var.shape) == 1:
+                var = var.reshape((-1, 1))
+
+            return mean, var
 
     def _predict(self, X: np.ndarray) -> typing.Tuple[np.ndarray, np.ndarray]:
         """
