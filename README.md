@@ -12,6 +12,7 @@
 [![Version](https://img.shields.io/github/release/thomas-young-2013/open-box.svg)](https://github.com/thomas-young-2013/open-box/releases) [![Join the chat at https://gitter.im/bbo-open-box](https://badges.gitter.im/bbo-open-box.svg)](https://gitter.im/bbo-open-box?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Documentation Status](https://readthedocs.org/projects/open-box/badge/?version=latest)](https://open-box.readthedocs.io/en/latest/?badge=latest)
 
+[OpenBox Doc](https://open-box.readthedocs.io) | [简体中文](README_zh_CN.md)
 
 ## OpenBox: Generalized and Efficient Blackbox Optimization System.
 OpenBox is an efficient and generalized blackbox optimization (BBO) system, which owns the following characteristics:
@@ -43,15 +44,15 @@ through which users can easily track and manage the tasks.
 + Data privacy protection, robustness and extensibility.
 
 ## Links
-+ Blog post: [to appear soon]()
-+ Documentation: https://open-box.readthedocs.io/en/latest/?badge=latest
-+ Pypi package: https://pypi.org/project/open-box/
++ [Examples](https://github.com/thomas-young-2013/open-box/tree/master/examples)
++ [Documentations](https://open-box.readthedocs.io/en/latest/?badge=latest)
++ [Pypi package](https://pypi.org/project/open-box/)
 + Conda package: [to appear soon]()
-+ Examples: https://github.com/thomas-young-2013/open-box/tree/master/examples
++ Blog post: [to appear soon]()
 
-## Tutorials
-+ Tuning LightGBM: 
-+ Tuning XGBoost: 
+## Application Tutorials
++ [Tuning LightGBM with OpenBox]() | [简体中文]() 
++ [Tuning XGBoost using OpenBox]() | [简体中文]()
 
 ## Benchmark Results
 
