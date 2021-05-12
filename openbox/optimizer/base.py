@@ -54,7 +54,7 @@ class BOBase(object, metaclass=abc.ABCMeta):
         return self.config_advisor.history_container.get_incumbents()
 
     def _get_logger(self, name):
-        logger_name = 'Lite-BO-%s' % name
+        logger_name = 'OpenBox-%s' % name
         self.logger_name = os.path.join(self.output_dir, '%s.log' % str(logger_name))
         setup_logger(self.logger_name)
         return get_logger(logger_name)

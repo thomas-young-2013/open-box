@@ -1,7 +1,7 @@
 """
 example cmdline:
 
-python test/reproduction/mo/benchmark_mo_litebo_math.py --problem dtlz2-12-2 --n 200 --init_strategy sobol --rep 1 --start_id 0
+python test/reproduction/mo/benchmark_mo_openbox_math.py --problem dtlz2-12-2 --n 200 --init_strategy sobol --rep 1 --start_id 0
 
 """
 import os
