@@ -70,13 +70,13 @@ config_dict = {
             "q": 0.1
         },
     },
-    "num_objs": 1,
-    "num_constraints": 0,
-    "advisor_type": "default",
+    # "num_objs": 1,
+    # "num_constraints": 0,
+    # "advisor_type": "default",
     "max_runs": 100,
-    "surrogate_type": "prf",
+    # "surrogate_type": "prf",
     "time_limit_per_trial": 180,
-    "logging_dir": "logs",
+    # "logging_dir": "logs",
     "task_id": "so_hpo"
 }
 

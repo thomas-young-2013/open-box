@@ -21,7 +21,7 @@ from test.test_utils import check_datasets, load_data
 
 def get_cs():
     cs = ConfigurationSpace()
-    n_estimators = UniformFloatHyperparameter("n_estimators", 100, 1000, default_value=500, q=50)
+    n_estimators = UniformIntegerHyperparameter("n_estimators", 100, 1000, default_value=500, q=50)
     num_leaves = UniformIntegerHyperparameter("num_leaves", 31, 2047, default_value=128)
     max_depth = Constant('max_depth', 15)
     learning_rate = UniformFloatHyperparameter("learning_rate", 1e-3, 0.3, default_value=0.1, log=True)

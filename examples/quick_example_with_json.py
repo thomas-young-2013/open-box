@@ -40,9 +40,6 @@ config_dict = {
 
 bo = create_smbo(branin, **config_dict)
 history = bo.run()
-inc_value = bo.get_incumbent()
-print('BO', '=' * 30)
-print(inc_value)
 
 print(history)
 history.plot_convergence(true_minimum=0.397887)
