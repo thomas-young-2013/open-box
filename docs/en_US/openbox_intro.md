@@ -1,6 +1,6 @@
 # OpenBox: A Generalized Black-box Optimization Service (1)
 
-<img src="./pics/logo.png" width="40%">
+<img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/logos/logo.png" width="40%">
 
 ## Introduction
 
@@ -14,7 +14,7 @@ In this article, we will first introduce black-box optimization, and then OpenBo
 
 In white-box optimization, the specific form of the problem is known. For example, we can solve linear regression by analytic formula, or we can optimize deep neural networks by their gradient information. However, in black-box optimization, the objective function has no analytical form so that information such as the derivative of the objective function is unavailable. We cannot use the characteristics of the optimization objective to obtain its global optimum.
 
-<img src="./pics/blackbox.png" alt="黑盒函数示意图" style="zoom:30%;" />
+<img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/blackbox.png" alt="黑盒函数示意图" style="zoom:30%;" />
 
 The figure above is a schematic diagram of a black-box function. The black-box function can be viewed in terms of its inputs and outputs, without any knowledge of its internal workings. We can only continuously input data into the black-box function, and then use the outputs to guess the structure information.
 
@@ -22,7 +22,7 @@ Taking hyperparameter optimization of machine learning as an example, our goal i
 
 In addition to automatic hyperparameter tuning, black-box optimization has a wide range of applications in many fields, such as automatic A/B testing, experimental design, knobs tuning in database, processor architecture and circuit design, resource allocation, automatic chemical design, etc. (as shown in the figure below).
 
-<img src="./pics/applications_of_black-box_optimization.jpg" style="zoom:30%;" />
+<img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/applications_of_black-box_optimization.jpg" style="zoom:30%;" />
 
 ### Grid Search & Random Search
 
@@ -31,7 +31,7 @@ Grid search and random search are two naive methods to solve the black-box optim
 Compared with grid search, random search is a more effective method. It will continuously sample hyperparameter randomly and evaluate it within a given resource (e.g., time) constraint. If there are unimportant hyperparameters, when performing grid search, we fix the value of important hyperparameters and try different values of unimportant hyperparameters, resulting in a small difference of evaluation results and low efficiency. However, random search avoids this problem and can search more different objective values corresponding to different important hyperparameters. The figure below shows the difference between grid search and random search.
 
 <center>
-  <img src="./pics/grid_random_search2.png" width="500" />
+  <img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/grid_random_search2.png" width="500" />
   <br>
   <div><b>Grid Search & Random Search</b></div>
 </center>
@@ -46,7 +46,7 @@ Bayesian optimization is a state-of-the-art black-box optimization framework. Fo
 + Input the chosen point into the black-box function and update observation to the history.
 + Repeat the above steps until a certain budget is exhausted or the expected objective value is achieved.
 
-<img src="./pics/bayesian_optimization.png" style="zoom:45%" />
+<img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/bayesian_optimization.png" style="zoom:45%" />
 
 The above figure is an example of Bayesian Optimization in one-dimensional input space. The three diagrams from top to bottom display the sequential optimization process. The black dotted line in the figure represents the real black-box function. In the initial case, two historical observations are used to train the probabilistic surrogate model. The predicted mean is represented by the black solid line, and the predicted variance (i.e. uncertainty) is represented by the blue area. The commonly used surrogate models are Gaussian Process, Random Forest, Tree-structured Parzen Estimator (TPE), etc.
 
@@ -76,7 +76,7 @@ OpenBox is coded with Python. You can visit our project here: <https://github.co
 
 Compared with the existing black-box optimization (hyperparameter optimization) systems, OpenBox supports a wider range of functionality scope, including multi-objective optimization, optimization with constraints, multiple parameter types, transfer learning, distributed parallel evaluation, multi-fidelity optimization, and etc. The supported scenarios of OpenBox and existing systems are compared as follows:
 
-<img src="./pics/functionality_scope.png" style="zoom:40%;" />
+<img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/functionality_scope.png" style="zoom:40%;" />
 
 + Multiple parameter types (FIOC, i.e Float, Integer, Ordinal, and Categorical): input parameters are not limited to float type (real number). For example, the kernel function of Supported Vector Machine is represented by a categorical hyperparameter. Using integer instead of ordinal or categorical type will attach an additional order relationship to parameters, which is not conducive to model optimization.
 + Multi-objective Optimization: Simultaneously optimize multiple different or even conflicting objectives, such as simultaneously optimize the accuracy of the machine learning model and model training/prediction time.
@@ -173,7 +173,7 @@ history.visualize_jupyter()
 ```
 
 <center class="half">
-  <img src="./pics/plot_convergence_branin.png" width="350"/><img src="./pics/visualize_jupyter_branin.png" width="250"/>
+  <img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/plot_convergence_branin.png" width="350"/><img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/visualize_jupyter_branin.png" width="250"/>
 </center>
 #### Tuning Hyperparameters of LightGBM
 
@@ -302,7 +302,7 @@ history.visualize_jupyter()
 ```
 
 <center class="half">
-  <img src="./pics/plot_convergence_hpo.png" width="300"/><img src="./pics/visualize_jupyter_hpo.png" width="300"/>
+  <img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/plot_convergence_hpo.png" width="300"/><img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/visualize_jupyter_hpo.png" width="300"/>
 </center>
 The left figure shows the best observed objective during the optimization while the right figure reflects the relationships between each hyperparameter and the objective.
 
@@ -334,15 +334,15 @@ The following figures show the optimality gap of each system over evaluation tri
 
 |            Ackley-4d             |           Hartmann-6d            |
 | :------------------------------: | :------------------------------: |
-| ![](./pics/so_math_ackley-4.png) | ![](./pics/so_math_hartmann.png) |
+| ![](https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/so_math_ackley-4.png) | ![](https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/so_math_hartmann.png) |
 
 We plot the ranks of tuning LightGBM on 25 datasets as follows:
 
-<img src="./pics/ranking_lgb_7.svg" style="zoom:30%;" />
+<img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/ranking_lgb_7.svg" style="zoom:30%;" />
 
 In addition, we compare our transfer learning algorithm with Google Vizier. Before the experiment, we prepare 25 datasets and the corresponding tuning history on each dataset. The experiment is conducted in a ''leave-one-out'' fashion, which means we tune on one dataset again while using the history of the remaining 24 datasets. The average ranks over evaluation trials are as follows: (SMAC3 is the baseline without using transfer learning)
 
-<img src="./pics/tl_lightgbm_75_rank_result.svg" style="zoom:45%;" />
+<img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/tl_lightgbm_75_rank_result.svg" style="zoom:45%;" />
 
 We can have that, OpenBox outperforms the existing black-box optimization systems.
 
