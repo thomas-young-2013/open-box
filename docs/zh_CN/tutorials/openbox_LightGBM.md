@@ -1,7 +1,7 @@
 # LightGBM调参：使用OpenBox开源黑盒优化系统
 
 <center class="half">
-  <img src="./pics/logo.png" width="300"/><img src="./pics/tuning/LightGBM_logo_black_text.svg" width="300"/>
+  <img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/logo.png" width="300"/><img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/tuning/LightGBM_logo_black_text.svg" width="300"/>
 </center>
 
 ## 简介
@@ -132,7 +132,7 @@ history.visualize_jupyter()
 ```
 
 <center class="half">
-  <img src="./pics/plot_convergence_hpo.png" width="300"/><img src="./pics/visualize_jupyter_hpo.png" width="300"/>
+  <img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/plot_convergence_hpo.png" width="300"/><img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/visualize_jupyter_hpo.png" width="300"/>
 </center>
 
 
@@ -162,7 +162,7 @@ history.visualize_jupyter()
 
 OpenBox系统对于超参数优化问题有着优异的表现，我们实验比对了各超参数优化（黑盒优化）系统性能。下图为各系统在25个数据集上，对LightGBM模型进行超参数优化后的排名：
 
-<img src="./pics/ranking_lgb_7.svg" style="zoom:30%;" />
+<img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/ranking_lgb_7.svg" style="zoom:30%;" />
 
 在超参数优化问题上，OpenBox系统性能超过了现有系统。
 

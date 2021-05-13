@@ -1,7 +1,7 @@
 # Tuning XGBoost with OpenBox -- An Open Source Black-box Optimization System
 
 <center class="half">
-  <img src="./pics/logo.png" width="300"/><img src="./pics/tuning/xgboost_logo.png" width="210"/>
+  <img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/logo.png" width="300"/><img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/tuning/xgboost_logo.png" width="210"/>
 </center>
 
 
@@ -135,7 +135,7 @@ history.visualize_jupyter()
 ```
 
 <center class="half">
-  <img src="./pics/tuning/plot_convergence_xgboost.png" width="300"/><img src="./pics/tuning/visualize_jupyter_xgboost.png" width="300"/>
+  <img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/tuning/plot_convergence_xgboost.png" width="300"/><img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/tuning/visualize_jupyter_xgboost.png" width="300"/>
 </center>
 
 
@@ -167,7 +167,7 @@ In addition, OpenBox supports defining a task using a JSON file. For more charac
 
 In this section, we compare Openbox with other popular hyperparameter optimization systems (or black-box optimization systems). We plot the ranks of tuning on 25 datasets as follows:
 
-<img src="./pics/ranking_lgb_7.svg" style="zoom:30%;" />
+<img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/ranking_lgb_7.svg" style="zoom:30%;" />
 
 We can have that, Openbox outperforms all the baselines on tuning XGBoost.
 

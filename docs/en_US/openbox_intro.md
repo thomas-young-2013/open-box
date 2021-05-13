@@ -1,6 +1,6 @@
 # OpenBox: A Generalized Black-box Optimization Service (1)
 
-<img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/logos/logo.png" width="40%">
+<img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/logo.png" width="40%">
 
 ## Introduction
 

@@ -1,7 +1,7 @@
 # Tuning LightGBM with OpenBox -- An Open Source Black-box Optimization System
 
 <center class="half">
-  <img src="./pics/logo.png" width="300"/><img src="./pics/tuning/LightGBM_logo_black_text.svg" width="300"/>
+  <img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/logo.png" width="300"/><img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/tuning/LightGBM_logo_black_text.svg" width="300"/>
 </center>
 
 ## Introduction
@@ -131,7 +131,7 @@ history.visualize_jupyter()
 ```
 
 <center class="half">
-  <img src="./pics/plot_convergence_hpo.png" width="300"/><img src="./pics/visualize_jupyter_hpo.png" width="300"/>
+  <img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/plot_convergence_hpo.png" width="300"/><img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/visualize_jupyter_hpo.png" width="300"/>
 </center>
 
 
@@ -161,7 +161,7 @@ In addition, OpenBox supports defining a task using a JSON file. For more charac
 
 In this section, we compare Openbox with other popular hyperparameter optimization systems (or black-box optimization systems). We plot the ranks of tuning LightGBM on 25 datasets as follows:
 
-<img src="./pics/ranking_lgb_7.svg" style="zoom:30%;" />
+<img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/ranking_lgb_7.svg" style="zoom:30%;" />
 
 We can have that, Openbox outperforms all the baselines on tuning LightGBM.
 
