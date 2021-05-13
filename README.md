@@ -51,8 +51,8 @@ through which users can easily track and manage the tasks.
 + Blog post: [to appear soon]()
 
 ## Application Tutorials
-+ [Tuning LightGBM with OpenBox]() | [简体中文]() 
-+ [Tuning XGBoost using OpenBox]() | [简体中文]()
++ [Tuning LightGBM with OpenBox](https://github.com/thomas-young-2013/open-box/blob/master/docs/en_US/tutorials/openbox_LightGBM.md) | [简体中文](https://github.com/thomas-young-2013/open-box/blob/master/docs/zh_CN/tutorials/openbox_LightGBM.md) 
++ [Tuning XGBoost using OpenBox](https://github.com/thomas-young-2013/open-box/blob/master/docs/en_US/tutorials/openbox_XGBoost.md) | [简体中文](https://github.com/thomas-young-2013/open-box/blob/master/docs/zh_CN/tutorials/openbox_XGBoost.md)
 
 ## Benchmark Results
 
