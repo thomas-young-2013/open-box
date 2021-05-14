@@ -84,11 +84,11 @@ CONSTR             | SRN
 
 Installation Requirements:
 + Python >= 3.6
-+ SWIG == 3.0
++ SWIG >= 3.0.12
 
 Make sure to install SWIG correctly before you install OpenBox.
 
-To install SWIG, please refer to [SWIG Installation Guide](./install_swig.md)
+To install SWIG, please refer to [SWIG Installation Guide](https://github.com/thomas-young-2013/open-box/blob/master/docs/source/installation/install_swig.md)
 
 ### Installation from PyPI
 
@@ -108,7 +108,7 @@ cat requirements/main.txt | xargs -n 1 -L 1 pip install
 python setup.py install
 ```
 
-The tips for installing `pyrfr` on macOS is [here](docs/source/installation/install-pyrfr-on-macos.md). Please make sure you installed `pyrfr` correctly.
+The tips for installing `pyrfr` on macOS is [here](https://github.com/thomas-young-2013/open-box/blob/master/docs/source/installation/install-pyrfr-on-macos.md). Please make sure you installed `pyrfr` correctly.
 
 ## Quick Start
 
