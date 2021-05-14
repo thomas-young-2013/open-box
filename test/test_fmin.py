@@ -5,8 +5,8 @@ import numpy as np
 # Import ConfigSpace and different types of parameters
 
 sys.path.append(os.getcwd())
-from litebo.facade.bo_facade import BayesianOptimization
-from litebo.facade.batch_bo import BatchBayesianOptimization
+from openbox.facade.bo_facade import BayesianOptimization
+from openbox.facade.batch_bo import BatchBayesianOptimization
 
 
 def branin(x):
@@ -42,7 +42,7 @@ space_dict = {
     }
 }
 
-from litebo.utils.config_space.space_utils import get_config_space_from_dict
+from openbox.utils.config_space.space_utils import get_config_space_from_dict
 cs = get_config_space_from_dict(space_dict)
 print(cs)
 

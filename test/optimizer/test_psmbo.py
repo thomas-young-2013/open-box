@@ -1,7 +1,7 @@
 import numpy as np
-from litebo.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter
-from litebo.optimizer.parallel_smbo import pSMBO
-from litebo.utils.visualization.visualizatoin_for_test_psmbo import visualize
+from openbox.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter
+from openbox.optimizer.parallel_smbo import pSMBO
+from openbox.utils.visualization.visualizatoin_for_test_psmbo import visualize
 
 # Define Configuration Space
 config_space = ConfigurationSpace()
@@ -36,7 +36,7 @@ bo = pSMBO(branin,
            batch_strategy='median_imputation',
            num_objs=1,
            num_constraints=0,
-           max_runs=100,
+           max_runs=50,
            surrogate_type='gp',
            time_limit_per_trial=180,
            task_id='parallel')

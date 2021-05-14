@@ -1,11 +1,11 @@
 import numpy as np
 
-# from litebo.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter, UniformIntegerHyperparameter, Constant
+# from openbox.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter, UniformIntegerHyperparameter, Constant
 from ConfigSpace import ConfigurationSpace, UniformFloatHyperparameter, UniformIntegerHyperparameter, \
     Constant, CategoricalHyperparameter, InCondition, EqualsCondition, UnParametrizedHyperparameter, \
     ForbiddenEqualsClause, ForbiddenInClause, ForbiddenAndConjunction
 
-from litebo.benchmark.objective_functions.synthetic import DTLZ2, BraninCurrin, BNH, SRN, CONSTR
+from openbox.benchmark.objective_functions.synthetic import DTLZ2, BraninCurrin, BNH, SRN, CONSTR
 
 
 def get_problem(problem_str, **kwargs):

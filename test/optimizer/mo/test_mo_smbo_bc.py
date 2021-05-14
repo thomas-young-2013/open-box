@@ -11,9 +11,9 @@ import argparse
 import matplotlib.pyplot as plt
 
 sys.path.insert(0, os.getcwd())
-from litebo.optimizer.generic_smbo import SMBO
-from litebo.utils.config_space import Configuration
-from litebo.utils.multi_objective import Hypervolume
+from openbox.optimizer.generic_smbo import SMBO
+from openbox.utils.config_space import Configuration
+from openbox.utils.multi_objective import Hypervolume
 
 # set problem
 from mo_benchmark_function import get_setup_bc  # todo
@@ -62,7 +62,7 @@ bo = SMBO(multi_objective_func, cs, num_objs=num_objs, max_runs=max_runs,
           time_limit_per_trial=60, task_id='mo', random_state=seed)
 bo.config_advisor.optimizer.random_chooser.prob = rand_prob     # set rand_prob, default 0
 bo.config_advisor.acquisition_function.sample_num = sample_num  # set sample_num
-bo.config_advisor.acquisition_function.random_state = seed      # set random_state
+#bo.config_advisor.acquisition_function.random_state = seed      # set random_state
 bo.config_advisor.optimizer.num_mc = 1000   # MESMO optimizer only
 bo.config_advisor.optimizer.num_opt = 100   # MESMO optimizer only
 print(mth, '===== start =====')

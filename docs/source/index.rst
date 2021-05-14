@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-:github_url: https://github.com/thomas-young-2013/lite-bo
+:github_url: https://github.com/thomas-young-2013/open-box
 
 OpenBox: Generalized and Efficient Blackbox Optimization System
 ================================================================
@@ -175,8 +175,15 @@ Contents
    :caption: Advanced Usage
 
    advanced_usage/parallel_evaluation
-   advanced_usage/service
    advanced_usage/transfer_learning
+
+.. toctree::
+   :maxdepth: 1
+   :caption: OpenBox as Service
+
+   openbox_as_service/service_introduction
+   openbox_as_service/deploy_service
+   openbox_as_service/use_service
 
 .. toctree::
    :maxdepth: 1

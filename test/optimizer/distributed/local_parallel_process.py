@@ -3,9 +3,9 @@ import sys
 import logging
 import argparse
 sys.path.insert(0, os.getcwd())
-import litebo.core.distributed.nameserver as hpns
-from litebo.optimizer.distributed_smbo import DistributedSMBO
-from litebo.examples.worker_example import BraninWorker
+import openbox.core.distributed.nameserver as hpns
+from openbox.optimizer.distributed_smbo import DistributedSMBO
+from openbox.examples.worker_example import BraninWorker
 
 logging.basicConfig(level=logging.DEBUG)
 parser = argparse.ArgumentParser(description='Local and Parallel Execution.')

@@ -12,7 +12,7 @@ import argparse
 
 sys.path.insert(0, os.getcwd())
 from moc_benchmark_function import get_problem, plot_pf
-from litebo.utils.multi_objective import Hypervolume
+from openbox.utils.multi_objective import Hypervolume
 from test.reproduction.test_utils import timeit
 from platypus import NSGAII, Problem, Real
 

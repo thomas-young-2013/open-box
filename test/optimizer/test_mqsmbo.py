@@ -14,14 +14,14 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import balanced_accuracy_score
 
 sys.path.insert(0, os.getcwd())
-from litebo.optimizer.message_queue_smbo import mqSMBO
-from litebo.core.message_queue.worker import Worker
+from openbox.optimizer.message_queue_smbo import mqSMBO
+from openbox.core.message_queue.worker import Worker
 from test.test_utils import check_datasets, load_data
 
 
 def get_cs():
     cs = ConfigurationSpace()
-    n_estimators = UniformFloatHyperparameter("n_estimators", 100, 1000, default_value=500, q=50)
+    n_estimators = UniformIntegerHyperparameter("n_estimators", 100, 1000, default_value=500, q=50)
     num_leaves = UniformIntegerHyperparameter("num_leaves", 31, 2047, default_value=128)
     max_depth = Constant('max_depth', 15)
     learning_rate = UniformFloatHyperparameter("learning_rate", 1e-3, 0.3, default_value=0.1, log=True)
@@ -78,11 +78,11 @@ class LightGBM:
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--dataset', type=str)
+parser.add_argument('--dataset', type=str, default='spambase')
 parser.add_argument('--n', type=int, default=50)
 parser.add_argument('--role', type=str, choices=['master', 'worker'])
 parser.add_argument('--batch_size', type=int, default=4)
-parser.add_argument('--ip', type=str)
+parser.add_argument('--ip', type=str, default='127.0.0.1')
 parser.add_argument('--port', type=int, default=13579)
 parser.add_argument('--parallel', type=str, default="sync")
 
@@ -102,7 +102,7 @@ if role == 'master':
     parallel = args.parallel
 
     bo = mqSMBO(None, cs, max_runs=run_count, time_limit_per_trial=60, logging_dir='logs',
-                parallel_strategy=parallel, batch_size=batch_size, ip=ip, port=port, task_id='test_mqsmbo')
+                parallel_strategy=parallel, batch_size=batch_size, ip='', port=port, task_id='test_mqsmbo')
     bo.run()
     inc_value = bo.get_incumbent()
     print('Message Queue SMBO', '=' * 30)

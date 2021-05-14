@@ -7,7 +7,7 @@ This tutorial helps you run your first example with **OpenBox**.
 First, define a configuration space using **ConfigSpace** for searching.
 
 ```python
-from litebo.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter
+from openbox.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter
 
 # Define Configuration Space
 config_space = ConfigurationSpace()
@@ -23,7 +23,7 @@ Other types of hyperparameter are also supported in **ConfigSpace**.
 Here are examples of how to define **Integer** and **Categorical** hyperparameters:
 
 ```python
-from litebo.utils.config_space import UniformIntegerHyperparameter, CategoricalHyperparameter
+from openbox.utils.config_space import UniformIntegerHyperparameter, CategoricalHyperparameter
 
 i = UniformIntegerHyperparameter("i", 0, 100) 
 kernel = CategoricalHyperparameter("kernel", ["rbf", "poly", "sigmoid"], default_value="rbf")
@@ -39,13 +39,16 @@ Here we use the **Branin** function.
 
 ```python
 import numpy as np
+from openbox.utils.config_space import Configuration
 
 # Define Objective Function
-def branin(config):
+def branin(config: Configuration):
+    # convert Configuration to dict
     config_dict = config.get_dictionary()
     x1 = config_dict['x1']
     x2 = config_dict['x2']
 
+    # calculate
     a = 1.
     b = 5.1 / (4. * np.pi ** 2)
     c = 5. / np.pi
@@ -54,6 +57,7 @@ def branin(config):
     t = 1. / (8. * np.pi)
     y = a * (x2 - b * x1 ** 2 + c * x1 - r) ** 2 + s * (1 - t) * np.cos(x1) + s
 
+    # return result dictionary
     ret = dict(
         objs=(y, )
     )
@@ -83,7 +87,7 @@ After we define the configuration space and the objective function, we could run
 search over the configuration space and try to find <font color=#FF0000>**minimum**</font> value of the objective.
 
 ```python
-from litebo.optimizer.generic_smbo import SMBO
+from openbox.optimizer.generic_smbo import SMBO
 
 # Run Optimization
 bo = SMBO(branin,

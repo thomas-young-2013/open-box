@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 
 sys.path.insert(0, os.getcwd())
 
-from litebo.optimizer.generic_smbo import SMBO
-from litebo.benchmark.objective_functions.synthetic import Ackley
+from openbox.optimizer.generic_smbo import SMBO
+from openbox.benchmark.objective_functions.synthetic import Ackley
 
 num_inputs = 10
 acq_optimizer_type = 'random_scipy'

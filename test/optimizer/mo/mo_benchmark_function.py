@@ -3,7 +3,7 @@ import math
 from copy import deepcopy
 import time
 
-from litebo.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter, UniformIntegerHyperparameter
+from openbox.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter, UniformIntegerHyperparameter
 from platypus import NSGAII, Problem, Real
 
 
@@ -174,7 +174,7 @@ def get_setup_lightgbm(dataset, time_limit=None):
 
     def get_cs_lightgbm():  # todo q and int for compare?
         cs = ConfigurationSpace()
-        n_estimators = UniformFloatHyperparameter("n_estimators", 100, 1000, default_value=500, q=50)
+        n_estimators = UniformIntegerHyperparameter("n_estimators", 100, 1000, default_value=500, q=50)
         num_leaves = UniformIntegerHyperparameter("num_leaves", 31, 2047, default_value=128)
         # max_depth = Constant('max_depth', 15)
         learning_rate = UniformFloatHyperparameter("learning_rate", 1e-3, 0.3, default_value=0.1, log=True)

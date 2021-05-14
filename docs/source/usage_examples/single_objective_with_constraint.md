@@ -9,9 +9,9 @@ to <font color=#FF0000>**minimize**</font>. Here we use the constrained **Mishra
 
 ```python
 import numpy as np
-from litebo.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter
+from openbox.utils.config_space import ConfigurationSpace, Configuration, UniformFloatHyperparameter
 
-def mishra(config):
+def mishra(config: Configuration):
     config_dict = config.get_dictionary()
     X = np.array([config_dict['x%d' % i] for i in range(2)])
     x, y = X[0], X[1]
@@ -50,7 +50,7 @@ After we define the configuration space and the objective function, we could run
 search over the configuration space and try to find <font color=#FF0000>**minimum**</font> value of the objective.
 
 ```python
-from litebo.optimizer.generic_smbo import SMBO
+from openbox.optimizer.generic_smbo import SMBO
 
 bo = SMBO(mishra,
           cs,

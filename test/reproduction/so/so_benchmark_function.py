@@ -1,6 +1,6 @@
 import numpy as np
 
-# from litebo.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter, UniformIntegerHyperparameter, Constant
+# from openbox.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter, UniformIntegerHyperparameter, Constant
 from ConfigSpace import ConfigurationSpace, UniformFloatHyperparameter, UniformIntegerHyperparameter, \
     Constant, CategoricalHyperparameter, InCondition, EqualsCondition, UnParametrizedHyperparameter, \
     ForbiddenEqualsClause, ForbiddenInClause, ForbiddenAndConjunction
@@ -339,7 +339,7 @@ class lgb(BaseSingleObjectiveProblem):
     def get_configspace(self, optimizer='smac'):
         if optimizer == 'smac':
             cs = ConfigurationSpace()
-            n_estimators = UniformFloatHyperparameter("n_estimators", 100, 1000, default_value=500, q=50)
+            n_estimators = UniformIntegerHyperparameter("n_estimators", 100, 1000, default_value=500, q=50)
             num_leaves = UniformIntegerHyperparameter("num_leaves", 31, 2047, default_value=128)
             max_depth = Constant('max_depth', 15)
             learning_rate = UniformFloatHyperparameter("learning_rate", 1e-3, 0.3, default_value=0.1, log=True)

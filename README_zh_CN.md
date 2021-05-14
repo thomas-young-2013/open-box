@@ -1,0 +1,169 @@
+<p align="center">
+<img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/logos/logo.png" width="68%">
+</p>
+
+-----------
+
+[![license](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)](https://github.com/thomas-young-2013/open-box/blob/master/LICENSE)
+[![Build Status](https://api.travis-ci.org/thomas-young-2013/open-box.svg?branch=master)](https://api.travis-ci.org/thomas-young-2013)
+[![Issues](https://img.shields.io/github/issues-raw/thomas-young-2013/open-box.svg)](https://github.com/thomas-young-2013/open-box/issues?q=is%3Aissue+is%3Aopen)
+[![Bugs](https://img.shields.io/github/issues/thomas-young-2013/open-box/bug.svg)](https://github.com/thomas-young-2013/open-box/issues?q=is%3Aissue+is%3Aopen+label%3Abug)
+[![Pull Requests](https://img.shields.io/github/issues-pr-raw/thomas-young-2013/open-box.svg)](https://github.com/thomas-young-2013/open-box/pulls?q=is%3Apr+is%3Aopen)
+[![Version](https://img.shields.io/github/release/thomas-young-2013/open-box.svg)](https://github.com/thomas-young-2013/open-box/releases)
+[![Join the chat at https://gitter.im/bbo-open-box](https://badges.gitter.im/bbo-open-box.svg)](https://gitter.im/bbo-open-box?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Documentation Status](https://readthedocs.org/projects/open-box/badge/?version=latest)](https://open-box.readthedocs.io/en/latest/?badge=latest)
+
+
+## OpenBox: 通用高效的黑盒优化系统
+OpenBox是解决黑盒优化（超参数优化）问题的高效且通用的开源系统，支持以下特性：
+
+1. 基础黑盒优化。
+2. 带约束优化。
+3. 多目标优化。
+4. 迁移学习。
+5. 分布式并行验证。
+6. 多精度优化加速。
+7. 早停机制。
+
+## 使用方式
+
+#### 本地Python包
+
+用户可以安装我们发布的Python包，从而在本地使用黑盒优化算法。
+
+#### 分布式黑盒优化服务
+
+OpenBox是一个提供通用黑盒优化服务的系统。用户可以使用REST API便捷地访问服务，无需担心环境配置、代码编写与维护、执行优化等问题。用户还可以通过我们提供的网页用户界面，监控与管理优化任务。
+
+## 设计理念
+
+我们的设计遵循以下理念：
++ 易用：用户以最小代价使用黑盒优化服务，可通过用户友好的可视化界面监控与管理优化任务。
++ 性能优异：集成最先进（state-of-the-art）的优化算法，并可自动选择最优策略。
++ 资源感知管理：为用户提供基于成本（时间、并行数等）的建议。
++ 高效：充分利用并行资源，并利用迁移学习、多精度优化加速搜索。
++ 规模可扩展：对于输入维度、目标维度、任务数、并行验证数量等有较好的可扩展性。
++ 错误容忍、系统可扩展性、数据隐私保护。
+
+## Links
++ [使用代码样例](https://github.com/thomas-young-2013/open-box/tree/master/examples)
++ [文档](https://open-box.readthedocs.io/en/latest/?badge=latest)
++ [Pypi包](https://pypi.org/project/open-box/)
++ Conda包: [to appear soon]()
++ 博客: [to appear soon]()
+
+## 应用教程
++ [使用OpenBox对LightGBM调参](https://github.com/thomas-young-2013/open-box/blob/master/docs/en_US/tutorials/openbox_LightGBM.md) | [简体中文](https://github.com/thomas-young-2013/open-box/blob/master/docs/zh_CN/tutorials/openbox_LightGBM.md) 
++ [使用OpenBox对XGBoost调参](https://github.com/thomas-young-2013/open-box/blob/master/docs/en_US/tutorials/openbox_XGBoost.md) | [简体中文](https://github.com/thomas-young-2013/open-box/blob/master/docs/zh_CN/tutorials/openbox_XGBoost.md)
+
+## 性能实验结果
+
+单目标优化问题
+
+Ackley-4                  | Hartmann
+:-------------------------:|:-------------------------:
+![](https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/experiments/so_math_ackley-4.png)  |  ![](https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/experiments/so_math_hartmann.png)
+
+单目标带约束优化问题
+
+Mishra                  | Keane-10
+:-------------------------:|:-------------------------:
+![](https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/experiments/soc_math_mishra.png)  |  ![](https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/experiments/soc_math_keane.png)
+
+多目标问题
+
+DTLZ1-6-5             | ZDT2-3 
+:-------------------------:|:-------------------------:
+![](https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/experiments/mo_math_dtlz1-6-5.png)  |  ![](https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/experiments/mo_math_zdt2-3.png)
+
+多目标带约束问题
+
+CONSTR             | SRN 
+:-------------------------:|:-------------------------:
+![](https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/experiments/moc_math_constr.png)  |  ![](https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/experiments/moc_math_srn.png)
+
+## 安装教程
+
+### 系统环境需求
+
++ Python >= 3.6
++ SWIG >= 3.0.12
+
+在安装OpenBox之前，请确保已经正确安装了SWIG。您可以参考： [SWIG安装教程](https://github.com/thomas-young-2013/open-box/blob/master/docs/source/installation/install_swig.md)。
+
+### 通过PyPI安装（推荐）
+
+使用以下命令通过PyPI安装OpenBox：
+
+```bash
+pip install openbox
+```
+
+请确保所有依赖与系统安装成功。
+
+### 通过源码手动安装
+
+使用以下命令通过Github源码安装OpenBox：
+
+```bash
+git clone https://github.com/thomas-young-2013/open-box.git && cd open-box
+cat requirements/main.txt | xargs -n 1 -L 1 pip install
+python setup.py install
+```
+
+对于macOS用户，如果安装`pyrfr`失败，请参考[提示](https://github.com/thomas-young-2013/open-box/blob/master/docs/source/installation/install-pyrfr-on-macos.md)。
+
+对于Windows用户，如果安装`lazy_import`失败，请参考[提示](https://github.com/thomas-young-2013/open-box/blob/master/docs/source/installation/install-lazy_import-on-windows.md)。
+
+
+## 快速入门
+
+```python
+import numpy as np
+from openbox.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter
+from openbox.optimizer.generic_smbo import SMBO
+
+# Define Configuration Space
+config_space = ConfigurationSpace()
+x1 = UniformFloatHyperparameter("x1", -5, 10, default_value=0)
+x2 = UniformFloatHyperparameter("x2", 0, 15, default_value=0)
+config_space.add_hyperparameters([x1, x2])
+
+# Define Objective Function
+def branin(config):
+    x1, x2 = config['x1'], config['x2']
+    y = (x2-5.1/(4*np.pi**2)*x1**2+5/np.pi*x1-6)**2+10*(1-1/(8*np.pi))*np.cos(x1)+10
+    return y
+
+# Run
+bo = SMBO(branin, config_space, max_runs=50, task_id='quick_start')
+history = bo.run()
+print(history)
+```
+
+## **参与贡献**
+如果您在使用OpenBox的过程中遇到Bug，请向我们[提交issue](https://github.com/thomas-young-2013/open-box/issues/new/choose)。如果您对Bug进行了修复，欢迎直接向我们提交。
+
+如果您想要为OpenBox添加新功能、新模块等，请先开放issue，我们会与您讨论。
+
+如果您想更好地了解如何参与项目贡献，请参考[如何参与贡献](https://github.com/thomas-young-2013/open-box/blob/master/CONTRIBUTING.md)页面。
+
+我们在此感谢所有项目贡献者！
+
+
+## **反馈**
+* 在GitHub上[提交issue](https://github.com/thomas-young-2013/open-box/issues)。
+* 通过邮箱联系我们：*liyang.cs@pku.edu.cn*
+
+
+## 相关项目
+
+以开放性和推进AutoML生态系统为目标，我们还发布了一些其他的开源项目：
+
+* [VocalnoML](https://github.com/thomas-young-2013/soln-ml) : 提供端到端机器学习模型训练和预测功能的开源系统。
+
+
+## **许可协议**
+
+我们的代码遵循[MIT许可协议](LICENSE)。
+

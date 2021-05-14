@@ -1,9 +1,9 @@
 import numpy as np
 
 # Import ConfigSpace and different types of parameters
-from litebo.facade.bo_facade import BayesianOptimization
-from litebo.facade.batch_bo import BatchBayesianOptimization
-from litebo.utils.config_space.space_utils import get_config_space_from_dict
+from openbox.facade.bo_facade import BayesianOptimization
+from openbox.facade.batch_bo import BatchBayesianOptimization
+from openbox.utils.config_space.space_utils import get_config_space_from_dict
 
 
 def branin(x):

@@ -35,7 +35,7 @@ cond5 = ForbiddenInClause(x7, ['x1', 'x3'])
 cs1.add_forbidden_clause(cond5)
 cs1.add_forbidden_clause(cond4)
 
-from litebo.utils.config_space.space_utils import config_space2string, string2config_space
+from openbox.utils.config_space.space_utils import config_space2string, string2config_space
 
 str = config_space2string(cs1)
 print(str)

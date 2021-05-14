@@ -40,8 +40,8 @@ def evaluate(mth, run_i, seed):
         return y
 
     from cma import CMAEvolutionStrategy
-    from litebo.utils.util_funcs import get_types
-    from litebo.utils.config_space import Configuration
+    from openbox.utils.util_funcs import get_types
+    from openbox.utils.config_space import Configuration
 
     types, bounds = get_types(cs)
     assert all(types == 0)

@@ -1,8 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from litebo.optimizer.generic_smbo import SMBO
-from litebo.benchmark.objective_functions.synthetic import ZDT2
+from openbox.optimizer.generic_smbo import SMBO
+from openbox.benchmark.objective_functions.synthetic import ZDT2
 
 dim = 3
 prob = ZDT2(dim=dim)

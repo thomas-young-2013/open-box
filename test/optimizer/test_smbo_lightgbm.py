@@ -11,13 +11,13 @@ from ConfigSpace.forbidden import ForbiddenEqualsClause, \
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import balanced_accuracy_score
 
-sys.path.append(os.getcwd())
-from litebo.optimizer.smbo import SMBO
-from litebo.optimizer.parallel_smbo import pSMBO
+sys.path.insert(0, os.getcwd())
+from openbox.optimizer.generic_smbo import SMBO
+from openbox.optimizer.parallel_smbo import pSMBO
 from test.test_utils import check_datasets, load_data
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--datasets', type=str)
+parser.add_argument('--datasets', type=str, default='spambase')
 parser.add_argument('--n', type=int, default=50)
 
 args = parser.parse_args()
@@ -30,7 +30,7 @@ data_dir = './test/data/'
 
 def get_cs():
     cs = ConfigurationSpace()
-    n_estimators = UniformFloatHyperparameter("n_estimators", 100, 1000, default_value=500, q=50)
+    n_estimators = UniformIntegerHyperparameter("n_estimators", 100, 1000, default_value=500, q=50)
     num_leaves = UniformIntegerHyperparameter("num_leaves", 31, 2047, default_value=128)
     max_depth = Constant('max_depth', 15)
     learning_rate = UniformFloatHyperparameter("learning_rate", 1e-3, 0.3, default_value=0.1, log=True)
@@ -94,7 +94,7 @@ for dataset in dataset_list:
     eval = partial(eval_func, x=_x, y=_y)
 
     print('=' * 10, 'SMBO')
-    bo = SMBO(eval, cs, max_runs=run_count, time_limit_per_trial=60, logging_dir='logs')
+    bo = SMBO(eval, cs, max_runs=run_count, time_limit_per_trial=60, logging_dir='logs', task_id='test_lgb')
     bo.run()
     inc_value = bo.get_incumbent()
     print('SMBO', '='*30)

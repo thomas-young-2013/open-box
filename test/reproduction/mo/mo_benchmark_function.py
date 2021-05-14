@@ -4,7 +4,7 @@ from ConfigSpace import ConfigurationSpace, UniformFloatHyperparameter, UniformI
     Constant, CategoricalHyperparameter, InCondition, EqualsCondition, UnParametrizedHyperparameter, \
     ForbiddenEqualsClause, ForbiddenInClause, ForbiddenAndConjunction
 
-from litebo.benchmark.objective_functions.synthetic import DTLZ1, DTLZ2, BraninCurrin, VehicleSafety, ZDT1, ZDT2, ZDT3
+from openbox.benchmark.objective_functions.synthetic import DTLZ1, DTLZ2, BraninCurrin, VehicleSafety, ZDT1, ZDT2, ZDT3
 
 
 def get_problem(problem_str, **kwargs):

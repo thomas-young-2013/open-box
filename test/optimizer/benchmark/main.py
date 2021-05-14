@@ -13,7 +13,7 @@ parser = argparse.ArgumentParser()
 dataset_set = 'dna,pollen,abalone,splice,madelon,spambase,wind,page-blocks(1),pc2,segment'
 parser.add_argument('--datasets', type=str, default=dataset_set)
 parser.add_argument('--algo_id', type=str, default='random_forest,adaboost')
-parser.add_argument('--methods', type=str, default='litebo,smac,hyperopt')
+parser.add_argument('--methods', type=str, default='openbox,smac,hyperopt')
 parser.add_argument('--rep_num', type=int, default=10)
 parser.add_argument('--start_id', type=int, default=0)
 parser.add_argument('--seed', type=int, default=1)

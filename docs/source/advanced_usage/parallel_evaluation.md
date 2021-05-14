@@ -27,7 +27,7 @@ to <font color=#FF0000>**minimize**</font>. Here we use the **Branin** function.
 
 ```python
 import numpy as np
-from litebo.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter
+from openbox.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter
 
 # Define Configuration Space
 config_space = ConfigurationSpace()
@@ -64,7 +64,7 @@ This time we use <font color=#FF0000>**pSMBO**</font> to optimize the objective 
 on your local machine.
 
 ```python
-from litebo.optimizer.parallel_smbo import pSMBO
+from openbox.optimizer.parallel_smbo import pSMBO
 
 # Parallel Evaluation on Local Machine
 bo = pSMBO(branin,
