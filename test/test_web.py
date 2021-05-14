@@ -1,4 +1,5 @@
 import datetime
+import hashlib
 import time
 import numpy as np
 
@@ -10,6 +11,7 @@ from litebo.utils.config_space import Configuration, ConfigurationSpace, Uniform
 def townsend(config):
     X = np.array(list(config.get_dictionary().values()))
     res = dict()
+    time.sleep(3)
     res['objs'] = [-(np.cos((X[0]-0.1)*X[1])**2 + X[0] * np.sin(3*X[0]+X[1]))]
     res['constraints'] = [-(-np.cos(1.5*X[0]+np.pi)*np.cos(1.5*X[1])+np.sin(1.5*X[0]+np.pi)*np.sin(1.5*X[1]))]
     return res
@@ -27,10 +29,18 @@ townsend_cs = ConfigurationSpace()
 townsend_cs.add_hyperparameters([UniformFloatHyperparameter(e, *townsend_params['float'][e]) for e in townsend_params['float']])
 
 # Create remote advisor
-config_advisor = RemoteAdvisor(townsend_cs, '127.0.0.1', 8001, '','',task_name="task_test")
+pwd = '111111'
+pwd = hashlib.md5(pwd.encode(encoding='utf-8')).hexdigest()
+user_email = '2322171400@qq.com'
+server = '39.101.191.37'
+server = '127.0.0.1'
+
+port = 11425
+port = 8001
+config_advisor = RemoteAdvisor(townsend_cs, server, port, user_email,pwd,task_name="task_test")
 
 # Simulate 50 iterations
-for _ in range(60):
+for _ in range(200):
 
     config_dict = config_advisor.get_suggestion()
     config = Configuration(config_advisor.config_space, config_dict)
