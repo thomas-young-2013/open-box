@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/3.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
-
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'bo_advice.apps.BoAdviceConfig',
+    'user_board',
 ]
 
 MIDDLEWARE = [
@@ -48,6 +49,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'user_board.utils.MyAuthMiddleware.MyAuthMiddleware',
 ]
 
 ROOT_URLCONF = 'artifact.urls'
@@ -118,4 +120,16 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
+
 STATIC_URL = '/static/'
+STATIC_ROOT =os.path.join(BASE_DIR,"user_board/static/")
+# STATICFILES_DIRS = [
+#   os.path.join(BASE_DIR, '/user_board/static/'),
+# ]
+
+EMAIL_HOST = 'smtp.163.com'
+EMAIL_PORT = 465
+EMAIL_HOST_USER = 'OpenBoxPKU@163.com'
+EMAIL_HOST_PASSWORD = 'MZAPRLBEWUTUBCCZ'
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+EMAIL_USE_SSL = True
