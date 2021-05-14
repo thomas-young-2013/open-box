@@ -1,6 +1,6 @@
 # How to install pyrfr on macOS
 
-1. Download [the source code of pyrfr](https://pypi.org/project/pyrfr/).
+1. Download [the source code of pyrfr](https://pypi.org/project/pyrfr/#files).
 2. Unzip the file and go to `pyrfr`'s directory.
 3. Modify the `extra_compile_args` in `setup.py` as follows
 ```python

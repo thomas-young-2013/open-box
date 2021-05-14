@@ -32,3 +32,4 @@ python setup.py install
 
 For macOS users who have trouble installing pyrfr, see the [tips](./install-pyrfr-on-macos.md).
 
+For Windows users who have trouble installing lazy_import, see the [tips](./install-lazy_import-on-windows.md).
