@@ -95,15 +95,18 @@ def history(request, task_id):
 
         option['schema'] = ['x1', 'x2', 'perf']
 
-        line_data = {'min': [], 'over': []}
+        # line_data = {'min': [], 'over': []}
+        line_data = {'min': [], 'over': [],'scat':[]}
         min_value = sys.maxsize
         n = len(option['data']) - 1
         for idx in range(n, -1, -1):
-            if option['data'][idx][2] < min_value:
+            if option['data'][idx][2] <= min_value:
                 min_value = option['data'][idx][2]
                 line_data['min'].append([n - idx, option['data'][idx][2]])
+                line_data['scat'].append([n - idx, option['data'][idx][2]])
             else:
                 line_data['over'].append([n - idx, option['data'][idx][2]])
-
+            # line_data['over'].append([n - idx, option['data'][idx][2]])
+        line_data['min'].append([n + 1, min_value])
         return JsonResponse(
             {'code': 1, 'option': option, 'table_list': table_list, 'rh_config': rh_config, 'line_data': line_data})

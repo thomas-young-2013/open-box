@@ -10,6 +10,7 @@ from litebo.utils.config_space import Configuration
 from litebo.core.base import Observation
 
 from litebo.artifact.data_manipulation.db_object import User, Task, Runhistory
+from artifact import settings
 
 # Global mapping from task_id to config advisor
 advisor_dict = {}
@@ -40,7 +41,9 @@ def task_register(request):
             if user is None:
                 return JsonResponse({'code': 0, 'msg': '[bo_advice/views.py] User does not exist'})
             else:
-                if user['password'] != hashlib.md5(password.encode(encoding='utf-8')).hexdigest():
+                md5 = hashlib.md5(settings.SECRET_KEY.encode("utf-8"))
+                md5.update(password.encode('utf-8'))
+                if user['password'] != md5.hexdigest():
                     return JsonResponse({'code': 0, 'msg': '[bo_advice/views.py] Incorrect Password'})
 
             # task_id = request.POST.get('task_id')
