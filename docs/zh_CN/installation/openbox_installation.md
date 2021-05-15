@@ -75,7 +75,7 @@ ln -s /usr/bin/swig3.0 /usr/bin/swig
 
 我们建议Windows 10系统用户先阅读后面的**额外说明**。
 
-### 2.1 通过PyPI安装（推荐！）
+### 2.1 通过PyPI安装（推荐）
 
 使用以下命令通过PyPI安装OpenBox：
 

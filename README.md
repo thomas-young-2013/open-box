@@ -9,7 +9,8 @@
 [![Issues](https://img.shields.io/github/issues-raw/thomas-young-2013/open-box.svg)](https://github.com/thomas-young-2013/open-box/issues?q=is%3Aissue+is%3Aopen)
 [![Bugs](https://img.shields.io/github/issues/thomas-young-2013/open-box/bug.svg)](https://github.com/thomas-young-2013/open-box/issues?q=is%3Aissue+is%3Aopen+label%3Abug)
 [![Pull Requests](https://img.shields.io/github/issues-pr-raw/thomas-young-2013/open-box.svg)](https://github.com/thomas-young-2013/open-box/pulls?q=is%3Apr+is%3Aopen)
-[![Version](https://img.shields.io/github/release/thomas-young-2013/open-box.svg)](https://github.com/thomas-young-2013/open-box/releases) [![Join the chat at https://gitter.im/bbo-open-box](https://badges.gitter.im/bbo-open-box.svg)](https://gitter.im/bbo-open-box?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Version](https://img.shields.io/github/release/thomas-young-2013/open-box.svg)](https://github.com/thomas-young-2013/open-box/releases)
+[![Join the chat at https://gitter.im/bbo-open-box](https://badges.gitter.im/bbo-open-box.svg)](https://gitter.im/bbo-open-box?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Documentation Status](https://readthedocs.org/projects/open-box/badge/?version=latest)](https://open-box.readthedocs.io/en/latest/?badge=latest)
 
 [OpenBox Doc](https://open-box.readthedocs.io) | [简体中文](README_zh_CN.md)
@@ -34,8 +35,9 @@ We adopt the "BBO as a service" paradigm and implement OpenBox as a managed gene
 through which users can easily track and manage the tasks.
 
 
-## Features
+## Design Goal
 
+OpenBox’s design satisfies the following desiderata:
 + Ease of use. Minimal user configuration and setup, and necessary visualization for optimization process. 
 + Performance standards. Host state-of-the-art optimization algorithms; select proper algorithms automatically.
 + Cost-oriented management. Give cost-model based suggestions to users, e.g., minimal machines or time-budget. 
@@ -110,6 +112,8 @@ python setup.py install
 
 The tips for installing `pyrfr` on macOS is [here](https://github.com/thomas-young-2013/open-box/blob/master/docs/source/installation/install-pyrfr-on-macos.md). Please make sure you installed `pyrfr` correctly.
 
+The tips for installing `lazy_import` on Windows is [here](https://github.com/thomas-young-2013/open-box/blob/master/docs/source/installation/install-lazy_import-on-windows.md)
+
 ## Quick Start
 
 ```python
@@ -161,4 +165,4 @@ Targeting at openness and advancing AutoML ecosystems, we had also released few 
 
 ## **License**
 
-The entire codebase is under [MIT license](LICENSE)
+The entire codebase is under [MIT license](LICENSE).
