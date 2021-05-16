@@ -1,9 +1,9 @@
-import numpy as np
 import matplotlib.pyplot as plt
 from openbox.utils.start_smbo import create_smbo
 
 
 def branin(x):
+    import numpy as np
     xs = x.get_dictionary()
     x1 = xs['x1']
     x2 = xs['x2']
@@ -38,9 +38,11 @@ config_dict = {
     "task_id": 'hp1'
 }
 
-bo = create_smbo(branin, **config_dict)
-history = bo.run()
 
-print(history)
-history.plot_convergence(true_minimum=0.397887)
-plt.show()
+if __name__ == "__main__":
+    bo = create_smbo(branin, **config_dict)
+    history = bo.run()
+
+    print(history)
+    history.plot_convergence(true_minimum=0.397887)
+    plt.show()
