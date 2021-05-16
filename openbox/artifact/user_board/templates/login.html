@@ -23,14 +23,24 @@
             align-items: center;
             justify-content: center;
         }
+        p {
+            font-size:2px;
+            background: linear-gradient(to right, #4fbfa8, #016cbe);
+            -webkit-background-clip: text;
+            color: transparent;
+            text-align:center
+        }
     </style>
 </head>
 
 <body>
 
 <div class="login-form" style="width:30%">
-
     <div class="box form-area">
+        <div align="center">
+             <img src="/static/img/logo-big.jpg" alt="Obaju logo" class="d-none d-md-inline-block" width="70%">
+        </div>
+        <p>Generalized and Efficient Blackbox Optimization System.</p>
         <div class="form-group">
             <label for="email">Email</label>
             <input id="email" type="text" class="form-control">
@@ -50,6 +60,7 @@
 </div>
 
 <script src="/static/vendor/jquery/jquery.js"></script>
+<script src="/static/vendor/jquery/jquery.md5.js"></script>
 <script src="/static/vendor/jquery.cookie/jquery.cookie.js"></script>
 <script src="/static/js/common.js"></script>
 <script>
@@ -74,6 +85,7 @@
             alert("Password is required！");
             return false;
         }
+        password = $.md5(password);
         $.ajax({
             url: "/user_board/api/login/",
             type: "POST",

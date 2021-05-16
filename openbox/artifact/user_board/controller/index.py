@@ -29,7 +29,7 @@ def login(request):
                 request.session['user_id'] = str(user['_id'])
                 return JsonResponse({'code': 1, 'msg': '', 'user_id': str(user['_id'])})
         else:
-            return HttpResponse('[bo_advice/views.py] empty post data')
+            return JsonResponse({'code': 0, 'msg': 'Empty Post Data'})
 
 
 def register(request):
