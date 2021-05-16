@@ -27,11 +27,23 @@
     align-items: center;
     justify-content: center;
   }
+
+  p {
+        font-size:2px;
+        background: linear-gradient(to right, #4fbfa8, #016cbe);
+        -webkit-background-clip: text;
+        color: transparent;
+        text-align:center
+   }
 </style>
 
 <body>
   <div class="login-form" style="width:30%">
     <div class="box form-area">
+      <div align="center">
+      <img src="/static/img/logo-big.jpg" alt="logo" class="d-none d-md-inline-block" width="70%">
+      </div>
+      <p>Generalized and Efficient Blackbox Optimization System.</p>
       <div class="form-group">
         <label for="name">Name</label>
         <input id="name" type="text" class="form-control">
@@ -56,7 +68,7 @@
   </div>
 
   <script src="/static/vendor/jquery/jquery.js"></script>
-  
+  <script src="/static/vendor/jquery/jquery.md5.js"></script>
   <script src="/static/vendor/jquery.cookie/jquery.cookie.js"></script>
   <script src="/static/js/common.js"></script>
   <script>
@@ -94,12 +106,13 @@
       if (password != repsword) {
         alert("Password and Confirm password must be the same!");
         return false;
-      } 
+      }
+      password = $.md5(password);
      $('#register').attr('disabled',true);
       $.ajax({
         url:  "/user_board/api/register/",
         type: "POST",
-        data: "user_name=" + name + "&email=" + email + "&password=" + password + "&c_password=" + repsword,
+        data: "user_name=" + name + "&email=" + email + "&password=" + password,
         success: function (data) {
           if (data['code'] == 0) {
             $('#register').removeAttr('disabled');

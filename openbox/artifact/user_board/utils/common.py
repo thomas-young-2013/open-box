@@ -33,7 +33,6 @@ def authenticate_token(token):
 
 
 def get_password(password):
-    md5 = hashlib.md5()
-    md5.update(password.encode())
-    result = md5.hexdigest()
-    return result
+    md5 = hashlib.md5(settings.SECRET_KEY.encode("utf8"))
+    md5.update(password.encode('utf-8'))
+    return md5.hexdigest()

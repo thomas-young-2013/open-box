@@ -61,6 +61,6 @@ def task_detail(request, task_id: str):
         task = Task().find_one({'_id': ObjectId(task_id)})
         context['task'] = [task['advisor_type'], task['surrogate_type'], task['time_limit_per_trial'],
                            task['active_worker_num'], task['parallel_type'], ]
-        context['rh_field'] = ['Result', 'Config', 'Status', 'Trial Info', 'Worker Id', 'Cost']
+        context['rh_field'] = ['Result', 'Configuration', 'Status', 'Trial Info', 'Worker Id', 'Cost']
         context['task_id'] = task_id
         return render(request, 'history_list.html', context)

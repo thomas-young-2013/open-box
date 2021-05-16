@@ -49,11 +49,15 @@
                             </table>
                         </div>
                         <div class="row">
-                            <div class="col-md-6  col-lg-12" id="line" style="height: 400px;"></div>
+
+                            <div class="col-md-6  col-lg-12" id="line" style="height: 400px;zoom:1.25"></div>
+
                         </div>
                         <br>
                         <div class="row">
-                            <div class="col-md-6  col-lg-12" id="parallel_coordinates" style="height: 400px;"></div>
+
+                            <div class="col-md-6  col-lg-12" id="parallel_coordinates" style="height: 400px;zoom:1.25"></div>
+
                         </div>
                         <table id="pipeline_table" class="table table-striped">
                             <thead>
@@ -116,6 +120,7 @@
         $('#myModal').modal('show');
     }
     var parallel_coordinates_chart = echarts.init($('#parallel_coordinates')[0]);
+
     var parallel_coordinates_option;
     var line_chart = echarts.init($('#line')[0]);
     var line_option;
@@ -150,6 +155,7 @@
                     parallel_coordinates_option['series'][0]['data'] = parallel_option['data'];
                     line_option['series'][0]['data'] =  data['line_data']['min'];
                     line_option['series'][1]['data'] =  data['line_data']['over'];
+                    line_option['series'][2]['data'] =  data['line_data']['scat'];
                     parallel_coordinates_option && parallel_coordinates_chart.setOption(parallel_coordinates_option);
                     line_option && line_chart.setOption(line_option);
 
@@ -180,10 +186,18 @@
             opacity: 0.5
         }
     };
+
     parallel_coordinates_option = {
-        color: [
-            '#4fbfa8','#c23531', '#91c7ae', //'#dd8668'
-        ],
+        visualMap: {
+        show: true,
+        min: -3,
+        max: 3,
+        dimension: 2,
+         seriesIndex: 0,
+        inRange: {
+            color: ['#d94e5d','#eac736','#50a3ba'].reverse(),
+        }
+    },
 
         series: [
             {
@@ -195,16 +209,39 @@
         ]
     };
     line_option = {
+        tooltip : {
+            trigger: 'axis',
+            axisPointer: {
+                animation: false
+            }
+        },
+        dataZoom: [
+            {
+                type: 'slider',
+                xAxisIndex: 0,
+                start: 0,
+                end: 100
+            },
+            {
+                type: 'inside',
+                xAxisIndex: 0,
+                start: 0,
+                end: 100
+            },
+        ],
+        legend: {
+            left: 10
+        },
         xAxis: {
 
             name : 'Number of iterations n',
+            boundaryGap: false,
             nameLocation:'center',
             nameRotate:'0',
             nameTextStyle:{
                 padding :[20,0,0,0],
                 fontSize  : 16
             },
-            //网格样式
             splitLine: {
                 show: true,
                 lineStyle: {
@@ -223,7 +260,6 @@
                 padding :[0,0,50,50],
                 fontSize  : 16
             },
-            //网格样式
             splitLine: {
                 show: true,
                 lineStyle: {
@@ -235,10 +271,19 @@
         },
         series: [
             {
+            name: '折线图',
             type: 'line',
-            smooth: false
+            smooth: false,
+            color : '#4fbfa8',
+            symbol: 'none',
         }, {
+            name:'散点图',
+            color:'grey',
             type:'scatter',
+        },
+        {
+            type:'scatter',
+            color:'#4fbfa8',
         },
         ]
     };
