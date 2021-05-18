@@ -112,7 +112,7 @@ python setup.py install
 
 The tips for installing `pyrfr` on macOS is [here](https://github.com/thomas-young-2013/open-box/blob/master/docs/source/installation/install-pyrfr-on-macos.md). Please make sure you installed `pyrfr` correctly.
 
-The tips for installing `lazy_import` on Windows is [here](https://github.com/thomas-young-2013/open-box/blob/master/docs/source/installation/install-lazy_import-on-windows.md)
+The tips for installing `lazy_import` on Windows is [here](https://github.com/thomas-young-2013/open-box/blob/master/docs/source/installation/install-lazy_import-on-windows.md).
 
 ## Quick Start
 

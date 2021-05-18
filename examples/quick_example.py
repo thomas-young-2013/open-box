@@ -14,6 +14,7 @@ config_space.add_hyperparameters([x1, x2])
 
 # Define Objective Function
 def branin(config):
+    import numpy as np
     config_dict = config.get_dictionary()
     x1 = config_dict['x1']
     x2 = config_dict['x2']
@@ -32,21 +33,21 @@ def branin(config):
     return ret
 
 
-# Run Optimization
-bo = SMBO(branin,
-          config_space,
-          num_objs=1,
-          num_constraints=0,
-          max_runs=50,
-          surrogate_type='gp',
-          time_limit_per_trial=180,
-          task_id='quick_start')
-history = bo.run()
+if __name__ == "__main__":
+    # Run Optimization
+    bo = SMBO(branin,
+              config_space,
+              num_objs=1,
+              num_constraints=0,
+              max_runs=50,
+              surrogate_type='gp',
+              time_limit_per_trial=180,
+              task_id='quick_start')
+    history = bo.run()
 
-print(history)
+    print(history)
 
-history.plot_convergence(true_minimum=0.397887)
-plt.show()
+    history.plot_convergence(true_minimum=0.397887)
+    plt.show()
 
-# history.visualize_jupyter()
-
+    # history.visualize_jupyter()

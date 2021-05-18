@@ -26,7 +26,7 @@ package_name = pkginfo.package_name
 
 
 def readme() -> str:
-    return open("README.md").read()
+    return open("README.md", encoding='utf-8').read()
 
 
 setup(

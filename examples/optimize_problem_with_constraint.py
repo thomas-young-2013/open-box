@@ -5,6 +5,7 @@ from openbox.optimizer.generic_smbo import SMBO
 
 
 def mishra(config: Configuration):
+    import numpy as np
     config_dict = config.get_dictionary()
     X = np.array([config_dict['x%d' % i] for i in range(2)])
     x, y = X[0], X[1]
@@ -18,28 +19,29 @@ def mishra(config: Configuration):
     return result
 
 
-params = {
-    'float': {
-        'x0': (-10, 0, -5),
-        'x1': (-6.5, 0, -3.25)
+if __name__ == "__main__":
+    params = {
+        'float': {
+            'x0': (-10, 0, -5),
+            'x1': (-6.5, 0, -3.25)
+        }
     }
-}
-cs = ConfigurationSpace()
-cs.add_hyperparameters([UniformFloatHyperparameter(name, *para)
-                        for name, para in params['float'].items()])
+    cs = ConfigurationSpace()
+    cs.add_hyperparameters([UniformFloatHyperparameter(name, *para)
+                            for name, para in params['float'].items()])
 
 
-bo = SMBO(mishra,
-          cs,
-          num_constraints=1,
-          num_objs=1,
-          acq_optimizer_type='random_scipy',
-          max_runs=50,
-          time_limit_per_trial=10,
-          task_id='soc')
-history = bo.run()
+    bo = SMBO(mishra,
+              cs,
+              num_constraints=1,
+              num_objs=1,
+              acq_optimizer_type='random_scipy',
+              max_runs=50,
+              time_limit_per_trial=10,
+              task_id='soc')
+    history = bo.run()
 
-print(history)
+    print(history)
 
-history.plot_convergence(true_minimum=-106.7645367)
-plt.show()
+    history.plot_convergence(true_minimum=-106.7645367)
+    plt.show()

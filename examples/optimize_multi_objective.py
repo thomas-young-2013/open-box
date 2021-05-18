@@ -6,6 +6,7 @@ from openbox.optimizer.generic_smbo import SMBO
 
 # objective function
 def BraninCurrin(config: Configuration):
+    import numpy as np
     x1, x2 = config['x1'], config['x2']
     px1 = 15 * x1 - 5
     px2 = 15 * x2
@@ -20,45 +21,46 @@ def BraninCurrin(config: Configuration):
     return result
 
 
-# configuration space
-config_space = ConfigurationSpace()
-x1 = UniformFloatHyperparameter("x1", 0, 1)
-x2 = UniformFloatHyperparameter("x2", 0, 1)
-config_space.add_hyperparameters([x1, x2])
+if __name__ == "__main__":
+    # configuration space
+    config_space = ConfigurationSpace()
+    x1 = UniformFloatHyperparameter("x1", 0, 1)
+    x2 = UniformFloatHyperparameter("x2", 0, 1)
+    config_space.add_hyperparameters([x1, x2])
 
 
-# provide reference point if using EHVI method
-ref_point = [18.0, 6.0]
+    # provide reference point if using EHVI method
+    ref_point = [18.0, 6.0]
 
-# run
-bo = SMBO(BraninCurrin,
-          config_space,
-          num_objs=2,
-          num_constraints=0,
-          max_runs=50,
-          surrogate_type='gp',
-          acq_type='ehvi',
-          acq_optimizer_type='random_scipy',
-          initial_runs=6,
-          init_strategy='sobol',
-          ref_point=ref_point,
-          time_limit_per_trial=10,
-          task_id='mo',
-          random_state=1)
-bo.run()
+    # run
+    bo = SMBO(BraninCurrin,
+              config_space,
+              num_objs=2,
+              num_constraints=0,
+              max_runs=50,
+              surrogate_type='gp',
+              acq_type='ehvi',
+              acq_optimizer_type='random_scipy',
+              initial_runs=6,
+              init_strategy='sobol',
+              ref_point=ref_point,
+              time_limit_per_trial=10,
+              task_id='mo',
+              random_state=1)
+    bo.run()
 
-# plot pareto front
-pareto_front = np.asarray(bo.get_history().get_pareto_front())
-if pareto_front.shape[-1] in (2, 3):
-    if pareto_front.shape[-1] == 2:
-        plt.scatter(pareto_front[:, 0], pareto_front[:, 1])
-        plt.xlabel('Objective 1')
-        plt.ylabel('Objective 2')
-    elif pareto_front.shape[-1] == 3:
-        ax = plt.axes(projection='3d')
-        ax.scatter3D(pareto_front[:, 0], pareto_front[:, 1], pareto_front[:, 2])
-        ax.set_xlabel('Objective 1')
-        ax.set_ylabel('Objective 2')
-        ax.set_zlabel('Objective 3')
-    plt.title('Pareto Front')
-    plt.show()
+    # plot pareto front
+    pareto_front = np.asarray(bo.get_history().get_pareto_front())
+    if pareto_front.shape[-1] in (2, 3):
+        if pareto_front.shape[-1] == 2:
+            plt.scatter(pareto_front[:, 0], pareto_front[:, 1])
+            plt.xlabel('Objective 1')
+            plt.ylabel('Objective 2')
+        elif pareto_front.shape[-1] == 3:
+            ax = plt.axes(projection='3d')
+            ax.scatter3D(pareto_front[:, 0], pareto_front[:, 1], pareto_front[:, 2])
+            ax.set_xlabel('Objective 1')
+            ax.set_ylabel('Objective 2')
+            ax.set_zlabel('Objective 3')
+        plt.title('Pareto Front')
+        plt.show()
