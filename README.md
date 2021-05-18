@@ -163,6 +163,12 @@ Targeting at openness and advancing AutoML ecosystems, we had also released few 
 * [VocalnoML](https://github.com/thomas-young-2013/soln-ml) : an open source system that provides end-to-end ML model training and inference capabilities.
 
 
+---------------------
+## **Related Publications**
+
+**OpenBox: A Generalized Black-box Optimization Service**
+Yang Li, Yu Shen, Wentao Zhang, Yuanwei Chen, Huai Jun Jiang, Ming Chao Liu, Jiawei Jiang, Jinyang Gao, Wentao Wu, Zhi Yang, Ce Zhang, Bin Cui; ACM SIGKDD Conference on Knowledge Discovery and Data Mining.
+
 ## **License**
 
 The entire codebase is under [MIT license](LICENSE).
