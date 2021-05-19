@@ -61,7 +61,8 @@ class Advisor(object, metaclass=abc.ABCMeta):
         self.acq_optimizer_type = acq_optimizer_type
         self.init_num = initial_trials
         self.config_space = config_space
-        self.config_space.seed(self.rng.randint(MAXINT))
+        self.config_space_seed = self.rng.randint(MAXINT)
+        self.config_space.seed(self.config_space_seed)
         self.ref_point = ref_point
 
         # init history container
