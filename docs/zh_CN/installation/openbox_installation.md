@@ -97,6 +97,8 @@ python setup.py install
 
 ## 3 测试样例
 
+### 3.1 Linux, macOS系统测试样例
+
 您可以运行以下代码，测试OpenBox是否安装成功：
 
 ```python
@@ -120,6 +122,53 @@ def branin(config):
 bo = SMBO(branin, config_space, max_runs=50, task_id='quick_start')
 history = bo.run()
 print(history)
+```
+
+运行结束后，将输出类似如下结果：
+
+```python
++---------------------------------------------+
+| Parameters              | Optimal Value     |
++-------------------------+-------------------+
+| x1                      | -3.138277         |
+| x2                      | 12.254526         |
++-------------------------+-------------------+
+| Optimal Objective Value | 0.398096578033325 |
++-------------------------+-------------------+
+| Num Configs             | 50                |
++-------------------------+-------------------+
+```
+
+恭喜您已完成安装并通过测试！
+
+### 3.2 Windows 10系统测试样例
+
+对于Windows 10系统，由于一些特殊原因，您可以运行以下代码，测试OpenBox是否安装成功。需要注意：
++ 需要在目标函数定义内部import依赖的包
++ 调用SMBO.run()需要在`if __name__ == '__main__':`语句内部
+
+```python
+from openbox.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter
+from openbox.optimizer.generic_smbo import SMBO
+
+# Define Configuration Space
+config_space = ConfigurationSpace()
+x1 = UniformFloatHyperparameter("x1", -5, 10, default_value=0)
+x2 = UniformFloatHyperparameter("x2", 0, 15, default_value=0)
+config_space.add_hyperparameters([x1, x2])
+
+# Define Objective Function
+def branin(config):
+    import numpy as np  # for Windows user, please import related packages in objective function
+    x1, x2 = config['x1'], config['x2']
+    y = (x2-5.1/(4*np.pi**2)*x1**2+5/np.pi*x1-6)**2+10*(1-1/(8*np.pi))*np.cos(x1)+10
+    return y
+
+# Run
+if __name__ == '__main__':  # for Windows user, this line is necessary
+    bo = SMBO(branin, config_space, max_runs=50, task_id='quick_start')
+    history = bo.run()
+    print(history)
 ```
 
 运行结束后，将输出类似如下结果：
