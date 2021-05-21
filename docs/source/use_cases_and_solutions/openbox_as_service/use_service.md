@@ -88,7 +88,7 @@ print(incumbents)
 + Repeat the **get_suggestion** and **update_observation** process to complete the optimization.
 
 If you are not familiar with setting up problem, please refer to 
-the [Quick Example Tutorial](../getting_started/quick_example).
+the [Quick Start Tutorial](../../quick_start/quick_start).
 
 ## Monitor task on the Web Page
 

@@ -77,8 +77,6 @@ evaluation time exceeds this limit, objective function will return as a failed t
 
 Then, call <font color=#FF0000>**bo.run()**</font> to start the optimization process and wait for the result to return.
 
-For detailed usage of **SMBO**, please see our [Manual](../manual/manual)
-
 ## Observe Optimization Results
 
 Since we optimize every objective at the same time, we will get a pareto front as results.

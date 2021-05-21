@@ -140,69 +140,18 @@ better.
 Contents
 --------
 
-.. toctree::
-   :glob:
-   :maxdepth: 1
-   :caption: Introduction
+..  toctree::
+    :caption: Table of Contents
+    :maxdepth: 2
+    :titlesonly:
 
-   self
-
-.. toctree::
-   :glob:
-   :maxdepth: 1
-   :caption: Installation
-
-   installation/installation_guide
-
-.. toctree::
-   :glob:
-   :maxdepth: 1
-   :caption: Getting Started
-
-   getting_started/quick_example
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Usage Examples
-
-   usage_examples/single_objective_hpo
-   usage_examples/single_objective_with_constraint
-   usage_examples/multi_objective
-   usage_examples/multi_objective_with_constraint
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Advanced Usage
-
-   advanced_usage/parallel_evaluation
-   advanced_usage/transfer_learning
-
-.. toctree::
-   :maxdepth: 1
-   :caption: OpenBox as Service
-
-   openbox_as_service/service_introduction
-   openbox_as_service/deploy_service
-   openbox_as_service/use_service
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Manual
-
-   manual/manual
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Doc Template from PyTorch (example)
-
-   examples/pytorch_rst_complex_example
-
-.. toctree::
-   :glob:
-   :maxdepth: 2
-   :caption: APIs
-
-   api/*
+    Overview <self>
+    Installation <installation/installation_guide>
+    Quick Start <quick_start/quick_start>
+    Examples <examples/examples>
+    Use Cases and Solutions <use_cases_and_solutions/use_cases_and_solutions>
+    Research and Publications <research_and_publications/research_and_publications>
+    Change Logs <change_logs/change_logs>
 
 
 Indices and tables

@@ -124,8 +124,6 @@ evaluation time exceeds this limit, objective function will return as a failed t
 
 Then, call <font color=#FF0000>**bo.run()**</font> to start the optimization process and wait for the result to return.
 
-For detailed usage of **SMBO**, please see our [Manual](../manual/manual)
-
 ## Observe Optimization Results
 
 **bo.run()** will return the optimization history. Or you can call 
