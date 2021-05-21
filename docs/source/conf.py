@@ -65,6 +65,14 @@ exclude_patterns = []
 master_doc = 'index'
 html_theme = "sphinx_rtd_theme"
 html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+# Theme options are theme-specific and customize the look and feel of a theme
+# further.  For a list of options available for each theme, see the
+# documentation.
+#
+html_theme_options = {
+    'logo_only': True,
+}
+html_logo = '../logos/logo.png'
 
 source_parsers = {
     '.md': CommonMarkParser,

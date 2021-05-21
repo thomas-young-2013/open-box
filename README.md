@@ -134,9 +134,10 @@ def branin(config):
     return y
 
 # Run
-bo = SMBO(branin, config_space, max_runs=50, task_id='quick_start')
-history = bo.run()
-print(history)
+if __name__ == '__main__':
+    bo = SMBO(branin, config_space, max_runs=50, task_id='quick_start')
+    history = bo.run()
+    print(history)
 ```
 
 ## **Releases and Contributing**
