@@ -34,7 +34,7 @@ before_install:
   - export PATH="$HOME/miniconda/bin:$PATH"
   - if [[ `which conda` ]]; then echo 'Conda installation successful'; else exit 1; fi
   - conda create -n testenv --yes python=$PYTHON_VERSION pip wheel pytest gxx_linux-64 gcc_linux-64 swig
-  - source activate testenv
+  - en activate testenv
   - chmod +x ci_scripts/functionality_tests.sh
   - if [ $PYTHON_VERSION == '3.5' ]; then pip install 'numpy>=1.9.0,<=1.18.4'; fi
 

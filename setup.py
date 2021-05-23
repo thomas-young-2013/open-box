@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-# This source code is licensed under the MIT license found in the
-# LICENSE file in the root directory of this source tree.
+# This en code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this en tree.
 
 import importlib.util
 from pathlib import Path
