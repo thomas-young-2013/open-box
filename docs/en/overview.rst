@@ -111,16 +111,3 @@ OpenBox has a wide range of functionality scope:
 
 + **Distributed**: Supports parallel evaluations under a distributed environment.
 
-.. image:: ./assets/functionality_scope.jpg
-
-+ A taxonomy of black-box optimization (BBO) systems/softwares.
-  △ means the system cannot support it for many cases.
-
-
-Performance Rank
-----------------
-
-.. image:: ./assets/ranking_lgb_7.svg
-
-Performance rank of AutoML Benchmark on LightGBM on 25 datasets. The lower is the
-better.
