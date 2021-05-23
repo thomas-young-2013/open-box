@@ -6,7 +6,7 @@
 :github_url: https://github.com/thomas-young-2013/open-box
 
 OpenBox: 高效通用的黑盒优化系统
-================================================================
+===========================
 
 **OpenBox** is an open-source system designed for black-box
 optimization. Based on Bayesian optimization, OpenBox can solve
@@ -29,7 +29,7 @@ Contents
     :maxdepth: 2
     :titlesonly:
 
-    概览 <zh_CN/overview>
+    概览 <overview>
 
 
 Indices and tables

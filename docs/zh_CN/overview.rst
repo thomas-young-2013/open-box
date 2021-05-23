@@ -2,8 +2,8 @@
 Overview
 ########
 
-OpenBox: Generalized and Efficient Blackbox Optimization System
-================================================================
+OpenBox: 高效通用的黑盒优化系统
+===========================
 
 **OpenBox** is an efficient and generalized blackbox optimization (BBO) system,
 which owns the following characteristics:
@@ -111,7 +111,7 @@ OpenBox has a wide range of functionality scope:
 
 + **Distributed**: Supports parallel evaluations under a distributed environment.
 
-.. image:: ./assets/functionality_scope.jpg
+.. image:: ./../assets/functionality_scope.jpg
 
 + A taxonomy of black-box optimization (BBO) systems/softwares.
   △ means the system cannot support it for many cases.
@@ -120,7 +120,7 @@ OpenBox has a wide range of functionality scope:
 Performance Rank
 ----------------
 
-.. image:: ./assets/ranking_lgb_7.svg
+.. image:: ./../imgs/ranking_lgb_7.svg
 
 Performance rank of AutoML Benchmark on LightGBM on 25 datasets. The lower is the
 better.
