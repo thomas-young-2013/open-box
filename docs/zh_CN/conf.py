@@ -39,11 +39,11 @@ extensions = ['recommonmark', 'sphinx.ext.autodoc',
               'sphinx.ext.todo',
               'sphinx.ext.coverage',
               'sphinx.ext.mathjax',
-              'sphinx.ext.napoleon']
+              'sphinx.ext.napoleon',
+              'sphinx_markdown_tables']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
-language = 'zh_CN'
 
 # List of patterns, relative to en directory, that match files and
 # directories to ignore when looking for en files.

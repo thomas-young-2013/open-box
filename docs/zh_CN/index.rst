@@ -5,15 +5,18 @@
 
 :github_url: https://github.com/thomas-young-2013/open-box
 
-#######
-OpenBox
-#######
+###########################
+OpenBox: 高效通用的黑盒优化系统
+###########################
 
+这是中文文档，敬请期待
+
+------------------------------------------------
 
 ..  toctree::
     :caption: 目录
     :maxdepth: 2
     :titlesonly:
 
-    概览 <overview>
+    概览 <overview/overview>
 
