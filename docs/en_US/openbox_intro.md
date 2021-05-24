@@ -356,5 +356,3 @@ In the future, we will continue to introduce more usages of OpenBox, including t
 
 [1] <https://www.automl.org/wp-content/uploads/2018/11/hpo.pdf>
 
-[2] <https://zhuanlan.zhihu.com/p/66312442>
-

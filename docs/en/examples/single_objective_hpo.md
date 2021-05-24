@@ -175,3 +175,21 @@ history.visualize_jupyter()
 <p align="center">
 <img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/visualize_jupyter_hpo.png" width="90%">
 </p>
+
+Analyze hyperparameter importance as below:
+
+```python
++--------------------------------+
+| Parameters        | Importance |
++-------------------+------------+
+| learning_rate     | 0.293457   |
+| min_child_samples | 0.101243   |
+| n_estimators      | 0.076895   |
+| num_leaves        | 0.069107   |
+| colsample_bytree  | 0.051856   |
+| subsample         | 0.010067   |
+| max_depth         | 0.000000   |
++-------------------+------------+
+```
+
+In this task, the top-3 influential hyperparameters are *learning_rate*, *min_child_samples*, and *n_estimators*.
