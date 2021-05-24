@@ -73,7 +73,7 @@ html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 html_theme_options = {
     'logo_only': True,
 }
-html_logo = '../logos/logo.png'
+html_logo = '../imgs/logo.png'
 
 source_parsers = {
     '.md': CommonMarkParser,
