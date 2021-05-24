@@ -72,6 +72,7 @@ html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 #
 html_theme_options = {
     'logo_only': True,
+    'style_nav_header_background': 'black',
 }
 html_logo = '../imgs/logo.png'
 

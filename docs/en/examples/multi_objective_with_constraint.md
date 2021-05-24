@@ -102,7 +102,9 @@ if pareto_front.shape[-1] in (2, 3):
     plt.show()
 ```
 
-![](../assets/plot_pareto_front_constr.png)
+<p align="center">
+<img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/plot_pareto_front_constr.png" width="60%">
+</p>
 
 Then plot the hypervolume difference during the optimization compared to the ideal pareto front.
 
@@ -117,5 +119,6 @@ plt.ylabel('Log Hypervolume Difference')
 plt.show()
 ```
 
-![](../assets/plot_hypervolume_constr.png)
-
+<p align="center">
+<img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/plot_hypervolume_constr.png" width="60%">
+</p>

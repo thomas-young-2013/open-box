@@ -5,8 +5,30 @@ Overview
 OpenBox: Generalized and Efficient Blackbox Optimization System
 ================================================================
 
-**OpenBox** is an efficient and generalized blackbox optimization (BBO) system,
-which owns the following characteristics:
+**OpenBox** is an open-source system designed for black-box
+optimization. Based on Bayesian optimization, OpenBox can solve
+black-box optimization problems efficiently. It supports not only
+traditional single objective black-box optimization problems (e.g.,
+hyperparameter optimization), but also multi-objective optimization,
+optimization with constraints, multiple parameter types, transfer
+learning, distributed parallel evaluation, multi-fidelity optimization,
+etc. Moreover, OpenBox provides both standalone local usage and online
+optimization service. Users can monitor and manage the optimization
+tasks on web pages, and also deploy their private optimization service.
+
+----------------------------------------
+
+Who should consider using OpenBox
+=================================
+
+(To be filled)
+
+----------------------------------------
+
+.. _openbox-characteristics--capabilities:
+
+OpenBox characteristics & capabilities
+======================================
 
 1. Basic BBO algorithms.
 
@@ -22,92 +44,170 @@ which owns the following characteristics:
 
 7. BBO with early stops.
 
+----------------------------------------
 
-Deployment Artifacts
---------------------
+Installation
+============
 
-Standalone Python package
-^^^^^^^^^^^^^^^^^^^^^^^^^
-
-You can install the released package and use it using Python.
-
-Distributed BBO service
-^^^^^^^^^^^^^^^^^^^^^^^
-
-We adopt the "BBO as a service" paradigm and implement OpenBox as a managed general service for black-box optimization.
-Users can access this service via REST API conveniently, and do not need to worry about other issues such as
-environment setup, software maintenance, programming, and optimization of the execution. Moreover, we also provide a
-Web UI, through which users can easily track and manage the tasks.
-
-
-Design Goal
------------
-
-OpenBox’s design satisfies the following desiderata:
-
-+ **Ease of use**. Minimal user effort, and user-friendly visualization
-  for tracking and managing BBO tasks.
-
-+ **Consistent performance**. Host state-of-the-art optimization
-  algorithms; choose the proper algorithm automatically.
-
-+ **Resource-aware management**. Give cost-model based advice
-  to users, e.g., minimal workers or time-budget.
-
-+ **Scalability**. Scale to dimensions on the number of input variables,
-  objectives, tasks, trials, and parallel evaluations.
-
-+ **High efficiency**. Effective use of parallel resources, system
-  optimization with transfer-learning and multi-fidelities, etc.
-
-+ **Fault tolerance**, **extensibility**, and **data privacy protection**.
-
-
-Use Case
---------
-
-The goal of black-box optimization is to find a configuration that
-approaches the global optimum as rapidly as possible since evaluation of objective functions is often expensive.
-
-Traditional BBO with a single objective has many applications:
-
-1) automatic A/B testing.
-
-2) experimental design.
-
-3) knobs tuning in database.
-
-4) automatic hyper-parameter tuning, one of the most indispensable components in AutoML systems,
-   where the task is to minimize the validation error of a machine learning algorithm as a function of its
-   hyper-parameters.
-
-Recently, generalized BBO emerges and has been applied to many areas:
-
-1) processor architecture and circuit design.
-
-2) resource allocation.
-
-3) automatic chemical design.
-
-Generalized BBO requires more general functionalities that may not be supported by traditional BBO,
-such as multiple objectives and constraints.
-
-
-Functionality Scope
+System Requirements
 -------------------
 
-OpenBox has a wide range of functionality scope:
+Installation Requirements:
 
-+ **Black–box optimization (BBO)**: Optimizing the objective function that has no analytical form or information
-  such as the derivative of the objective function.
+-  Python >= 3.6
 
-+ **FIOC**: Support all Float, Integer, Ordinal and Categorical variables.
+-  SWIG >= 3.0.12
 
-+ **Multi-obj.**: Support optimizing multiple objectives.
+Make sure to install SWIG correctly before you install OpenBox.
 
-+ **Constraint**: Support for inequality constraints.
+To install SWIG, please refer to `SWIG Installation
+Guide <https://github.com/thomas-young-2013/open-box/blob/master/docs/source/installation/install_swig.md>`__
 
-+ **History**: Support injecting the prior knowledge from previous tasks in the search.
+Installation from PyPI
+----------------------
 
-+ **Distributed**: Supports parallel evaluations under a distributed environment.
+To install OpenBox from PyPI:
+
+.. code:: shell
+
+    pip install openbox
+
+Manual Installation from Source
+-------------------------------
+
+To install OpenBox from command line, please type the following commands
+on the command line:
+
+.. code:: shell
+
+    git clone https://github.com/thomas-young-2013/open-box.git && cd open-box
+    cat requirements/main.txt | xargs -n 1 -L 1 pip install
+    python setup.py install
+
+The tips for installing ``pyrfr`` on macOS is
+`here <https://github.com/thomas-young-2013/open-box/blob/master/docs/source/installation/install-pyrfr-on-macos.md>`__.
+Please make sure you installed ``pyrfr`` correctly.
+
+The tips for installing ``lazy_import`` on Windows is
+`here <https://github.com/thomas-young-2013/open-box/blob/master/docs/source/installation/install-lazy_import-on-windows.md>`__.
+
+----------------------------------------
+
+Quick Start
+===========
+
+.. code:: python
+
+    import numpy as np
+    from openbox.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter
+    from openbox.optimizer.generic_smbo import SMBO
+
+    # Define Configuration Space
+    config_space = ConfigurationSpace()
+    x1 = UniformFloatHyperparameter("x1", -5, 10, default_value=0)
+    x2 = UniformFloatHyperparameter("x2", 0, 15, default_value=0)
+    config_space.add_hyperparameters([x1, x2])
+
+    # Define Objective Function
+    def branin(config):
+        x1, x2 = config['x1'], config['x2']
+        y = (x2-5.1/(4*np.pi**2)*x1**2+5/np.pi*x1-6)**2+10*(1-1/(8*np.pi))*np.cos(x1)+10
+        return y
+
+    # Run
+    if __name__ == '__main__':
+        bo = SMBO(branin, config_space, max_runs=50, task_id='quick_start')
+        history = bo.run()
+        print(history)
+
+----------------------------------------
+
+Documentation
+=============
+
+-  To learn about what's OpenBox, read the `OpenBox
+   Overview <./overview.html>`__.
+
+-  To get yourself familiar with how to use OpenBox, read the
+   `documentation <.>`__.
+
+-  To get started and install OpenBox on your system, please refer to
+   `Install OpenBox <./installation/installation_guide.html>`__.
+
+----------------------------------------
+
+Releases and Contributing
+=========================
+
+OpenBox has a frequent release cycle. Please let us know if you
+encounter a bug by `filling an
+issue <https://github.com/thomas-young-2013/open-box/issues/new/choose>`__.
+
+We appreciate all contributions. If you are planning to contribute any
+bug-fixes, please do so without further discussions.
+
+If you plan to contribute new features, new modules, etc. please first
+open an issue or reuse an existing issue, and discuss the feature with
+us.
+
+To learn more about making a contribution to OpenBox, please refer to
+our `How-to contribution
+page <https://github.com/thomas-young-2013/open-box/blob/master/CONTRIBUTING.md>`__.
+
+We appreciate all contributions and thank all the contributors!
+
+----------------------------------------
+
+Related Publications
+====================
+
+| **OpenBox: A Generalized Black-box Optimization Service**
+| Yang Li, Yu Shen, Wentao Zhang, Yuanwei Chen, Huaijun Jiang, Mingchao
+  Liu, Jiawei Jiang, Jinyang Gao, Wentao Wu, Zhi Yang, Ce Zhang,
+  Bin Cui; ACM SIGKDD Conference on Knowledge Discovery and Data Mining
+  (2021).
+
+Related Articles
+================
+
+-  `Tuning LightGBM with
+   OpenBox <https://github.com/thomas-young-2013/open-box/blob/master/docs/en_US/tutorials/openbox_LightGBM.md>`__
+   \|
+   `简体中文 <https://github.com/thomas-young-2013/open-box/blob/master/docs/zh_CN/tutorials/openbox_LightGBM.md>`__
+
+-  `Tuning XGBoost using
+   OpenBox <https://github.com/thomas-young-2013/open-box/blob/master/docs/en_US/tutorials/openbox_XGBoost.md>`__
+   \|
+   `简体中文 <https://github.com/thomas-young-2013/open-box/blob/master/docs/zh_CN/tutorials/openbox_XGBoost.md>`__
+
+Related Project
+===============
+
+Targeting at openness and advancing AutoML ecosystems, we had also
+released few other open source projects.
+
+-  `VocalnoML <https://github.com/thomas-young-2013/soln-ml>`__ : an
+   open source system that provides end-to-end ML model training and
+   inference capabilities.
+
+External Repositories
+=====================
+
+(To be filled)
+
+----------------------------------------
+
+Feedback
+========
+
+-  `File an
+   issue <https://github.com/thomas-young-2013/open-box/issues>`__ on
+   GitHub.
+
+-  Email us via liyang.cs@pku.edu.cn.
+
+License
+=======
+
+The entire codebase is under `MIT license <LICENSE>`__.
 

@@ -2,7 +2,9 @@
 
 The design of **OpenBox** follows the philosophy of providing “BBO as a service”.
 
-![sys framework](../assets/sys_framework.svg)
+<p align="center">
+<img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/sys_framework.svg" width="90%">
+</p>
 
 <center>Architecture of OpenBox.</center>
 

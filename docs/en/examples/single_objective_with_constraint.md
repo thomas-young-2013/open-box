@@ -109,5 +109,6 @@ Call <font color=#FF0000>**history.plot_convergence()**</font> to see the optimi
 history.plot_convergence(true_minimum=-106.7645367)
 ```
 
-![](../assets/plot_convergence_mishra.png)
-
+<p align="center">
+<img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/plot_convergence_mishra.png" width="60%">
+</p>

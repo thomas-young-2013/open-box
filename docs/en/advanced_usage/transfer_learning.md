@@ -34,6 +34,8 @@ between the source tasks and the target task.
 
 ## Performance Rank
 
-![performance rank of transfer learning](../assets/tl_lightgbm_75_rank_result.svg)
+<p align="center">
+<img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/tl_lightgbm_75_rank_result.svg" width="70%">
+</p>
 
 + Average rank of tuning LightGBM with transfer learning

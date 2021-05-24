@@ -150,7 +150,9 @@ Call <font color=#FF0000>**history.plot_convergence()**</font> to see the optimi
 history.plot_convergence(true_minimum=0.397887)
 ```
 
-![](../assets/plot_convergence_branin.png)
+<p align="center">
+<img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/plot_convergence_branin.png" width="60%">
+</p>
 
 In Jupyter Notebook environment, call <font color=#FF0000>**history.visualize_jupyter()**</font> to visualization of 
 trials using **hiplot**:
@@ -159,5 +161,6 @@ trials using **hiplot**:
 history.visualize_jupyter()
 ```
 
-![](../assets/visualize_jupyter_branin.png)
-
+<p align="center">
+<img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/visualize_jupyter_branin.png" width="90%">
+</p>
