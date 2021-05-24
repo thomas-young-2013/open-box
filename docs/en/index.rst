@@ -9,22 +9,25 @@ OpenBox: Generalized and Efficient Blackbox Optimization System
 ================================================================
 
 **OpenBox** is an open-source system designed for black-box
-optimization. Based on Bayesian optimization, OpenBox can solve
-black-box optimization problems efficiently. It supports not only
-traditional single objective black-box optimization problems (e.g.,
-hyperparameter optimization), but also multi-objective optimization,
-optimization with constraints, multiple parameter types, transfer
-learning, distributed parallel evaluation, multi-fidelity optimization,
-etc. Moreover, OpenBox provides both standalone local usage and online
-optimization service. Users can monitor and manage the optimization
-tasks on web pages, and also deploy their private optimization service.
+optimization (BBO). OpenBox can solve the generalized BBO problems efficiently.
+It supports 1) traditional BBO problems with single objective (e.g.,
+hyper-parameter optimization), 2) multi-objective BBO problems,
+3) BBO with constraints, and 4) multi-objective BBO problems with constraints.
+Moreover, it provides additional optimizations with transfer learning, distributed parallel evaluation, multi-fidelity optimization,
+etc.
+OpenBox has two kinds for software artifacts: standalone python package and online
+BBO service.
 
 ----------------------------------------
 
 Who should consider using OpenBox
 =================================
 
-(To be filled)
+* Those who want to tune hyper-parameters for their ML tasks automatically.
+* Those who want to find the optimal configuration for their configuration search tasks (e.g., knobs tuning in database).
+* Data Platform owners who want to provide BBO service in their platform.
+* Researchers and data scientists who want to easily solve the generalized BBO problems.
+
 
 ----------------------------------------
 
@@ -137,6 +140,15 @@ Documentation
 -  To get started and install OpenBox on your system, please refer to
    `Install OpenBox <./installation/installation_guide.html>`__.
 
+Related Articles
+================
+
+-  `Tuning LightGBM with
+   OpenBox <https://github.com/thomas-young-2013/open-box/blob/master/docs/en_US/tutorials/openbox_LightGBM.md>`__
+
+-  `Tuning XGBoost using
+   OpenBox <https://github.com/thomas-young-2013/open-box/blob/master/docs/en_US/tutorials/openbox_XGBoost.md>`__
+
 ----------------------------------------
 
 Releases and Contributing
@@ -170,18 +182,7 @@ Related Publications
   Bin Cui; ACM SIGKDD Conference on Knowledge Discovery and Data Mining
   (2021).
 
-Related Articles
-================
 
--  `Tuning LightGBM with
-   OpenBox <https://github.com/thomas-young-2013/open-box/blob/master/docs/en_US/tutorials/openbox_LightGBM.md>`__
-   \|
-   `简体中文 <https://github.com/thomas-young-2013/open-box/blob/master/docs/zh_CN/tutorials/openbox_LightGBM.md>`__
-
--  `Tuning XGBoost using
-   OpenBox <https://github.com/thomas-young-2013/open-box/blob/master/docs/en_US/tutorials/openbox_XGBoost.md>`__
-   \|
-   `简体中文 <https://github.com/thomas-young-2013/open-box/blob/master/docs/zh_CN/tutorials/openbox_XGBoost.md>`__
 
 Related Project
 ===============
