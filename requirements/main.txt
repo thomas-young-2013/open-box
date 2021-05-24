@@ -6,7 +6,7 @@ requests
 statsmodels
 pyyaml
 lazy_import
-scikit-optimize
+scikit-optimize>=0.8
 emcee
 tqdm
 terminaltables
