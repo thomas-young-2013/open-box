@@ -175,6 +175,7 @@ history.visualize_jupyter()
 <center class="half">
   <img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/plot_convergence_branin.png" width="350"/><img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/visualize_jupyter_branin.png" width="250"/>
 </center>
+
 #### Tuning Hyperparameters of LightGBM
 
 In this example, we define the task using a Python *dictionary*. The most critical part is the definition of the hyperparameter space, that is, the hyperparameters and their corresponding ranges. The following hyperparameter space contains 7 hyperparameters. Another important setting is the number of optimization rounds (*max_runs*). We set it to 100, which means that the objective function will be evaluated 100 times. In other words, the LightGBM model will be tuned 100 times.
