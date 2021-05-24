@@ -1,5 +1,5 @@
 <p align="center">
-<img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/logos/logo.png" width="68%">
+<img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/logo.png" width="68%">
 </p>
 
 -----------
