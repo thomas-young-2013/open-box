@@ -67,7 +67,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
 
         # init history container
         if self.num_objs == 1:
-            self.history_container = HistoryContainer(task_id, self.num_constraints)
+            self.history_container = HistoryContainer(task_id, self.num_constraints, config_space=self.config_space)
         else:  # multi-objectives
             self.history_container = MOHistoryContainer(task_id, self.num_objs, self.num_constraints, ref_point)
 
