@@ -52,7 +52,7 @@ OpenBox capabilities
 
 OpenBox has a wide range of functionality scope, which includes:
 
-1. BBO with any number of objectives and constraints.
+1. BBO with multiple objectives and constraints.
 
 2. BBO with transfer learning.
 

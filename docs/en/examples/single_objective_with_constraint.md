@@ -1,4 +1,4 @@
-# Single Objective with Constraint
+# Single-Objective with Constraints
 
 In this tutorial, we illustrate how to optimize a constrained problem with **OpenBox**.
 
@@ -39,7 +39,7 @@ Mention that the objective function should return a <font color=#FF0000>**dict**
 The result dict should contain:
 
 + **'objs'**: A **list/tuple** of **objective values (to be minimized)**. 
-In this example, we have one objective so return a tuple contains a single value.
+In this example, we have only one objective so return a tuple contains a single value.
 
 + **'constraints**': A **list/tuple** of **constraint values**.
 Constraints less than zero (**"<=0"**) implies feasibility.
@@ -66,7 +66,7 @@ history = bo.run()
 Here we create a <font color=#FF0000>**SMBO**</font> object, passing the objective function and the 
 configuration space to it. 
 
-+ **num_objs=1** and **num_constraints=1** indicates our function returns a single objective value with one constraint. 
++ **num_objs=1** and **num_constraints=1** indicates our function returns a single-objective value with one constraint. 
 
 + **max_runs=50** means the optimization will take 50 rounds (50 times of objective function evaluation). 
 

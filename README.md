@@ -17,7 +17,7 @@
 
 ## OpenBox: Generalized and Efficient Blackbox Optimization System.
 OpenBox is an efficient and generalized blackbox optimization (BBO) system, which owns the following characteristics:
-1. BBO with any number of objectives and constraints.
+1. BBO with multiple objectives and constraints.
 2. BBO with transfer learning.
 3. BBO with distributed parallelization.
 4. BBO with multi-fidelity acceleration.

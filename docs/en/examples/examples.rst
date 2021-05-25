@@ -5,7 +5,7 @@ Examples
 ..  toctree::
     :maxdepth: 1
 
-    Single Objective Hyperparameter Optimization <single_objective_hpo>
-    Single Objective with Constraint <single_objective_with_constraint>
-    Multi-Objective <multi_objective>
-    Multi-Objective with Constraint <multi_objective_with_constraint>
+    Single-Objective Black-box Optimization <single_objective_hpo>
+    Single-Objective with Constraints <single_objective_with_constraint>
+    Multi-Objective Black-box Optimization <multi_objective>
+    Multi-Objective with Constraints <multi_objective_with_constraint>

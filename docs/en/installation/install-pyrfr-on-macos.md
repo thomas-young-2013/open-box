@@ -6,7 +6,7 @@
     ```python
     extra_compile_args = ['-O2', '-std=c++11', '-stdlib=libc++', '-mmacosx-version-min=10.7']
     ```
-4. Run the following command
+4. Run the following command:
     ```bash
     env CC="/usr/bin/gcc -stdlib=libc++ -mmacosx-version-min=10.7" pip install .
     ```

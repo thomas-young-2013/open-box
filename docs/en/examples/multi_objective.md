@@ -1,4 +1,4 @@
-# Multi-Objective
+# Multi-Objective Black-box Optimization
 
 In this tutorial, we illustrate how to optimize multiple objectives problem with **OpenBox**.
 

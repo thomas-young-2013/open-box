@@ -47,24 +47,24 @@ environment setup, software maintenance, programming, and optimization of the ex
 Web UI, through which users can easily track and manage the tasks.
 
 
-## Use Case
+## Scenarios
 
-The goal of black-box optimization is to find a configuration that
-approaches the global optimum as rapidly as possible since evaluation of objective functions is often expensive.
+The goal of black-box optimization is to find a configuration that approaches the global optimum 
+as rapidly as possible since evaluation of objective functions is often expensive.
 Traditional BBO with a single objective has many applications:
 
-+ automatic A/B testing.
-+ experimental design.
-+ knobs tuning in database.
-+ automatic hyper-parameter tuning, one of the most indispensable components in AutoML systems,
++ Automatic A/B testing.
++ Experimental design.
++ Database knob tuning.
++ Automatic hyper-parameter tuning, one of the most indispensable components in AutoML systems,
   where the task is to minimize the validation error of a machine learning algorithm as a function of its
   hyper-parameters.
 
 Recently, generalized BBO emerges and has been applied to many areas:
 
-+ processor architecture and circuit design.
-+ resource allocation.
-+ automatic chemical design.
++ Processor architecture and circuit design.
++ Resource allocation.
++ Automatic chemical design.
 
 Generalized BBO requires more general functionalities that may not be supported by traditional BBO,
 such as multiple objectives and constraints.

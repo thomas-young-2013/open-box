@@ -95,7 +95,7 @@ We suggest using **'async'** because it makes better use of resources and achiev
 We implemented several strategies, and we suggest using the default strategy **'median_imputation'** as it supports
 more scenarios.
 
-+ **num_objs=1** and **num_constraints=0** indicates our function returns a single objective value with no constraint. 
++ **num_objs=1** and **num_constraints=0** indicates our function returns a single-objective value with no constraint. 
 
 + **max_runs=100** means the optimization will take 100 rounds (100 times of objective function evaluation). 
 
