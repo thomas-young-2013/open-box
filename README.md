@@ -51,13 +51,8 @@ OpenBox’s design satisfies the following desiderata:
 + Blog post: [to appear soon]()
 
 ## Application Tutorials
-<<<<<<< HEAD
 + [Tuning LightGBM with OpenBox](https://github.com/thomas-young-2013/open-box/blob/master/docs/en_US/tutorials/openbox_LightGBM.md)
 + [Tuning XGBoost using OpenBox](https://github.com/thomas-young-2013/open-box/blob/master/docs/en_US/tutorials/openbox_XGBoost.md)
-=======
-+ [Tuning LightGBM with OpenBox](https://github.com/thomas-young-2013/open-box/blob/master/docs/en/articles/openbox_LightGBM.md) | [简体中文](https://github.com/thomas-young-2013/open-box/blob/master/docs/zh_CN/articles/openbox_LightGBM.md) 
-+ [Tuning XGBoost using OpenBox](https://github.com/thomas-young-2013/open-box/blob/master/docs/en/articles/openbox_XGBoost.md) | [简体中文](https://github.com/thomas-young-2013/open-box/blob/master/docs/zh_CN/articles/openbox_XGBoost.md)
->>>>>>> e8fe3458a38f0a0162e5ad4c1d46a975762690c2
 
 ## Benchmark Results
 
