@@ -44,15 +44,15 @@ OpenBox’s design satisfies the following desiderata:
 + Data privacy protection, robustness and extensibility.
 
 ## Links
-+ [Examples](https://github.com/thomas-young-2013/open-box/tree/master/examples)
 + [Documentations](https://open-box.readthedocs.io/en/latest/?badge=latest)
++ [Examples](https://github.com/thomas-young-2013/open-box/tree/master/examples)
 + [Pypi package](https://pypi.org/project/open-box/)
 + Conda package: [to appear soon]()
 + Blog post: [to appear soon]()
 
 ## Application Tutorials
-+ [Tuning LightGBM with OpenBox](https://github.com/thomas-young-2013/open-box/blob/master/docs/en/articles/openbox_LightGBM.md) | [简体中文](https://github.com/thomas-young-2013/open-box/blob/master/docs/zh_CN/articles/openbox_LightGBM.md) 
-+ [Tuning XGBoost using OpenBox](https://github.com/thomas-young-2013/open-box/blob/master/docs/en/articles/openbox_XGBoost.md) | [简体中文](https://github.com/thomas-young-2013/open-box/blob/master/docs/zh_CN/articles/openbox_XGBoost.md)
++ [Tuning LightGBM with OpenBox](https://github.com/thomas-young-2013/open-box/blob/master/docs/en_US/tutorials/openbox_LightGBM.md)
++ [Tuning XGBoost using OpenBox](https://github.com/thomas-young-2013/open-box/blob/master/docs/en_US/tutorials/openbox_XGBoost.md)
 
 ## Benchmark Results
 
@@ -166,7 +166,10 @@ Targeting at openness and advancing AutoML ecosystems, we had also released few 
 ## **Related Publications**
 
 **OpenBox: A Generalized Black-box Optimization Service**
-Yang Li, Yu Shen, Wentao Zhang, Yuanwei Chen, Huaijun Jiang, Mingchao Liu, Jiawei Jiang, Jinyang Gao, Wentao Wu, Zhi Yang, Ce Zhang, Bin Cui; ACM SIGKDD Conference on Knowledge Discovery and Data Mining (2021).
+Yang Li, Yu Shen, Wentao Zhang, Yuanwei Chen, Huaijun Jiang, Mingchao Liu, Jiawei Jiang, Jinyang Gao, Wentao Wu, Zhi Yang, Ce Zhang, Bin Cui; ACM SIGKDD Conference on Knowledge Discovery and Data Mining (KDD 2021).
+
+**MFES-HB: Efficient Hyperband with Multi-Fidelity Quality Measurements**
+Yang Li, Shen Yu, Jiawei Jiang, Jinyang Gao, Ce Zhang, Bin Cui; The Thirty-Fifth AAAI Conference on Artificial Intelligence (AAAI 2021).
 
 ## **License**
 
