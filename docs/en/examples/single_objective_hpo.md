@@ -1,6 +1,6 @@
 # Single-Objective Black-box Optimization
 
-In this tutorial, we will describe how to tune hyperparameters of ML tasks with **OpenBox**.
+In this tutorial, we will introduce how to tune hyperparameters of ML tasks with **OpenBox**.
 
 ## Data Preparation
 

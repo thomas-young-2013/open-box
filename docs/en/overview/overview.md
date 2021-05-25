@@ -49,7 +49,7 @@ The figure below shows the high-level architecture of OpenBox service.
 
 + **Task Database** holds the history and states of all tasks. 
 
-+ **Suggestion Service** generate new configurations for each task.
++ **Suggestion Service** generates new configurations for each task.
 
 + **REST API** connects users/workers and suggestion service via RESTful APIs. 
 

@@ -1,6 +1,6 @@
 # Multi-Objective Black-box Optimization
 
-In this tutorial, we will describe how to optimize multi-objective problems with **OpenBox**.
+In this tutorial, we will introduce how to optimize multi-objective problems with **OpenBox**.
 
 ## Problem Setup
 

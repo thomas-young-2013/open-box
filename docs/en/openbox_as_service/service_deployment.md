@@ -12,12 +12,12 @@ Installation Requirements:
 
 + SWIG == 3.0
 
-Make sure to install SWIG correctly before you install OpenBox.
-
 To install SWIG, please refer to [SWIG Installation Guide](../installation/install_swig.md)
 
-Then, clone the source code from Github to the server you want to deploy OpenBox service.
-Please use the following command on the command line:
+Make sure that SWIG is installed correctly installing OpenBox.
+
+Then, clone the source code to the server where you want to deploy OpenBox service.
+The commands are as follows:
 
 ```bash
 git clone https://github.com/thomas-young-2013/open-box.git
@@ -28,7 +28,7 @@ python setup.py install
 
 ## 2 Initialize MongoDB
 
-**OpenBox** relies [MongoDB](https://www.mongodb.com) to store user and task information.
+**OpenBox** uses [MongoDB](https://www.mongodb.com) to store user and task information.
 
 ### 2.1 Install and Run MongoDB
 
@@ -69,8 +69,8 @@ prevent the disclosure of private information.
 
 ### 3.1 Prepare an Email for Registration Service
 
-**OpenBox** requires users to register accounts by email. Please prepare an email to send activation link to users.
-Enable SMTP authentication of the email and you should get a secret key from email provider.
+**OpenBox** requires an email address to send activation link when users register new accounts. 
+Please enable SMTP authentication and then you may receive a secret key for authentication from the email provider.
 
 ### 3.2 Modify litebo/artifact/artifact/settings.py
 
@@ -85,34 +85,34 @@ EMAIL_HOST_PASSWORD = 'xxxx'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 ```
 
-+ **EMAIL_HOST:** SMTP host of email service provider. 'smtp.gmail.com' for example.
-+ **EMAIL_PORT:** SMTP port of email. Get the port from email service provider. You may try port 25, 587 
++ **EMAIL_HOST:** SMTP host of email registration service provider. E.g., 'smtp.gmail.com'.
++ **EMAIL_PORT:** SMTP port of email registration service provider. Get the port from email service provider. You may try port 25,587 
 or other ports if port 465 doesn't work.
 + **EMAIL_HOST_USER:** Your email address for registration service.
-+ **EMAIL_HOST_PASSWORD:** Your secret key for SMTP authentication of your email.
++ **EMAIL_HOST_PASSWORD:** Your secret key for SMTP authentication.
 
 **Caution:** Do not push the file with private information to **Github** to prevent leakage.
 
 ## 4 Start/Stop OpenBox Service
 
-Finally, after setting up database and registration service email, you can start up **OpenBox** service.
+Finally, after setting up the database and registration service, you can start up the **OpenBox** service.
 
-To **start the service**, run the <font color=#FF0000>**manage_service.sh script**</font> by the following command:
+To **start the service**, run the <font color=#FF0000>**manage_service.sh script**</font> by the following commands:
 
 ```bash
 cd <path to the source code>/open-box
 ./scripts/manage_service.sh start
 ```
 
-The script will run **OpenBox** service in the background. Default service port is 11425.
+The script will run **OpenBox** service in the background. The default service port is 11425.
 You can modify the script to change service port.
 
-Then, visit <http://127.0.0.1:11425/user_board/index/> (replace "127.0.0.1:11425" by your server ip:port)
-to see whether your service started successfully.
-You can also try to create an account and run a task to test your **OpenBox** service. 
+Then, visit <http://127.0.0.1:11425/user_board/index/> (replace "127.0.0.1:11425" with your server ip:port)
+to see whether your service starts successfully.
+You may also try to create an account and run a task to test your **OpenBox** service. 
 For more detailed guidance, please refer to the [Service User Tutorial](./service_tutorial).
 
-To **stop the service**, run the <font color=#FF0000>**manage_service.sh script**</font> by the following command:
+To **stop the service**, run the <font color=#FF0000>**manage_service.sh script**</font> by the following commands:
 
 ```bash
 cd <path to the source code>/open-box

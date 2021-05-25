@@ -1,6 +1,6 @@
 # Single-Objective with Constraints
 
-In this tutorial, we will describe how to optimize a constrained problem with **OpenBox**.
+In this tutorial, we will introduce how to optimize a constrained problem with **OpenBox**.
 
 ## Problem Setup
 

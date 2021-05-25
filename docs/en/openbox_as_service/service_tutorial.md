@@ -1,17 +1,17 @@
 # OpenBox Service Tutorial
 
-This tutorial helps you use a remote **OpenBox** service.
+In this tutorial, we will introduce how to use the remote **OpenBox** service.
 
 ## Register an Account
 
-Visit <http://127.0.0.1:11425/user_board/index/> (replace "127.0.0.1:11425" by service ip:port) and you will see
+Visit <http://127.0.0.1:11425/user_board/index/> (replace "127.0.0.1:11425" with server ip:port) and you will see
 the homepage of **OpenBox** service. Register an account by email to use the service.
 
 You need to activate your account by clicking on the link in the activation email.
 
 ## Submit a Task
 
-Here is an example of how to use <font color=#FF0000>**RemoteAdvisor**</font> to interact with **OpenBox** service.
+Here is an example of how to use <font color=#FF0000>**RemoteAdvisor**</font> to interact with the **OpenBox** service.
 
 ```python
 import datetime
@@ -79,25 +79,25 @@ print(incumbents)
 + Remember to set **server_ip, port** of the service and **email, password** of your account when creating 
 **RemoteAdvisor**. A task is then registered to the service.
 
-+ Once you create a task, you can get configuration suggestion from the service by calling
++ Once you create a task, you can get configuration suggestions from the service by calling
 <font color=#FF0000>**RemoteAdvisor.get_suggestion()**</font>. 
 
 + Run your job locally and send results back to the service by calling 
 <font color=#FF0000>**RemoteAdvisor.update_observation()**</font>. 
 
-+ Repeat the **get_suggestion** and **update_observation** process to complete the optimization.
++ Repeat **get_suggestion** and **update_observation** to complete the optimization.
 
 If you are not familiar with setting up problem, please refer to 
-the [Quick Start Tutorial](../quick_start/quick_start).
+[Quick Start Tutorial](../quick_start/quick_start).
 
-## Monitor task on the Web Page
+## Monitor a task on the Web Page
 
-You can always monitor your task and see optimization result on **OpenBox** service web page.
+You can always monitor your task and watch the optimization results on **OpenBox** service web page.
 
-Visit <http://127.0.0.1:11425/user_board/index/> (replace "127.0.0.1:11425" by service ip:port)
+Visit <http://127.0.0.1:11425/user_board/index/> (replace "127.0.0.1:11425" by server ip:port)
 and login your account.
 
-You will see all the tasks you created. Click the buttons to further observe the results and manage your tasks.
+You will find all the tasks you created. Click the buttons to further observe the results and manage your tasks.
 
 <p align="center">
 <img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/user_board_example.png" width="90%">

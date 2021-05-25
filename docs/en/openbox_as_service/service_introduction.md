@@ -1,6 +1,6 @@
 # Introduction of OpenBox as Service
 
-The design of **OpenBox** follows the philosophy of providing “BBO as a service”.
+The design of **OpenBox** follows the paradigm of providing “BBO as a service”.
 
 <p align="center">
 <img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/sys_framework.svg" width="90%">
@@ -12,43 +12,44 @@ The system architecture of **OpenBox** includes five main components:
 
 + **Service Master** is responsible for node management, load balance, and fault tolerance.
 
-+ **Task Database** holds the states of all tasks. 
++ **Task Database** holds the history and states of all tasks. 
 
-+ **Suggestion Service** creates new configurations for each task.
++ **Suggestion Service** generates new configurations for each task.
 
-+ **REST API** establishes the bridge between users/workers and suggestion service. 
++ **REST API** connects users/workers and suggestion service via RESTful APIs. 
 
 + **Evaluation workers** are provided and owned by the users.
+
 
 ## Parallel Infrastructure
 
 **OpenBox** is designed to generate suggestions for a large number of
 tasks concurrently, and a single machine would be insufficient to
 handle the workload. Our suggestion service is therefore deployed
-across several machines, called *suggestion servers*. Each *suggestion
-server* generates suggestions for several tasks in parallel, giving
+across several machines, called **suggestion servers**. Each **suggestion
+server** generates suggestions for several tasks in parallel, giving
 us a massively scalable suggestion infrastructure. Another main
-component is *service master*, which is responsible for managing
-the *suggestion servers* and balancing the workload. It serves as the
+component is **service master**, which is responsible for managing
+the **suggestion servers** and balancing the workload. It serves as the
 unified endpoint, and accepts the requests from workers; in this
 way, each worker does not need to know the dispatching details.
-The worker requests new configurations from the *suggestion server*
-and the *suggestion server* generates these configurations based on an
+The worker requests new configurations from the **suggestion server**
+and the **suggestion server** generates these configurations based on an
 algorithm determined by the automatic algorithm selection module.
-Concretely, in this process, the *suggestion server* utilizes the local
+Concretely, in this process, the **suggestion server** utilizes the local
 penalization based parallelization mechanism and transfer learning
 framework to improve the sample efficiency.
 
 One main design consideration is to maintain a fault-tolerant production
 system, as machine crash happens inevitably. In **OpenBox**,
-the *service master* monitors the status of each server and preserves
-a table of active servers. When a new task comes, the *service master*
+the **service master** monitors the status of each server and preserves
+a table of active servers. When a new task comes, the **service master**
 will assign it to an active server and record this binding information.
 If one server is down, its tasks will be dispatched to a new server by
 the master, along with the related optimization history stored in the
-*task database*. Load balance is one of the most important guidelines
-to make such task assignments. In addition, the snapshot of *service
-master* is stored in the remote database service; if the master is
+**task database**. Load balance is one of the most important guidelines
+to make such task assignments. In addition, the snapshot of **service
+master** is stored in the remote database service; if the master is
 down, we can recover it by restarting the node and fetching the
 snapshot from the database.
 
@@ -87,7 +88,7 @@ task_config = {
     }
 ```
 
-Here shows an example of TDL. It defines four parameters *x1-4* of different
+Here's an example of TDL. It defines four parameters *x1-4* of different
 types and a condition *cdn1*, which indicates that *x1* is active only
 if *x3 = "a3"*. The time budget is three hours, the parallel strategy
 is *async*, and transfer learning is enabled.

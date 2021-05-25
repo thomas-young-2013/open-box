@@ -1,6 +1,6 @@
 # Multi-Objective with Constraints
 
-In this tutorial, we will describe how to optimize constrained multiple objectives problem with **OpenBox**.
+In this tutorial, we will introduce how to optimize constrained multiple objectives problem with **OpenBox**.
 
 ## Problem Setup
 
