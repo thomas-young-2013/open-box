@@ -17,8 +17,9 @@ Perf = collections.namedtuple(
 
 
 class HistoryContainer(object):
-    def __init__(self, task_id, num_constraints=0):
+    def __init__(self, task_id, num_constraints=0, config_space=None):
         self.task_id = task_id
+        self.config_space = config_space    # for show_importance
         self.data = collections.OrderedDict()   # todo: old api. only successful data
         self.config_counter = 0
         self.incumbent_value = MAXINT
@@ -266,6 +267,40 @@ class HistoryContainer(object):
             visualize_data.append(config_perf)
         hip.Experiment.from_iterable(visualize_data).display()
         return
+
+    def get_importance(self, config_space=None, return_list=False):
+        from openbox.utils.fanova import fANOVA
+        from terminaltables import AsciiTable
+
+        if config_space is None:
+            config_space = self.config_space
+        if config_space is None:
+            raise ValueError('Please provide config_space to show parameter importance!')
+
+        X = np.array([list(config.get_dictionary().values()) for config in self.configurations])
+        Y = np.array(self.get_transformed_perfs())
+
+        # create an instance of fanova with data for the random forest and the configSpace
+        f = fANOVA(X=X, Y=Y, config_space=config_space)
+
+        # marginal for first parameter
+        keys = [hp.name for hp in config_space.get_hyperparameters()]
+        importance_list = list()
+        for key in keys:
+            p_list = (key,)
+            res = f.quantify_importance(p_list)
+            individual_importance = res[(key,)]['individual importance']
+            importance_list.append([key, individual_importance])
+        importance_list.sort(key=lambda x: x[1], reverse=True)
+
+        if return_list:
+            return importance_list
+
+        for item in importance_list:
+            item[1] = '%.6f' % item[1]
+        table_data = [["Parameters", "Importance"]] + importance_list
+        importance_table = AsciiTable(table_data).table
+        return importance_table
 
     def save_json(self, fn: str = "history_container.json"):
         """

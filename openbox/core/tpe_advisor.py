@@ -30,7 +30,7 @@ class TPE_Advisor:
         self.bw_factor = bandwidth_factor
         self.min_bandwidth = min_bandwidth
 
-        self.history_container = HistoryContainer(task_id)
+        self.history_container = HistoryContainer(task_id, config_space=config_space)
         self.output_dir = output_dir
 
         self.min_points_in_model = min_points_in_model
