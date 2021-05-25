@@ -104,6 +104,9 @@ Guide <./installation/installation_guide.html>`__.
 
 Quick Start
 -----------
+In the following, we provide an example of optimizing the Branin function. For more description of this example,
+please refer to `Quick Start <./quick_start/quick_start.html>`__.
+
 
 .. code:: python
 
