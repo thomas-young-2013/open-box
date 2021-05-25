@@ -78,7 +78,7 @@ In the example above, we have one objective so return a tuple contains a single 
 If the problem is not constrained, return **None** or do not include this key in the dict.
 Constraints less than zero (**"<=0"**) implies feasibility.
 
-In addition to the recommended usage, for single objective problem with no constraint,
+In addition to the recommended usage, for single-objective problems with no constraints,
 just return a single value is supported, too.
 
 ## Run Optimization
@@ -104,7 +104,7 @@ history = bo.run()
 Here we simply create a <font color=#FF0000>**SMBO**</font> object, passing the objective function **branin** and the 
 configuration space **config_space** to it. 
 
-+ **num_objs=1** and **num_constraints=0** indicates our branin function returns a single objective value with no 
++ **num_objs=1** and **num_constraints=0** indicates our branin function returns a single value with no 
 constraint. 
 
 + **max_runs=50** means the optimization will take 50 rounds (50 times of objective function evaluation). 

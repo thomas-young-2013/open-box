@@ -17,7 +17,7 @@ OpenBox takes as input observations from 𝐾 + 1 tasks: 𝐷1, ...,
 𝒚 is an array, including multiple objectives for configuration 𝒙.
 For multi-objective problems with 𝑝 objectives, we propose to
 transfer the knowledge about 𝑝 objectives individually. Thus, the
-transfer learning of multiple objectives is turned into 𝑝 singleobjective
+transfer learning of multiple objectives is turned into 𝑝 single-objective
 transfer learning processes. For each dimension of the
 objectives, we take the following transfer-learning technique. 1)
 We first train a surrogate model 𝑀𝑖 on 𝐷𝑖 for the 𝑖𝑡ℎ prior task

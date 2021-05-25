@@ -10,13 +10,13 @@ Installation Requirements:
 
 To install SWIG, please refer to [SWIG Installation Guide](./install_swig.md)
 
-Make sure to install SWIG correctly before you install OpenBox.
+Make sure that SWIG is installed correctly installing OpenBox.
 
 ## 2 Install OpenBox
 
 ### 2.1 Installation from PyPI
 
-To install OpenBox from PyPI:
+To install OpenBox from PyPI, simply run the following command:
 
 ```bash
 pip install openbox
@@ -24,7 +24,7 @@ pip install openbox
 
 ### 2.2 Manual Installation from Source
 
-To install OpenBox from command line, please type the following commands on the command line:
+To install OpenBox using the source code, please run the following commands:
 
 ```bash
 git clone https://github.com/thomas-young-2013/open-box.git && cd open-box
