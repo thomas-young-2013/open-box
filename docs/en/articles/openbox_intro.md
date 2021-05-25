@@ -153,7 +153,7 @@ After optimization, the result is printed as follows:
 ```python
 print(history)
 
-+---------------------------------------------+
++-------------------------+-------------------+
 | Parameters              | Optimal Value     |
 +-------------------------+-------------------+
 | x1                      | -3.138277         |
@@ -278,7 +278,7 @@ After the optimization, the run history can be printed as follows:
 ```python
 print(history)
 
-+------------------------------------------------+
++-------------------------+----------------------+
 | Parameters              | Optimal Value        |
 +-------------------------+----------------------+
 | colsample_bytree        | 0.800000             |
@@ -310,7 +310,7 @@ The left figure shows the best observed objective during the optimization while 
 In addition, Openbox has also integrated the functionality of analyzing hyperparameter importance.
 
 ```python
-+--------------------------------+
++-------------------+------------+
 | Parameters        | Importance |
 +-------------------+------------+
 | learning_rate     | 0.293457   |

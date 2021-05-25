@@ -1,10 +1,11 @@
 # Multi-Objective with Constraints
 
-In this tutorial, we illustrate how to optimize constrained multiple objectives problem with **OpenBox**.
+In this tutorial, we will describe how to optimize constrained multiple objectives problem with **OpenBox**.
 
 ## Problem Setup
 
-We use constrained multi-objective problem CONSTR in this example.
+We use constrained multi-objective problem CONSTR in this example. As CONSTR is a built-in function, 
+its configuration space and objective function is wrapped as follows:
 
 ```python
 from openbox.benchmark.objective_functions.synthetic import CONSTR
@@ -14,16 +15,53 @@ dim = 2
 initial_runs = 2 * (dim + 1)
 ```
 
-Mention that the objective function should return a <font color=#FF0000>**dict**.</font>
-The result dict should contain:
+```python
+from openbox.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter
+params = {'x1': (0.1, 10.0),
+                  'x2': (0.0, 5.0)}
+config_space = ConfigurationSpace()
+config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
+```
+
+```python
+import numpy as np
+from typing import Union
+from openbox.utils.config_space import Configuration
+
+def evaluate(self, config: Union[Configuration, np.ndarray], convert=True):
+    if convert:
+        X = np.array(list(config.get_dictionary().values()))
+    else:
+        X = config
+    result = self._evaluate(X)
+    result['objs'] = [e + self.noise_std*self.rng.randn() for e in result['objs']]
+    if 'constraint' in result:
+        result['constraint'] = [e + self.noise_std*self.rng.randn() for e in result['constraint']]
+    return result
+
+def _evaluate(X):
+    result = dict()
+    obj1 = X[..., 0]
+    obj2 = (1.0 + X[..., 1]) / X[..., 0]
+    result['objs'] = np.stack([obj1, obj2], axis=-1)
+
+    c1 = 6.0 - 9.0 * X[..., 0] - X[..., 1]
+    c2 = 1.0 - 9.0 * X[..., 0] + X[..., 1]
+    result['constraints'] = np.stack([c1, c2], axis=-1)
+
+    return result
+```
+
+After evaluation, the objective function returns a <font color=#FF0000>**dict (Recommended)**.</font>
+The result dictionary should contain:
 
 + **'objs'**: A **list/tuple** of **objective values (to be minimized)**. 
-In this example, we have one objective so return a tuple contains a single value.
+In this example, we have two objectives so the tuple contains two values.
 
 + **'constraints**': A **list/tuple** of **constraint values**.
-Constraints less than zero (**"<=0"**) implies feasibility.
+Non-positive constraint values (**"<=0"**) imply feasibility.
 
-## Run Optimization
+## Optimization
 
 ```python
 from openbox.optimizer.generic_smbo import SMBO
@@ -44,12 +82,14 @@ bo = SMBO(prob.evaluate,
 bo.run()
 ```
 
-Here we create a <font color=#FF0000>**SMBO**</font> object, passing the objective function and the 
-configuration space to it. 
+Here we create a <font color=#FF0000>**SMBO**</font> instance, and pass the objective function 
+and the configuration space to it. 
+The other parameters are:
 
-+ **num_objs** and **num_constraints** sets how many objectives and constraints the objective function will return.
++ **num_objs** and **num_constraints** set how many objectives and constraints the objective function will return.
+In this example, **num_objs=2** and **num_constraints=2**.
 
-+ **max_runs=100** means the optimization will take 100 rounds (100 times of objective function evaluation). 
++ **max_runs=100** means the optimization will take 100 rounds (optimizing the objective function 100 times). 
 
 + **surrogate_type='gp'**. For mathematical problem, we suggest using Gaussian Process (**'gp'**) as Bayesian surrogate
 model. For practical problems such as hyperparameter optimization (HPO), we suggest using Random Forest (**'prf'**).
@@ -57,7 +97,7 @@ model. For practical problems such as hyperparameter optimization (HPO), we sugg
 + **acq_type='ehvic'**. Use **EHVIC(Expected Hypervolume Improvement with Constraint)**
 as Bayesian acquisition function.
 
-+ **acq_optimizer_type='random_scipy'**. For mathematical problem, we suggest using **'random_scipy'** as
++ **acq_optimizer_type='random_scipy'**. For mathematical problems, we suggest using **'random_scipy'** as
 acquisition function optimizer. For practical problems such as hyperparameter optimization (HPO), we suggest
 using **'local_random'**.
 
@@ -66,7 +106,7 @@ using **'local_random'**.
 + **init_strategy='sobol'** sets the strategy to suggest the initial configurations.
 
 + **ref_point** specifies the reference point, which is the upper bound on the objectives used for computing
-hypervolume. If using EHVI method, a reference point must be provided. In practice the reference point can be
+hypervolume. If using EHVI method, a reference point must be provided. In practice, the reference point can be
 set 1) using domain knowledge to be slightly worse than the upper bound of objective values, where the upper bound is
 the maximum acceptable value of interest for each objective, or 2) using a dynamic reference point selection strategy.
 
@@ -75,11 +115,11 @@ evaluation time exceeds this limit, objective function will return as a failed t
 
 + **task_id** is set to identify the optimization process.
 
-Then, call <font color=#FF0000>**bo.run()**</font> to start the optimization process and wait for the result to return.
+Then, <font color=#FF0000>**bo.run()**</font> is called to start the optimization process.
 
-## Observe Optimization Results
+## Visualization
 
-Since we optimize every objective at the same time, we will get a pareto front as results.
+Since we optimize both objectives at the same time, we get a pareto front as the result.
 Call <font color=#FF0000>**bo.get_history().get_pareto_front()**</font> to get the pareto front.
 
 ```python

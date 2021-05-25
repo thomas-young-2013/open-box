@@ -1,10 +1,10 @@
 # Single-Objective Black-box Optimization
 
-This tutorial will guide you on how to tune hyperparameters of ML task with **OpenBox**.
+In this tutorial, we will describe how to tune hyperparameters of ML tasks with **OpenBox**.
 
-## Prepare Data
+## Data Preparation
 
-First, **prepare data** for your ML model. Here we use digits dataset from sklearn as an example.
+First, **prepare data** for your ML model. Here we use the digits dataset from sklearn as an example.
 
 ```python
 # prepare your data
@@ -17,11 +17,10 @@ x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratif
 
 ## Problem Setup
 
-Second, **define configuration space** to search and **define objective function**
+Second, **define the configuration space** to search and **define the objective function**
 to <font color=#FF0000>**minimize**</font>.
-
-We use [LightGBM](https://lightgbm.readthedocs.io/en/latest/), a gradient boosting framework developed by Microsoft,
-as classification model.
+Here, we use [LightGBM](https://lightgbm.readthedocs.io/en/latest/) -- a gradient boosting framework developed by Microsoft,
+as the classification model.
 
 ```python
 from openbox.utils.config_space import ConfigurationSpace, Configuration
@@ -58,7 +57,7 @@ def objective_function(config: Configuration):
     return dict(objs=(loss, ))
 ```
 
-Additional instructions for **defining configuration (hyperparameter) space**
+Here are some instructions on how to **define a configuration space**
 using [ConfigSpace](https://automl.github.io/ConfigSpace/master/index.html):
 
 + When we define **n_estimators**, we set **q=50**,
@@ -67,30 +66,31 @@ which means the values of the hyperparameter will be sampled at an interval of 5
 + When we define **learning_rate**, we set **log=True**,
 which means the values of the hyperparameter will be sampled on a logarithmic scale.
 
-The input of the **objective function** is a **Configuration** object sampled from **ConfigurationSpace**.
-Call <font color=#FF0000>**config.get_dictionary()**</font> to covert **Configuration** to Python **dict** form.
+The input of the **objective function** is a **Configuration** instance sampled from **ConfigurationSpace**.
+You can call <font color=#FF0000>**config.get_dictionary()**</font> to convert **Configuration** into Python **dict**.
 
-In the hyperparameter optimization task, once a new configuration of hyperparameter is suggested,
-we retrain the model and make predictions to evaluate the performance of the model on this configuration.
+During this hyperparameter optimization task, once a new hyperparameter configuration is suggested,
+we rebuild the model based on the input configuration. 
+Then, we fit the model, and evaluate the model's predictive performance.
 These steps are carried out in the objective function.
 
-After evaluation, the objective function should return a <font color=#FF0000>**dict (Recommended)**.</font>
-The result dict should contain:
+After evaluation, the objective function returns a <font color=#FF0000>**dict (Recommended)**.</font>
+The result dictionary should contain:
 
 + **'objs'**: A **list/tuple** of **objective values (to be minimized)**. 
-In this example, we have one objective so return a tuple contains a single value.
+In this example, we have only one objective so the tuple contains a single value.
 
 + **'constraints**': A **list/tuple** of **constraint values**.
-If the problem is not constrained, return **None** or do not include this key in the dict.
-Constraints less than zero (**"<=0"**) implies feasibility.
+If the problem is not constrained, return **None** or do not include this key in the dictionary.
+Non-positive constraint values (**"<=0"**) imply feasibility.
 
-In addition to the recommended usage, for single-objective problems with no constraints,
-just return a single value is supported, too.
+In addition to returning a dictionary, for single-objective problems with no constraints,
+returning a single value is also supported.
 
-## Run Optimization
+## Optimization
 
-After we define the configuration space and the objective function, we could run optimization process,
-search over the configuration space and try to find <font color=#FF0000>**minimum**</font> value of the objective.
+After defining the configuration space and the objective function, we can run the optimization process as follows:
+
 
 ```python
 from openbox.optimizer.generic_smbo import SMBO
@@ -107,12 +107,13 @@ bo = SMBO(objective_function,
 history = bo.run()
 ```
 
-Here we create a <font color=#FF0000>**SMBO**</font> object, passing the objective function and the 
-configuration space to it. 
+Here we create a <font color=#FF0000>**SMBO**</font> instance, and pass the objective function 
+and the configuration space to it. 
+The other parameters are:
 
-+ **num_objs=1** and **num_constraints=0** indicates our function returns a single value with no constraint. 
++ **num_objs=1** and **num_constraints=0** indicate that our function returns a single value with no constraint. 
 
-+ **max_runs=100** means the optimization will take 100 rounds (100 times of objective function evaluation). 
++ **max_runs=100** means the optimization will take 100 rounds (optimizing the objective function 100 times). 
 
 + **surrogate_type='prf'**. For mathematical problem, we suggest using Gaussian Process (**'gp'**) as Bayesian surrogate
 model. For practical problems such as hyperparameter optimization (HPO), we suggest using Random Forest (**'prf'**).
@@ -122,14 +123,13 @@ evaluation time exceeds this limit, objective function will return as a failed t
 
 + **task_id** is set to identify the optimization process.
 
-Then, call <font color=#FF0000>**bo.run()**</font> to start the optimization process and wait for the result to return.
+Then, <font color=#FF0000>**bo.run()**</font> is called to start the optimization process.
 
-## Observe Optimization Results
+## Visualization
 
-**bo.run()** will return the optimization history. Or you can call 
+After the optimization, bo.run() returns the optimization history. Or you can call 
 <font color=#FF0000>**bo.get_history()**</font> to get the history.
-
-Call <font color=#FF0000>**print(history)**</font> to see the result:
+Then, call print(history) to see the result:
 
 ```python
 history = bo.get_history()
@@ -137,7 +137,7 @@ print(history)
 ```
 
 ```
-+------------------------------------------------+
++-------------------------+----------------------+
 | Parameters              | Optimal Value        |
 +-------------------------+----------------------+
 | colsample_bytree        | 0.800000             |
@@ -154,8 +154,7 @@ print(history)
 +-------------------------+----------------------+
 ```
 
-Call <font color=#FF0000>**history.plot_convergence()**</font> to see the optimization process
-(you may need to call **plt.show()** to see the graph):
+Call <font color=#FF0000>**history.plot_convergence()**</font> to visualize the optimization process:
 
 ```python
 history.plot_convergence()
@@ -165,8 +164,7 @@ history.plot_convergence()
 <img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/plot_convergence_hpo.png" width="60%">
 </p>
 
-In Jupyter Notebook environment, call <font color=#FF0000>**history.visualize_jupyter()**</font> to visualization of 
-trials using **hiplot**:
+If you are using the Jupyter Notebook environment, call history.visualize_jupyter() for visualization of each trial:
 
 ```python
 history.visualize_jupyter()
@@ -176,10 +174,14 @@ history.visualize_jupyter()
 <img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/visualize_jupyter_hpo.png" width="90%">
 </p>
 
-Analyze hyperparameter importance as below:
+Call <font color=#FF0000>**print(history.get_importance())**</font> hyperparameter importance as below:
 
 ```python
-+--------------------------------+
+print(history.get_importance())
+```
+
+```python
++-------------------+------------+
 | Parameters        | Importance |
 +-------------------+------------+
 | learning_rate     | 0.293457   |

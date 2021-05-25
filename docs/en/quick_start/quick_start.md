@@ -2,7 +2,7 @@
 
 This tutorial helps you run your first example with **OpenBox**.
 
-## Define Configuration Space
+## Space Definition
 
 First, define a configuration space using the package **ConfigSpace**.
 
@@ -31,7 +31,7 @@ kernel = CategoricalHyperparameter("kernel", ["rbf", "poly", "sigmoid"], default
 
 For advanced usage of **ConfigSpace**, please refer to [ConfigSpace’s documentation](https://automl.github.io/ConfigSpace/master/index.html).
 
-## Define Objective Function
+## Objective Definition
 
 Second, define the objective function to be optimized.
 Note that **OpenBox** aims to <font color=#FF0000>**minimize**</font> the objective function.
@@ -50,7 +50,7 @@ def branin(config):
 The objective function takes as input a configuration sampled from **ConfigurationSpace**
 and outputs the objective value.
 
-## Run Optimization
+## Optimization
 
 After defining the configuration space and the objective function, we can run the optimization process 
 as follows:
@@ -88,7 +88,7 @@ evaluation time exceeds this limit, objective function will return as a failed t
 
 Then, <font color=#FF0000>**bo.run()**</font> is called to start the optimization process.
 
-## Visualize History
+## Visualization
 
 After the optimization, **bo.run()** returns the optimization history.
 Call <font color=#FF0000>**print(history)**</font> to see the result:
@@ -98,7 +98,7 @@ print(history)
 ```
 
 ```
-+---------------------------------------------+
++-------------------------+-------------------+
 | Parameters              | Optimal Value     |
 +-------------------------+-------------------+
 | x1                      | -3.138277         |
@@ -130,3 +130,18 @@ history.visualize_jupyter()
 <p align="center">
 <img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/visualize_jupyter_branin.png" width="90%">
 </p>
+
+Call <font color=#FF0000>**print(history.get_importance())**</font> hyperparameter importance as below:
+
+```python
+print(history.get_importance())
+```
+
+```python
++------------+------------+
+| Parameters | Importance |
++------------+------------+
+| x1         | 0.488244   |
+| x2         | 0.327570   |
++------------+------------+
+```
