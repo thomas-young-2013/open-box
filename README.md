@@ -36,12 +36,17 @@ through which users can easily track and manage the tasks.
 ## Design Goal
 
 OpenBox’s design satisfies the following desiderata:
-+ Ease of use. Minimal user configuration and setup, and necessary visualization for optimization process. 
-+ Performance standards. Host state-of-the-art optimization algorithms; select proper algorithms automatically.
-+ Cost-oriented management. Give cost-model based suggestions to users, e.g., minimal machines or time-budget. 
-+ Scalability. Scale to dimensions on the number of input variables, objectives, tasks, trials, and parallel evaluations.
-+ High efficiency. Effective use of parallel resource, speeding up optimization with transfer-learning, and multi-fidelity acceleration for computationally-expensive evaluations. 
-+ Data privacy protection, robustness and extensibility.
++ **Ease of use**: Minimal user effort, and user-friendly visualization for tracking and managing BBO tasks.
+
++ **Consistent performance**: Host state-of-the-art optimization algorithms; Choose the proper algorithm automatically.
+
++ **Resource-aware management**: Give cost-model-based advice to users, e.g., minimal workers or time-budget.
+
++ **Scalability**: Scale to dimensions on the number of input variables, objectives, tasks, trials, and parallel evaluations.
+
++ **High efficiency**: Effective use of parallel resources, system optimization with transfer-learning and multi-fidelities, etc.
+
++ **Fault tolerance**, **extensibility**, and **data privacy protection**.
 
 ## Links
 + [Documentations](https://open-box.readthedocs.io/en/latest/?badge=latest)

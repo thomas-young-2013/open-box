@@ -174,7 +174,7 @@ history.visualize_jupyter()
 <img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/visualize_jupyter_hpo.png" width="90%">
 </p>
 
-Call <font color=#FF0000>**print(history.get_importance())**</font> hyperparameter importance as below:
+Call <font color=#FF0000>**print(history.get_importance())**</font> print the hyperparameter importance:
 
 ```python
 print(history.get_importance())

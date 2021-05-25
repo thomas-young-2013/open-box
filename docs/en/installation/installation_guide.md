@@ -34,6 +34,6 @@ python setup.py install
 
 ## 3 Trouble Shooting
 
-For macOS users who have trouble installing pyrfr, see the [tips](./install-pyrfr-on-macos.md).
+For macOS users who have trouble installing pyrfr, refer to [tips](./install-pyrfr-on-macos.md).
 
-For Windows users who have trouble installing lazy_import, see the [tips](./install-lazy_import-on-windows.md).
+For Windows users who have trouble installing lazy_import, refer to [tips](./install-lazy_import-on-windows.md).
