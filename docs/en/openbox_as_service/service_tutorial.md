@@ -1,4 +1,4 @@
-# Use OpenBox Service
+# OpenBox Service Tutorial
 
 This tutorial helps you use a remote **OpenBox** service.
 

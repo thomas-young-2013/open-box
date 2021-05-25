@@ -17,13 +17,11 @@
 ## OpenBox: 通用高效的黑盒优化系统
 OpenBox是解决黑盒优化（超参数优化）问题的高效且通用的开源系统，支持以下特性：
 
-1. 基础黑盒优化。
-2. 带约束优化。
-3. 多目标优化。
-4. 迁移学习。
-5. 分布式并行验证。
-6. 多精度优化加速。
-7. 早停机制。
+1. 包含任意数量目标函数与约束的黑盒优化。
+2. 迁移学习。
+3. 分布式并行验证。
+4. 多精度优化加速。
+5. 早停机制。
 
 ## 使用方式
 
@@ -53,8 +51,8 @@ OpenBox是一个提供通用黑盒优化服务的系统。用户可以使用REST
 + 博客: [to appear soon]()
 
 ## 应用教程
-+ [使用OpenBox对LightGBM调参](https://github.com/thomas-young-2013/open-box/blob/master/docs/en_US/tutorials/openbox_LightGBM.md) | [简体中文](https://github.com/thomas-young-2013/open-box/blob/master/docs/zh_CN/tutorials/openbox_LightGBM.md) 
-+ [使用OpenBox对XGBoost调参](https://github.com/thomas-young-2013/open-box/blob/master/docs/en_US/tutorials/openbox_XGBoost.md) | [简体中文](https://github.com/thomas-young-2013/open-box/blob/master/docs/zh_CN/tutorials/openbox_XGBoost.md)
++ [使用OpenBox对LightGBM调参](https://github.com/thomas-young-2013/open-box/blob/master/docs/en/articles/openbox_LightGBM.md) | [简体中文](https://github.com/thomas-young-2013/open-box/blob/master/docs/zh_CN/articles/openbox_LightGBM.md) 
++ [使用OpenBox对XGBoost调参](https://github.com/thomas-young-2013/open-box/blob/master/docs/en/articles/openbox_XGBoost.md) | [简体中文](https://github.com/thomas-young-2013/open-box/blob/master/docs/zh_CN/articles/openbox_XGBoost.md)
 
 ## 性能实验结果
 
