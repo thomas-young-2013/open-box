@@ -69,7 +69,7 @@ environment setups, software maintenance, and execution optimization. Moreover, 
 Web UI for users to track and manage their running tasks. For deployment details, refer to [Deployment Guide](../openbox_as_service/service_deployment.md).
 
 
-## Performance Rank
+## Performance Comparison
 We compare OpenBox with six competitive open-source BBO systems on tuning LightGBM using 25 datasets. 
 The performance rank (the lower, the better) is shown in the following figure. 
 For dataset information and more experimental results, please refer to our [published article]().

@@ -30,10 +30,10 @@ townsend_cs.add_hyperparameters([UniformFloatHyperparameter(e, *townsend_params[
 max_runs = 50
 # Create remote advisor
 config_advisor = RemoteAdvisor(config_space=townsend_cs,
-                               server_ip='39.101.191.37',
+                               server_ip='1.1.1.1',
                                port=11425,
-                               email='shenyu@pku.edu.cn',
-                               password='970516',
+                               email='a@a.com',
+                               password='111111',
                                num_constraints=1,
                                max_runs=max_runs,
                                task_name="task_test",

@@ -1,7 +1,7 @@
 # Parallel Evaluation
 
-Most proposed Bayesian optimization (BO) approaches only allow the exploration of the parameter space to occur 
-sequentially. To fully utilize the computing resources in a parallel infrastructure, **OpenBox** provide a 
+Most proposed Bayesian optimization (BO) approaches only allow the exploration of the search space to occur 
+sequentially. To fully utilize computing resources in a parallel infrastructure, **OpenBox** provides a 
 mechanism for distributed parallelization, where multiple configurations can be evaluated concurrently across workers. 
 
 Two parallel settings are considered:
@@ -10,8 +10,8 @@ Two parallel settings are considered:
 <img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/parallel_bo.svg" width="90%">
 </p>
 
-1) **Synchronous parallel setting (left)**. The worker pulls new configuration from suggestion server to evaluate until all 
-the workers have finished their last evaluations.
+1) **Synchronous parallel setting (left)**. The worker pulls a new configuration from the suggestion server to evaluate 
+until all the workers have finished their last evaluations.
 
 2) **Asynchronous parallel setting (right)**. The worker pulls a new configuration when the previous evaluation is completed.
 
@@ -57,12 +57,11 @@ def branin(config):
     return ret
 ```
 
-If you are not familiar with setting up problem, please refer to 
-the [Quick Start Tutorial](../quick_start/quick_start).
+If you are not familiar with the problem setup, please refer to [Quick Start Tutorial](../quick_start/quick_start).
 
 ## Parallel Evaluation on Local Machine
 
-This time we use <font color=#FF0000>**pSMBO**</font> to optimize the objective function in parallel manner 
+This time we use <font color=#FF0000>**pSMBO**</font> to optimize the objective function in a parallel manner 
 on your local machine.
 
 ```python
@@ -83,21 +82,20 @@ bo = pSMBO(branin,
 bo.run()
 ```
 
-In addition to **objective_function** and **config_space** parameters being passed to **pSMBO**, 
-other parameters are as follows:
+In addition to **objective_function** and **config_space** being passed to **pSMBO**, 
+the other parameters are as follows:
 
-+ **parallel_strategy='async' / 'sync'** sets whether parallel evaluation is in asynchronous or synchronous mode.
-We suggest using **'async'** because it makes better use of resources and achieves better results than **'sync'**.
++ **parallel_strategy='async' / 'sync'** sets whether the parallel evaluation is performed asynchronously or synchronously.
+We suggest using **'async'** because it makes better use of resources and achieves better performance than **'sync'**.
 
-+ **batch_size=4** sets how many workers are running in parallel.
++ **batch_size=4** sets the number of parallel workers.
 
-+ **batch_strategy='median_imputation'** sets the strategy how to make multiple suggestions at the same time.
-We implemented several strategies, and we suggest using the default strategy **'median_imputation'** as it supports
-more scenarios.
++ **batch_strategy='median_imputation'** sets the strategy on how to make multiple suggestions at the same time.
+We suggest using **'median_imputation'** by default for stable performance.
 
-+ **num_objs=1** and **num_constraints=0** indicates our function returns a single-objective value with no constraint. 
++ **num_objs=1** and **num_constraints=0** indicates that our function returns a single objective value with no constraint. 
 
-+ **max_runs=100** means the optimization will take 100 rounds (100 times of objective function evaluation). 
++ **max_runs=100** means the optimization will take 100 rounds (optimizing the objective function 100 times). 
 
 + **surrogate_type='gp'**. For mathematical problem, we suggest using Gaussian Process (**'gp'**) as Bayesian surrogate
 model. For practical problems such as hyperparameter optimization (HPO), we suggest using Random Forest (**'prf'**).
