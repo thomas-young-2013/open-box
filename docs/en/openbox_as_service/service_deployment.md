@@ -1,7 +1,7 @@
-# Deploy OpenBox Service
+# OpenBox Service Deployment
 
 This tutorial helps you deploy an **OpenBox** service. If you are an **OpenBox** service user, please refer to 
-the [Service User Tutorial](./use_service).
+the [Service User Tutorial](./service_tutorial).
 
 
 ## 1 Install OpenBox from Source
@@ -110,7 +110,7 @@ You can modify the script to change service port.
 Then, visit <http://127.0.0.1:11425/user_board/index/> (replace "127.0.0.1:11425" by your server ip:port)
 to see whether your service started successfully.
 You can also try to create an account and run a task to test your **OpenBox** service. 
-For more detailed guidance, please refer to the [Service User Tutorial](./use_service).
+For more detailed guidance, please refer to the [Service User Tutorial](./service_tutorial).
 
 To **stop the service**, run the <font color=#FF0000>**manage_service.sh script**</font> by the following command:
 

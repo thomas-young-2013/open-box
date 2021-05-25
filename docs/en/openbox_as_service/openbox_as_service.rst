@@ -6,5 +6,5 @@ OpenBox as Service
     :maxdepth: 1
 
     Service Introduction <service_introduction>
-    Deploy Service <deploy_service>
-    Use Service <use_service>
+    Service Deployment <service_deployment>
+    Service Tutorial <service_tutorial>

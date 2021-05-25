@@ -12,18 +12,18 @@ OpenBox: Generalized and Efficient Blackbox Optimization System
 **OpenBox** is an efficient open-source system designed for **solving
 generalized black-box optimization (BBO) problems**, such as
 `automatic hyper-parameter tuning <./examples/single_objective_hpo.html>`__,
-automatic A/B testing, experimental design, knobs tuning in database,
+automatic A/B testing, experimental design, database knob tuning,
 processor architecture and circuit design,
 resource allocation, automatic chemical design, etc.
 
 The design of **OpenBox** follows the philosophy of providing **"BBO as a service"** - we
 opt to implement **OpenBox** as a distributed, fault-tolerant, scalable, and efficient service,
-with wide range of application scope, stable performance across problems
+with a wide range of application scope, stable performance across problems
 and advantages such as ease of use, portability, and zero maintenance.
 
-**OpenBox** has two kinds for software artifacts:
-`standalone python package <./installation/installation_guide.html>`__
-and `online BBO service <./openbox_as_service/service_introduction.html>`__.
+There are two ways to use **OpenBox**:
+`Standalone python package <./installation/installation_guide.html>`__
+and `Online BBO service <./openbox_as_service/service_introduction.html>`__.
 
 
 ------------------------------------------------
@@ -35,13 +35,13 @@ Who should consider using OpenBox
    automatically.
 
 -  Those who want to **find the optimal configuration** for their
-   configuration search tasks (e.g., knobs tuning in database).
+   configuration search tasks (e.g., database knob tuning).
 
--  Data Platform owners who want to **provide BBO service in their
+-  Data platform owners who want to **provide BBO service in their
    platform**.
 
--  Researchers and data scientists who want to **easily solve the
-   generalized BBO problems**.
+-  Researchers and data scientists who want to **solve
+   generalized BBO problems easily**.
 
 ------------------------------------------------
 
@@ -50,23 +50,19 @@ Who should consider using OpenBox
 OpenBox capabilities
 --------------------------------------
 
-OpenBox has a wide range of functionality scope, which supports:
+OpenBox has a wide range of functionality scope, which includes:
 
-1. Basic BBO algorithms.
+1. BBO with any number of objectives and constraints.
 
-2. BBO with constraints.
+2. BBO with transfer learning.
 
-3. BBO with multiple objectives.
+3. BBO with distributed parallelization.
 
-4. BBO with transfer learning.
+4. BBO with multi-fidelity acceleration.
 
-5. BBO with distributed parallelization.
+5. BBO with early stops.
 
-6. BBO with multi-fidelity acceleration.
-
-7. BBO with early stops.
-
-Here we show a comparison of capabilities of OpenBox and other systems:
+In the following, we provide a taxonomy of existing BBO systems:
 
 ============== ========== ==== ========== ======= ===========
 System/Package Multi-obj. FIOC Constraint History Distributed
@@ -82,18 +78,18 @@ HpBandSter     ×          √    ×          ×       √
 **OpenBox**    √          √    √          √       √
 ============== ========== ==== ========== ======= ===========
 
--  **FIOC**: Support all Float, Integer, Ordinal and Categorical
-   variables.
+-  **FIOC**: Support different input variable types, including
+   Float, Integer, Ordinal and Categorical.
 
 -  **Multi-obj.**: Support optimizing multiple objectives.
 
--  **Constraint**: Support for inequality constraints.
+-  **Constraint**: Support inequality constraints.
 
--  **History**: Support injecting the prior knowledge from previous
-   tasks in the search. (△ means the system cannot support it for many
-   cases)
+-  **History**: Support injecting prior knowledge from previous
+   tasks into the current search. (△ means the system cannot support
+   it for general cases)
 
--  **Distributed**: Supports parallel evaluations under a distributed
+-  **Distributed**: Support parallel evaluations in a distributed
    environment.
 
 ------------------------------------------------
@@ -138,14 +134,15 @@ Quick Start
 Documentation
 -------------
 
--  To learn about what's OpenBox, read the `OpenBox
+-  To learn more about OpenBox, refer to `OpenBox
    Overview <./overview/overview.html>`__.
 
--  To get yourself familiar with how to use OpenBox, read the `Quick
+-  To install OpenBox, refer to `OpenBox
+   Installation Guide <./installation/installation_guide.html>`__.
+
+-  To get started with OpenBox, refer to `Quick
    Start Tutorial <./quick_start/quick_start.html>`__.
 
--  To get started and install OpenBox on your system, please refer to `OpenBox
-   Installation Guide <./installation/installation_guide.html>`__.
 
 ------------------------------------------------
 
@@ -153,10 +150,10 @@ Related Articles
 ----------------
 
 -  `Tuning LightGBM with
-   OpenBox <https://github.com/thomas-young-2013/open-box/blob/master/docs/en_US/tutorials/openbox_LightGBM.md>`__
+   OpenBox <https://github.com/thomas-young-2013/open-box/blob/master/docs/en/articles/openbox_LightGBM.md>`__
 
 -  `Tuning XGBoost using
-   OpenBox <https://github.com/thomas-young-2013/open-box/blob/master/docs/en_US/tutorials/openbox_XGBoost.md>`__
+   OpenBox <https://github.com/thomas-young-2013/open-box/blob/master/docs/en/articles/openbox_XGBoost.md>`__
 
 ------------------------------------------------
 
@@ -173,7 +170,7 @@ If you plan to contribute new features, new modules, etc. please first
 open an issue or reuse an existing issue, and discuss the feature with us.
 
 To learn more about making a contribution to OpenBox, please refer to
-our `How-to contribution page <https://github.com/thomas-young-2013/open-box/blob/master/CONTRIBUTING.md>`__.
+our `how-to-contribute page <https://github.com/thomas-young-2013/open-box/blob/master/CONTRIBUTING.md>`__.
 
 We appreciate all contributions and thank all the contributors!
 
@@ -187,14 +184,16 @@ Related Publications
   Liu, Jiawei Jiang, Jinyang Gao, Wentao Wu, Zhi Yang, Ce Zhang,
   Bin Cui; ACM SIGKDD Conference on Knowledge Discovery and Data Mining (2021).
 
+--------------------
+
 Related Project
 ---------------
 
-Targeting at openness and advancing AutoML ecosystems,
-we had also released few other open source projects.
+Targeting at openness and advancing the AutoML ecosystem,
+we have also released another open-source project.
 
--  `VocalnoML <https://github.com/thomas-young-2013/soln-ml>`__: an
-   open source system that provides end-to-end ML model training and inference capabilities.
+-  `VolcanoML <https://github.com/thomas-young-2013/soln-ml>`__: an
+   open-source system that provides end-to-end ML model training and inference capabilities.
 
 ------------------------------------------------
 

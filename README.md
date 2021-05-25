@@ -17,13 +17,11 @@
 
 ## OpenBox: Generalized and Efficient Blackbox Optimization System.
 OpenBox is an efficient and generalized blackbox optimization (BBO) system, which owns the following characteristics:
-1. Basic BBO algorithms.
-2. BBO with constraints.
-3. BBO with multiple objectives.
-4. BBO with transfer learning.
-5. BBO with distributed parallelization.
-6. BBO with multi-fidelity acceleration.
-7. BBO with early stops.
+1. BBO with any number of objectives and constraints.
+2. BBO with transfer learning.
+3. BBO with distributed parallelization.
+4. BBO with multi-fidelity acceleration.
+5. BBO with early stops.
 
 
 ## Deployment Artifacts
@@ -53,8 +51,13 @@ OpenBox’s design satisfies the following desiderata:
 + Blog post: [to appear soon]()
 
 ## Application Tutorials
+<<<<<<< HEAD
 + [Tuning LightGBM with OpenBox](https://github.com/thomas-young-2013/open-box/blob/master/docs/en_US/tutorials/openbox_LightGBM.md)
 + [Tuning XGBoost using OpenBox](https://github.com/thomas-young-2013/open-box/blob/master/docs/en_US/tutorials/openbox_XGBoost.md)
+=======
++ [Tuning LightGBM with OpenBox](https://github.com/thomas-young-2013/open-box/blob/master/docs/en/articles/openbox_LightGBM.md) | [简体中文](https://github.com/thomas-young-2013/open-box/blob/master/docs/zh_CN/articles/openbox_LightGBM.md) 
++ [Tuning XGBoost using OpenBox](https://github.com/thomas-young-2013/open-box/blob/master/docs/en/articles/openbox_XGBoost.md) | [简体中文](https://github.com/thomas-young-2013/open-box/blob/master/docs/zh_CN/articles/openbox_XGBoost.md)
+>>>>>>> e8fe3458a38f0a0162e5ad4c1d46a975762690c2
 
 ## Benchmark Results
 
@@ -161,7 +164,7 @@ We appreciate all contributions and thank all the contributors!
 
 Targeting at openness and advancing AutoML ecosystems, we had also released few other open source projects.
 
-* [VocalnoML](https://github.com/thomas-young-2013/soln-ml) : an open source system that provides end-to-end ML model training and inference capabilities.
+* [VolcanoML](https://github.com/thomas-young-2013/soln-ml) : an open source system that provides end-to-end ML model training and inference capabilities.
 
 
 ---------------------
