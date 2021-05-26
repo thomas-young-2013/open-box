@@ -1,13 +1,14 @@
 from math import ceil
 from openbox.apps.multi_fidelity.utils import sample_configuration
-from openbox.apps.multi_fidelity.async_mq_sh import async_mqSuccessiveHalving
+from openbox.apps.multi_fidelity.async_mq_sh_v0 import async_mqSuccessiveHalving_v0
 
 from openbox.utils.config_space import ConfigurationSpace
 
 
-class async_mqHyperband(async_mqSuccessiveHalving):
+class async_mqHyperband_v0(async_mqSuccessiveHalving_v0):
     """
     The implementation of Asynchronous Hyperband (extended of ASHA)
+    origin version
     """
     def __init__(self, objective_func,
                  config_space: ConfigurationSpace,

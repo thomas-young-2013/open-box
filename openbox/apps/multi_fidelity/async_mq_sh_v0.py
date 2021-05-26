@@ -9,9 +9,10 @@ from openbox.utils.config_space import ConfigurationSpace
 from openbox.utils.constants import MAXINT
 
 
-class async_mqSuccessiveHalving(async_mqBaseFacade):
+class async_mqSuccessiveHalving_v0(async_mqBaseFacade):
     """
     The implementation of Asynchronous Successive Halving Algorithm (ASHA)
+    origin version
     """
     def __init__(self, objective_func,
                  config_space: ConfigurationSpace,
@@ -138,13 +139,6 @@ class async_mqSuccessiveHalving(async_mqBaseFacade):
         """
         return whether configs can be promoted in current rung
         """
-        # if not enough jobs, do not promote
-        num_completed_promoted = len([job for job in self.bracket[rung_id]['jobs']
-                                      if job[0] in (COMPLETED, PROMOTED)])
-        num_promoted = self.bracket[rung_id]['num_promoted']
-        if num_completed_promoted == 0 or (num_promoted + 1) / num_completed_promoted > 1 / self.eta:
-            return False
-
         return True
 
     def update_observation(self, config, perf, n_iteration):
