@@ -4,7 +4,7 @@
 
 ## 空间定义
 
-首先，使用包 **ConfigSpace** 定义一个超参数配置空间。
+首先，使用 **ConfigSpace** 包定义一个超参数配置空间。
 
 ```python
 from openbox.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter
@@ -16,8 +16,8 @@ x2 = UniformFloatHyperparameter("x2", 0, 15, default_value=0)
 config_space.add_hyperparameters([x1, x2])
 ```
 
-在这个例子中，我们创建了一个空的配置空间，而后向它内部添加了两个均匀分布的浮点超参数。
-第一个超参数**x1**的变化范围是-5到10，第二个超参数**x2**的变化范围是0到15。
+在这个例子中，我们创建了一个空的搜索空间，而后向它内部添加了两个均匀分布的浮点超参数。
+第一个超参数**x1**的取值范围是-5到10，第二个超参数**x2**的取值范围是0到15。
 
 **ConfigSpace** 包也支持其它类型的超参数。
 下面是定义**Integer**和**Categorical**超参数的方法：
@@ -29,13 +29,13 @@ i = UniformIntegerHyperparameter("i", 0, 100)
 kernel = CategoricalHyperparameter("kernel", ["rbf", "poly", "sigmoid"], default_value="rbf")
 ```
 
-对于 **ConfigSpace** 更高级的用法，请参考 [ConfigSpace’s documentation](https://automl.github.io/ConfigSpace/master/index.html) 。
+对于 **ConfigSpace** 更高级的用法，请参考 [ConfigSpace 官方文档](https://automl.github.io/ConfigSpace/master/index.html) 。
 
 ## 定义优化目标
 
 第二步，定义要优化的目标函数。
-注意， **OpenBox** 只能 <font color=#FF0000>**最小化**</font> 目标函数。
-这里我们提供了 **Branin** 函数的另一个例子。
+注意， **OpenBox** 默认 <font color=#FF0000>**最小化**</font> 目标函数。
+这里我们提供了 **Branin** 函数的例子。
 
 ```python
 import numpy as np
@@ -47,7 +47,7 @@ def branin(config):
     return y
 ```
 
-目标函数的输入是一个从**ConfigurationSpace**采样的配置点，输出目标值。
+目标函数的输入是一个从**ConfigurationSpace**采样的配置点，输出为目标值。
 
 
 
@@ -71,10 +71,10 @@ bo = SMBO(branin,
 history = bo.run()
 ```
 
-这里我们创建了一个 <font color=#FF0000>**SMBO**</font> 实例子，给他传了目标函数 **branin** 和配置空间 **config_space**。 
+这里我们创建了一个 <font color=#FF0000>**SMBO**</font> 实例，传入目标函数 **branin** 和配置空间 **config_space**。 
 其余参数的含义是：
 
-+ **num_objs=1** 和 **num_constraints=0** 表明我们的 branin 函数返回一个没有限制的单值。
++ **num_objs=1** 和 **num_constraints=0** 表明我们的 branin 函数返回一个没有约束条件的单目标值。
 
 
 + **max_runs=50** 表示优化过程花费50轮 （优化目标函数50次）。
@@ -84,9 +84,9 @@ history = bo.run()
 
 + **time_limit_per_trial** 为每个目标函数评估设定最大时间预算（单位：秒）。一旦评估时间超过这个限制，目标函数返回一个失败状态。
 
-+ **task_id** 被用来识别优化过程。
++ **task_id** 被用来区别不同优化过程。
 
-接下来，<font color=#FF0000>**bo.run()**</font> 被调用，用来重启优化过程。
+接下来，调用 <font color=#FF0000>**bo.run()**</font> 启动优化过程。
 
 ## 可视化
 

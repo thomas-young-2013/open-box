@@ -1,12 +1,12 @@
-# 有限制条件的多目标黑盒优化
+# 有约束条件的多目标黑盒优化
 
-本教程介绍如何使用**OpenBox**解决有限制条件的多目标优化问题。
+本教程介绍如何使用**OpenBox**解决有约束条件的多目标优化问题。
 
 
 ## 问题设置
 
-本例中，我们使用带限制的多目标优化问题 CONSTR 作为例子。
-由于CONSTR是一个内置函数，其配置空间和目标函数可被包装如下：
+本例中，我们使用带约束的多目标优化问题 CONSTR 作为例子。
+由于CONSTR是一个内置函数，其搜索空间和目标函数可被包装如下：
 
 
 ```python
@@ -60,8 +60,8 @@ def _evaluate(X):
 + **'objs'**: 一个 **要被最小化目标值** 的 **列表/元组**。
 在这个例子中，我们有两个目标，所以这个元组包含两个值。
 
-+ **'constraints**': 一个含有 **限制值** 的 **列表/元组**。
- 非正的限制值 (**"<=0"**) 表示可行。
++ **'constraints**': 一个含有 **约束值** 的 **列表/元组**。
+ 非正的约束值 (**"<=0"**) 表示可行。
 
 
 
@@ -86,7 +86,7 @@ bo = SMBO(prob.evaluate,
 bo.run()
 ```
 
-这里我们创建一个 <font color=#FF0000>**SMBO**</font> 实例，给他传目标函数和配置空间。
+这里我们创建一个 <font color=#FF0000>**SMBO**</font> 实例，给他传目标函数和搜索空间。
 其它的参数是：
 
 + **num_objs** 和 **num_constraints** 设置目标函数将返回多少目标和约束。在这个例子中，**num_objs=2**，**num_constraints=2**。
@@ -144,7 +144,7 @@ if pareto_front.shape[-1] in (2, 3):
 <img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/plot_pareto_front_constr.png" width="60%">
 </p>
 
-然后绘制优化过程中与理想pareto front相比的超体积差。
+然后绘制优化过程中与理想pareto front相比的hypervolumn差。
 
 ```python
 # plot hypervolume

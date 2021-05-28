@@ -55,9 +55,9 @@ def _evaluate(X):
 + **'objs'**: 一个 **要被最小化目标值** 的 **列表/元组**。
 在这个例子中，我们有两个目标，所以这个元组包含两个值。
 
-+ **'constraints**': 一个含有 **限制值** 的 **列表/元组**。
++ **'constraints**': 一个含有 **约束值** 的 **列表/元组**。
   如果问题不受约束，则返回**None**或者不在dict中包含此键。
-  非正的限制值 (**"<=0"**) 表示可行。
+  非正的约束值 (**"<=0"**) 表示可行。
 
 
 ## 优化
@@ -141,7 +141,7 @@ if pareto_front.shape[-1] in (2, 3):
 <img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/plot_pareto_front_zdt2.png" width="60%">
 </p>
 
-然后绘制优化过程中与理想pareto front相比的超体积差。
+然后绘制优化过程中与理想pareto front相比的hypervolumn差。
 
 ```python
 # plot hypervolume

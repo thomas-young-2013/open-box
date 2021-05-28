@@ -5,7 +5,7 @@
 ## 数据准备
 
 首先，给ML模型 **准备数据**。
-这里我们用sklearn中的digits数据集作为实例。
+这里我们用sklearn中的digits数据集。
 
 
 ```python
@@ -19,8 +19,8 @@ x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratif
 
 ## 问题设置
 
-第二，定义搜索的**配置空间**和想要<font color=#FF0000>**最小化**</font>的**目标函数**。
-这里，我们使用 [LightGBM](https://lightgbm.readthedocs.io/en/latest/)  -- 一个微软开发的梯度提升框架，作为分类模型。
+第二，定义搜索的**搜索空间**和想要<font color=#FF0000>**最小化**</font>的**目标函数**。
+这里，我们使用 [LightGBM](https://lightgbm.readthedocs.io/en/latest/)  -- 一个微软开发的梯度提升算法框架作为分类模型。
 
 
 ```python
@@ -69,7 +69,7 @@ def objective_function(config: Configuration):
 **objective function** 的输入是一个从 **ConfigurationSpace** 中采样的 **Configuration** 实例。
 你可以调用 <font color=#FF0000>**config.get_dictionary()**</font> 来把 **Configuration** 转化成一个 Python **dict**。
 
-在这个超参数优化任务中，一旦采样出一个新的超参数配置，我们就根据输入配置重建模型。
+在这个超参数优化任务中，一旦采样出一个新的超参数配置，我们就根据输入配置构建模型。
 然后，对模型进行拟合，评价模型的预测性能。
 这些步骤在目标函数中执行。
 
@@ -79,11 +79,11 @@ def objective_function(config: Configuration):
 + **'objs'**：一个 **要被最小化目标值** 的 **列表/元组**。
 在这个例子中，我们只有一个目标，所以这个元组只包含一个值。
 
-+ **'constraints**'：一个含有 **限制值** 的 **列表/元组**。
-如果问题没有限制，返回 **None** 或者不要把这个 key 放入字典。 非正的限制值 (**"<=0"**) 表示可行。
++ **'constraints**'：一个含有 **约束值** 的 **列表/元组**。
+如果问题没有约束，返回 **None** 或者不要把这个 key 放入字典。 非正的约束值 (**"<=0"**) 表示可行。
 
 
-除了返回字典以外，对于无限制条件的单目标优化问题，我们也可以返回一个单独的值。
+除了返回字典以外，对于无约束条件的单目标优化问题，我们也可以返回一个单独的值。
 
 
 ## 优化
@@ -106,10 +106,10 @@ bo = SMBO(objective_function,
 history = bo.run()
 ```
 
-这里我们创建一个 <font color=#FF0000>**SMBO**</font> 实例，给他传目标函数和配置空间。
+这里我们创建一个 <font color=#FF0000>**SMBO**</font> 实例，传入目标函数和配置空间。
 其它的参数是：
 
-+ **num_objs=1** 和 **num_constraints=0** 表示我们的函数返回一个没有限制的单独值。
++ **num_objs=1** 和 **num_constraints=0** 表示我们的函数返回一个没有约束的单目标值。
 
 + **max_runs=100** 表示优化会进行100轮（优化目标函数100次）。
 
