@@ -9,17 +9,17 @@
 OpenBox: 高效通用的黑盒优化系统
 ###########################
 
-**OpenBox** 是一个高效的开源系统，旨在为泛化的黑盒优化（BBO）问题，
-例如 `自动化超参数调优 <./examples/single_objective_hpo.html>`__ 、自动化A/B测试，
-实验设计、数据库超参调优、处理器体系结构和电路设计、资源分配、自动化学设计等任务提供完备的解决方案。
+**OpenBox** 是一个高效的开源系统，旨在解决泛化的黑盒优化（BBO）问题，
+例如 `自动化超参数调优 <./examples/single_objective_hpo.html>`__ 、自动化A/B测试、
+实验设计、数据库参数调优、处理器体系结构和电路设计、资源分配等。
 
-**OnenBox** 的设计哲学是将BBO作为一种服务提供给大众。
-我们的目标是将 **OpenBox** 做成一个分布式的、误差容忍的、可扩展的、高效的服务。
-它能对各种应用场景提供广泛的支持，并保证稳定的性能。
+**OnenBox** 的设计理念是将BBO作为一种服务提供给用户。
+我们的目标是将 **OpenBox** 实现为一个分布式的、有容错、可扩展的、高效的服务。
+它能够对各种应用场景提供广泛的支持，并保证稳定的性能。
 **OpenBox** 简单易上手、方便移植和维护。
 
 
-您可以使用以下两种方法运行 **OpenBox**：
+您可以使用以下两种方法使用 **OpenBox**：
 `单独的Python包 <./installation/installation_guide.html>`__
 和 `在线BBO服务 <./openbox_as_service/service_introduction.html>`__ 。
 
@@ -29,12 +29,11 @@ OpenBox: 高效通用的黑盒优化系统
 OpenBox 为谁提供？
 ---------------------------------
 
--  想要为ML任务自动进行 **超参数调优** 的用户。
+-  想要为ML任务自动执行 **超参数调优** 的用户。
 
+-  想要为配置搜索任务找到 **最佳配置** 的用户（例如，数据库参数调优）。
 
--  想要为配置搜索任务找到 **最佳配置** 的用户（例如，数据库超参数调优）。
-
--  想要为他们的数据平台提供 **BBO服务** 的用户。
+-  想要为数据平台提供 **BBO服务** 的用户。
 
 -  想要方便地解决 **通用BBO问题** 的研究员和数据科学家。
 
@@ -42,42 +41,42 @@ OpenBox 为谁提供？
 
 .. _openbox-characteristics--capabilities:
 
-OpenBox 强大特性
+OpenBox 的强大特性
 --------------------------------------
 
 OpenBox 有很多强大的功能和特性，包括：
 
-1、 提供多目标和带限制条件的 BBO 服务支持。
+1、 提供多目标和带约束条件的 BBO 服务支持。
 
 2、 提供带迁移学习的 BBO 服务。
 
 3、 提供分布式并行的 BBO 服务。
 
-4、 提供多可信度加速的 BBO 服务。
+4、 提供多精度加速的 BBO 服务。
 
-5、 提供带提前停止的 BBO 服务。
+5、 提供带提前终止的 BBO 服务。
 
 下表给出了现有BBO系统的分类：
 
-============== ========== ==== ========== ======= ===========
-系统/包         多目标      FIOC  限制条件    历史     分布式
-============== ========== ==== ========== ======= ===========
-Hyperopt       ×          √    ×          ×       √
-Spearmint      ×          ×    √          ×       ×
-SMAC3          ×          √    ×          ×       ×
-BoTorch        √          ×    √          ×       ×
-GPflowOPT      √          ×    √          ×       ×
-Vizier         ×          √    ×          △       √
-HyperMapper    √          √    √          ×       ×
-HpBandSter     ×          √    ×          ×       √
-**OpenBox**    √          √    √          √       √
-============== ========== ==== ========== ======= ===========
+============== ========== ====== ========== ======= ===========
+系统/包         多目标      FIOC   约束条件    历史    分布式
+============== ========== ====== ========== ======= ===========
+Hyperopt       ×          √      ×          ×       √
+Spearmint      ×          ×      √          ×       ×
+SMAC3          ×          √      ×          ×       ×
+BoTorch        √          ×      √          ×       ×
+GPflowOPT      √          ×      √          ×       ×
+Vizier         ×          √      ×          △       √
+HyperMapper    √          √      √          ×       ×
+HpBandSter     ×          √      ×          ×       √
+**OpenBox**    √          √      √          √       √
+============== ========== ====== ========== ======= ===========
 
 -  **FIOC**: 支持不同的输入变量类型，包活 Float, Integer, Ordinal 和 Categorical。
 
--  **多目标.**: 支持多目标优化。
+-  **多目标**: 支持多目标优化。
 
--  **限制条件**: 支持带限制条件的不等式。
+-  **约束条件**: 支持不等式约束条件。
 
 -  **历史**: 支持将以前任务的先验知识注入到当前搜索中。（ △ 表示系统在通用场景下不支持）
 
@@ -128,7 +127,7 @@ HpBandSter     ×          √    ×          ×       √
 
 -  想要进一步了解OpenBox？ 请参考 `OpenBox概览 <./overview/overview.html>`__ 。
 
--  想要安装OpenBox？ 请参考 `OpenBox安装手册 <./installation/installation_guide.html>`__ 。
+-  想要安装OpenBox？ 请参考 `OpenBox安装指南 <./installation/installation_guide.html>`__ 。
 
 -  想要快速上手OpenBox？ 请参考 `快速上手指南 <./quick_start/quick_start.html>`__ 。
 
@@ -150,8 +149,7 @@ HpBandSter     ×          √    ×          ×       √
 -------------------------
 
 OpenBox 有频繁的更新周期。
-如果你在使用过程中遇到了bug，请在Github上知我们：`filling an
-issue <https://github.com/thomas-young-2013/open-box/issues/new/choose>`__ 。
+如果你在使用过程中遇到了bug，请在Github上知我们：`如何提交 issue <https://github.com/thomas-young-2013/open-box/issues/new/choose>`__ 。
 
 我们感谢所有的贡献。如果您修复了任何bug，请直接修复，无需通知我们。
 
@@ -159,7 +157,7 @@ issue <https://github.com/thomas-young-2013/open-box/issues/new/choose>`__ 。
 
 
 
-想要了解更多关于为OpenBox提供贡献的方法，请参考我们的 `how-to-contribute page <https://github.com/thomas-young-2013/open-box/blob/master/CONTRIBUTING.md>`__ 。
+想要了解更多关于为OpenBox提供贡献的方法，请参考我们的 `如何 contribute <https://github.com/thomas-young-2013/open-box/blob/master/CONTRIBUTING.md>`__ 。
 
 我们再次感谢所有为我们提供宝贵建议的开发者！
 
@@ -180,28 +178,24 @@ Yang Li, Shen Yu, Jiawei Jiang, Jinyang Gao, Ce Zhang, Bin Cui; The Thirty-Fifth
 相关项目
 ---------------
 
-我们的另一个AutoML工程：
+我们的其它AutoML项目：
 
--  `VolcanoML <https://github.com/thomas-young-2013/soln-ml>`__ ：一个开源的、提供端到端ML模型训练和干预的系统。
+-  `VolcanoML <https://github.com/thomas-young-2013/soln-ml>`__ ：一个开源的，提供自动化且端到端的ML模型训练和预测的系统。
 
 ------------------------------------------------
 
 反馈
 --------
 
--  `File an
-   issue <https://github.com/thomas-young-2013/open-box/issues>`__ on
-   GitHub.
+-  `提交 issue <https://github.com/thomas-young-2013/open-box/issues>`__
 
--  Email：liyang.cs@pku.edu.cn.
+-  Email：liyang.cs@pku.edu.cn
 
 ------------------------------------------------
 
-License
+许可证
 -------
-
-我们的整个代码库基于 `MIT
-license <https://github.com/thomas-young-2013/open-box/blob/master/LICENSE>`__ 。
+OpenBox项目基于 `MIT License <https://github.com/thomas-young-2013/open-box/blob/master/LICENSE>`__
 
 ------------------------------------------------
 
