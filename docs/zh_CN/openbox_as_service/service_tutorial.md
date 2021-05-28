@@ -5,7 +5,7 @@
 ## 注册账户
 
 访问 <http://127.0.0.1:11425/user_board/index/> (用你的ip:端口号替换 "127.0.0.1:11425")，你会看到 **OpenBox** 服务的主页。
-用Email注册一个账号来享受服务。
+用Email注册一个账号来使用服务。
 
 你需要点击你邮箱中验证邮件中的链接来激活账号。
 
@@ -76,7 +76,7 @@ incumbents, history = config_advisor.get_result()
 print(incumbents)
 ```
 
-+ 在创建**RemoteAdvisor**时，不要忘记设置 **server_ip, port** 和 **email, password**。然后将任务注册到服务。
++ 在创建**RemoteAdvisor**时，不要忘记设置 **server_ip, port** 和 **email, password**。然后将任务注册到服务器。
   
 + 一旦你创建任务后，你可以通过调用<font color=#FF0000>**RemoteAdvisor.get_suggestion()**</font>来获取配置的建议。
 

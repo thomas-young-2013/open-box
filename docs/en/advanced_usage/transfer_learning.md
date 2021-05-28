@@ -45,5 +45,3 @@ For experimental setups, dataset information and more experimental results, plea
 <p align="center">
 <img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/tl_lightgbm_75_rank_result.svg" width="70%">
 </p>
-
-+ Average rank of tuning LightGBM with transfer learning

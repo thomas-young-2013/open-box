@@ -44,7 +44,7 @@ OpenBox是一个高效的通用黑盒优化系统。它的设计有如下特点�
 
 + **Task Database** 保存所有任务的历史信息和历史状态。
 
-+ **Suggestion Service** 给每个任务生成新的配置。
++ **Suggestion Server** 给每个任务生成新的配置。
 
 + **REST API** 使用RESTful APIs来连接Workers和Suggestion Service。
 

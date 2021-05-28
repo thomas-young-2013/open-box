@@ -14,7 +14,7 @@ The system architecture of **OpenBox** includes five main components:
 
 + **Task Database** holds the history and states of all tasks. 
 
-+ **Suggestion Service** generates new configurations for each task.
++ **Suggestion Server** generates new configurations for each task.
 
 + **REST API** connects users/workers and suggestion service via RESTful APIs. 
 

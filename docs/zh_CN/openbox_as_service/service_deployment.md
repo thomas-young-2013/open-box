@@ -1,7 +1,7 @@
 # OpenBox 服务部署
 
 本教程帮助你部署一个 **OpenBox** 服务。 
-如果你是一个 **OpenBox** 服务的用户，请参考 [Service User Tutorial](./service_tutorial)
+如果你是一个 **OpenBox** 服务的用户，请参考 [服务教程](./service_tutorial)
 
 
 ## 1 从源代码安装 OpenBox
@@ -12,7 +12,7 @@
 
 + SWIG == 3.0
 
-关于 SWIG的安装，请参考 [SWIG Installation Guide](../installation/install_swig.md)
+关于 SWIG的安装，请参考 [SWIG 安装指南](../installation/install_swig.md)
 
 在安装OpenBox前，请保证SWIG已经被成功安装。
 
