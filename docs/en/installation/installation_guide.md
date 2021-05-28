@@ -36,4 +36,6 @@ python setup.py install
 
 For macOS users who have trouble installing pyrfr, refer to [tips](./install-pyrfr-on-macos.md).
 
+For macOS users who have trouble building scikit-learn， this [documentation](./openmp_macos.md) might help. 
+
 For Windows users who have trouble installing lazy_import, refer to [tips](./install-lazy_import-on-windows.md).

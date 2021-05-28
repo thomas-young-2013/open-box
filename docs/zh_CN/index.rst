@@ -9,9 +9,202 @@
 OpenBox: 高效通用的黑盒优化系统
 ###########################
 
-这是中文文档，敬请期待
+**OpenBox** 是一个高效的开源系统，旨在为泛化的黑盒优化（BBO）问题，
+例如 `自动化超参数调优 <./examples/single_objective_hpo.html>`__ 、自动化A/B测试，
+实验设计、数据库超参调优、处理器体系结构和电路设计、资源分配、自动化学设计等任务提供完备的解决方案。
+
+**OnenBox** 的设计哲学是将BBO作为一种服务提供给大众。
+我们的目标是将 **OpenBox** 做成一个分布式的、误差容忍的、可扩展的、高效的服务。
+它能对各种应用场景提供广泛的支持，并保证稳定的性能。
+**OpenBox** 简单易上手、方便移植和维护。
+
+
+您可以使用以下两种方法运行 **OpenBox**：
+`单独的Python包 <./installation/installation_guide.html>`__
+和 `在线BBO服务 <./openbox_as_service/service_introduction.html>`__ 。
+
 
 ------------------------------------------------
+
+OpenBox 为谁提供？
+---------------------------------
+
+-  想要为ML任务自动进行 **超参数调优** 的用户。
+
+
+-  想要为配置搜索任务找到 **最佳配置** 的用户（例如，数据库超参数调优）。
+
+-  想要为他们的数据平台提供 **BBO服务** 的用户。
+
+-  想要方便地解决 **通用BBO问题** 的研究员和数据科学家。
+
+------------------------------------------------
+
+.. _openbox-characteristics--capabilities:
+
+OpenBox 强大特性
+--------------------------------------
+
+OpenBox 有很多强大的功能和特性，包括：
+
+1、 提供多目标和带限制条件的 BBO 服务支持。
+
+2、 提供带迁移学习的 BBO 服务。
+
+3、 提供分布式并行的 BBO 服务。
+
+4、 提供多可信度加速的 BBO 服务。
+
+5、 提供带提前停止的 BBO 服务。
+
+下表给出了现有BBO系统的分类：
+
+============== ========== ==== ========== ======= ===========
+系统/包         多目标      FIOC  限制条件    历史     分布式
+============== ========== ==== ========== ======= ===========
+Hyperopt       ×          √    ×          ×       √
+Spearmint      ×          ×    √          ×       ×
+SMAC3          ×          √    ×          ×       ×
+BoTorch        √          ×    √          ×       ×
+GPflowOPT      √          ×    √          ×       ×
+Vizier         ×          √    ×          △       √
+HyperMapper    √          √    √          ×       ×
+HpBandSter     ×          √    ×          ×       √
+**OpenBox**    √          √    √          √       √
+============== ========== ==== ========== ======= ===========
+
+-  **FIOC**: 支持不同的输入变量类型，包活 Float, Integer, Ordinal 和 Categorical。
+
+-  **多目标.**: 支持多目标优化。
+
+-  **限制条件**: 支持带限制条件的不等式。
+
+-  **历史**: 支持将以前任务的先验知识注入到当前搜索中。（ △ 表示系统在通用场景下不支持）
+
+-  **分布式**: 支持在分布式环境中并行评估。
+
+------------------------------------------------
+
+安装
+------------
+
+请参考我们的 `安装指南 <./installation/installation_guide.html>`__.
+
+------------------------------------------------
+
+快速上手
+-----------
+下面我们给出一个优化 Branin 函数的简单实例。更多的细节描述请参考我们的 `快速上手指南 <./quick_start/quick_start.html>`__ 。
+
+
+.. code:: python
+
+    import numpy as np
+    from openbox.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter
+    from openbox.optimizer.generic_smbo import SMBO
+
+    # Define Configuration Space
+    config_space = ConfigurationSpace()
+    x1 = UniformFloatHyperparameter("x1", -5, 10, default_value=0)
+    x2 = UniformFloatHyperparameter("x2", 0, 15, default_value=0)
+    config_space.add_hyperparameters([x1, x2])
+
+    # Define Objective Function
+    def branin(config):
+        x1, x2 = config['x1'], config['x2']
+        y = (x2-5.1/(4*np.pi**2)*x1**2+5/np.pi*x1-6)**2+10*(1-1/(8*np.pi))*np.cos(x1)+10
+        return y
+
+    # Run
+    if __name__ == '__main__':
+        bo = SMBO(branin, config_space, max_runs=50, task_id='quick_start')
+        history = bo.run()
+        print(history)
+
+------------------------------------------------
+
+文档
+-------------
+
+-  想要进一步了解OpenBox？ 请参考 `OpenBox概览 <./overview/overview.html>`__ 。
+
+-  想要安装OpenBox？ 请参考 `OpenBox安装手册 <./installation/installation_guide.html>`__ 。
+
+-  想要快速上手OpenBox？ 请参考 `快速上手指南 <./quick_start/quick_start.html>`__ 。
+
+
+------------------------------------------------
+
+相关文章
+----------------
+
+-  `Tuning LightGBM with
+   OpenBox <https://github.com/thomas-young-2013/open-box/blob/master/docs/en/articles/openbox_LightGBM.md>`__
+
+-  `Tuning XGBoost using
+   OpenBox <https://github.com/thomas-young-2013/open-box/blob/master/docs/en/articles/openbox_XGBoost.md>`__
+
+------------------------------------------------
+
+版本发布和贡献
+-------------------------
+
+OpenBox 有频繁的更新周期。
+如果你在使用过程中遇到了bug，请在Github上知我们：`filling an
+issue <https://github.com/thomas-young-2013/open-box/issues/new/choose>`__ 。
+
+我们感谢所有的贡献。如果您修复了任何bug，请直接修复，无需通知我们。
+
+如果您想要为OpenBox添加新的特性和模块，请先开启一个issue或复用一个现有的issue，然后和我们进一步讨论。
+
+
+
+想要了解更多关于为OpenBox提供贡献的方法，请参考我们的 `how-to-contribute page <https://github.com/thomas-young-2013/open-box/blob/master/CONTRIBUTING.md>`__ 。
+
+我们再次感谢所有为我们提供宝贵建议的开发者！
+
+------------------------------------------------
+
+研究成果
+--------------------
+
+**OpenBox: A Generalized Black-box Optimization Service**
+Yang Li, Yu Shen, Wentao Zhang, Yuanwei Chen, Huaijun Jiang, Mingchao Liu, Jiawei Jiang, Jinyang Gao, Wentao Wu, Zhi Yang, Ce Zhang, Bin Cui; ACM SIGKDD Conference on Knowledge Discovery and Data Mining (KDD 2021).
+
+**MFES-HB: Efficient Hyperband with Multi-Fidelity Quality Measurements**
+Yang Li, Shen Yu, Jiawei Jiang, Jinyang Gao, Ce Zhang, Bin Cui; The Thirty-Fifth AAAI Conference on Artificial Intelligence (AAAI 2021).
+
+
+--------------------
+
+相关项目
+---------------
+
+我们的另一个AutoML工程：
+
+-  `VolcanoML <https://github.com/thomas-young-2013/soln-ml>`__ ：一个开源的、提供端到端ML模型训练和干预的系统。
+
+------------------------------------------------
+
+反馈
+--------
+
+-  `File an
+   issue <https://github.com/thomas-young-2013/open-box/issues>`__ on
+   GitHub.
+
+-  Email：liyang.cs@pku.edu.cn.
+
+------------------------------------------------
+
+License
+-------
+
+我们的整个代码库基于 `MIT
+license <https://github.com/thomas-young-2013/open-box/blob/master/LICENSE>`__ 。
+
+------------------------------------------------
+
 
 ..  toctree::
     :caption: 目录
@@ -19,4 +212,12 @@ OpenBox: 高效通用的黑盒优化系统
     :titlesonly:
 
     概览 <overview/overview>
+    安装 <installation/installation_guide>
+    快速上手 <quick_start/quick_start>
+    实例 <examples/examples>
+    高级 <advanced_usage/advanced_usage>
+    OpenBox服务 <openbox_as_service/openbox_as_service>
+    研究成果 <research_and_publications/research_and_publications>
+    历史记录 <change_logs/change_logs>
+
 
