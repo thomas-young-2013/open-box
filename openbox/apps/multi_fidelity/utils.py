@@ -2,6 +2,7 @@ from typing import List
 import numpy as np
 from openbox.utils.config_space import Configuration, ConfigurationSpace
 
+WAITING = 'waiting'
 RUNNING = 'running'
 COMPLETED = 'completed'
 PROMOTED = 'promoted'
@@ -25,24 +26,30 @@ def sample_configuration(configuration_space: ConfigurationSpace, excluded_confi
     return config
 
 
-def sample_configurations(configuration_space: ConfigurationSpace, num: int) -> List[Configuration]:
+def sample_configurations(configuration_space: ConfigurationSpace, num: int,
+                          excluded_configs: List[Configuration] = None) -> List[Configuration]:
+    if excluded_configs is None:
+        excluded_configs = []
     result = []
     cnt = 0
     while cnt < num:
         config = configuration_space.sample_configuration(1)
-        if config not in result:
+        if config not in result and config not in excluded_configs:
             result.append(config)
             cnt += 1
     return result
 
 
-def expand_configurations(configs: List[Configuration], configuration_space: ConfigurationSpace, num: int):
+def expand_configurations(configs: List[Configuration], configuration_space: ConfigurationSpace, num: int,
+                          excluded_configs: List[Configuration] = None):
+    if excluded_configs is None:
+        excluded_configs = []
     num_config = len(configs)
     num_needed = num - num_config
     config_cnt = 0
     while config_cnt < num_needed:
         config = configuration_space.sample_configuration(1)
-        if config not in configs:
+        if config not in configs and config not in excluded_configs:
             configs.append(config)
             config_cnt += 1
     return configs
