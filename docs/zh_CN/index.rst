@@ -137,11 +137,9 @@ HpBandSter     ×          √      ×          ×       √
 相关文章
 ----------------
 
--  `Tuning LightGBM with
-   OpenBox <https://github.com/thomas-young-2013/open-box/blob/master/docs/en/articles/openbox_LightGBM.md>`__
+-  `使用OpenBox对LightGBM进行超参数优化 <https://github.com/thomas-young-2013/open-box/blob/master/docs/zh_CN/articles/openbox_LightGBM.md>`__
 
--  `Tuning XGBoost using
-   OpenBox <https://github.com/thomas-young-2013/open-box/blob/master/docs/en/articles/openbox_XGBoost.md>`__
+-  `使用OpenBox对XGBoost进行超参数优化 <https://github.com/thomas-young-2013/open-box/blob/master/docs/zh_CN/articles/openbox_XGBoost.md>`__
 
 ------------------------------------------------
 
