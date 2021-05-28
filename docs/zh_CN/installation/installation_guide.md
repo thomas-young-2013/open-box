@@ -10,11 +10,11 @@
 
 请参考我们的 [SWIG 安装指南](./install_swig.md) 来先安装 SWIG。
 
-在安装OpenBox前，请保证SWIG已经被成果安装。
+在安装OpenBox前，请保证SWIG已经被成功安装。
 
 ## 2 安装 OpenBox
 
-### 2.1 从 PyPI 安装
+### 2.1 使用 PyPI 安装
 
 只需运行以下命令：
 
