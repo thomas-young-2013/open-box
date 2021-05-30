@@ -93,7 +93,7 @@ Installation Requirements:
 
 Make sure to install SWIG correctly before you install OpenBox.
 
-To install SWIG, please refer to [SWIG Installation Guide](https://github.com/thomas-young-2013/open-box/blob/master/docs/source/installation/install_swig.md)
+To install SWIG, please refer to [SWIG Installation Guide](https://github.com/thomas-young-2013/open-box/blob/master/docs/en/installation/install_swig.md)
 
 ### Installation from PyPI
 
@@ -113,9 +113,9 @@ cat requirements/main.txt | xargs -n 1 -L 1 pip install
 python setup.py install
 ```
 
-The tips for installing `pyrfr` on macOS is [here](https://github.com/thomas-young-2013/open-box/blob/master/docs/source/installation/install-pyrfr-on-macos.md). Please make sure you installed `pyrfr` correctly.
+The tips for installing `pyrfr` on macOS is [here](https://github.com/thomas-young-2013/open-box/blob/master/docs/en/installation/install-pyrfr-on-macos.md). Please make sure you installed `pyrfr` correctly.
 
-The tips for installing `lazy_import` on Windows is [here](https://github.com/thomas-young-2013/open-box/blob/master/docs/source/installation/install-lazy_import-on-windows.md).
+The tips for installing `lazy_import` on Windows is [here](https://github.com/thomas-young-2013/open-box/blob/master/docs/en/installation/install-lazy_import-on-windows.md).
 
 ## Quick Start
 
