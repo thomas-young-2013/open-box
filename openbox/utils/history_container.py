@@ -1,4 +1,5 @@
 import sys
+import time
 import json
 import collections
 from typing import List, Union
@@ -34,16 +35,21 @@ class HistoryContainer(object):
         self.trial_states = list()      # all trial states
         self.elapsed_times = list()     # all elapsed times
 
+        self.update_times = list()      # record all update times
+
         self.successful_perfs = list()  # perfs of successful trials
         self.failed_index = list()
         self.transform_perf_index = list()
 
+        self.global_start_time = time.time()
         self.scale_perc = 5
         self.perc = None
         self.min_y = None
         self.max_y = MAXINT
 
     def update_observation(self, observation: Observation):
+        self.update_times.append(time.time() - self.global_start_time)
+
         config, trial_state, constraints, objs, elapsed_time = observation
         self.configurations.append(config)
         if self.num_objs == 1:
