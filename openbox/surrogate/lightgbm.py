@@ -68,6 +68,7 @@ class LightGBM(AbstractModel):
         if self.normalize_y:
             y = self._normalize_y(y)
 
+        self.models = list()
         for i in range(self.ensemble_size):
             configs = self.model_config.copy()
             configs["random_state"] = self.random_seeds[i]
