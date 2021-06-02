@@ -1,7 +1,6 @@
 import logging
 import typing
 import numpy as np
-import lightgbm as lgb
 from typing import List, Optional, Tuple, Union
 
 from ConfigSpace import ConfigurationSpace
@@ -64,6 +63,7 @@ class LightGBM(AbstractModel):
         y: np.ndarray (N,)
             The corresponding target values.
         """
+        import lightgbm as lgb
         X = self._impute_inactive(X)
         if self.normalize_y:
             y = self._normalize_y(y)
