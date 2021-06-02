@@ -25,6 +25,7 @@ parser.add_argument('--surrogate', type=str, default='gp', choices=['gp', 'gp_mc
 parser.add_argument('--optimizer', type=str, default='local', choices=['scipy', 'local'])
 parser.add_argument('--rep', type=int, default=1)
 parser.add_argument('--start_id', type=int, default=0)
+parser.add_argument('--use_rand_seed', type=int, default=1)   # use random time seed instead of seeds
 
 parser.add_argument('--tpe_num_samples', type=int, default=64)
 
@@ -46,14 +47,20 @@ else:
     raise ValueError('Unknown optimizer %s' % args.optimizer)
 rep = args.rep
 start_id = args.start_id
+use_rand_seed = args.use_rand_seed
 
 tpe_num_samples = args.tpe_num_samples
 
 mth = surrogate_type
 
 problem = get_problem(problem_str)
+try:
+    problem.n_jobs = 8
+except Exception:
+    pass
+
 cs = problem.get_configspace(optimizer='smac')
-time_limit_per_trial = 600
+time_limit_per_trial = 3600
 
 
 def evaluate(mth, run_i, seed):
@@ -89,7 +96,12 @@ def evaluate(mth, run_i, seed):
 
 with timeit('%s all' % (mth,)):
     for run_i in range(start_id, start_id + rep):
-        seed = seeds[run_i]
+        if use_rand_seed == 1:
+            base_seed = int(time.time() * 10000 % 10000)
+            rng = np.random.RandomState(base_seed)
+            seed = rng.randint(10000)
+        else:
+            seed = seeds[run_i]
         with timeit('%s %d %d' % (mth, run_i, seed)):
             # Evaluate
             config_list, perf_list, time_list = evaluate(mth, run_i, seed)
