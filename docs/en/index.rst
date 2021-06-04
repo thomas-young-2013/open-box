@@ -209,7 +209,7 @@ Feedback
    issue <https://github.com/thomas-young-2013/open-box/issues>`__ on
    GitHub.
 
--  Email us via liyang.cs@pku.edu.cn.
+-  Email us via liyang.cs@pku.edu.cn or shenyu@pku.edu.cn.
 
 ------------------------------------------------
 

@@ -78,7 +78,7 @@ HpBandSter     ×          √      ×          ×       √
 
 -  **约束条件**: 支持不等式约束条件。
 
--  **历史**: 支持将以前任务的先验知识注入到当前搜索中。（ △ 表示系统在通用场景下不支持）
+-  **历史**: 支持将以前任务的先验知识融入到当前搜索中。（ △ 表示系统在通用场景下不支持）
 
 -  **分布式**: 支持在分布式环境中并行评估。
 
@@ -146,10 +146,10 @@ HpBandSter     ×          √      ×          ×       √
 版本发布和贡献
 -------------------------
 
-OpenBox 有频繁的更新周期。
-如果你在使用过程中遇到了bug，请在Github上知我们：`如何提交 issue <https://github.com/thomas-young-2013/open-box/issues/new/choose>`__ 。
+OpenBox 有着频繁的更新周期。
+如果你在使用过程中遇到了bug，请在Github上告知我们：`如何提交 issue <https://github.com/thomas-young-2013/open-box/issues/new/choose>`__ 。
 
-我们感谢所有的贡献。如果您修复了任何bug，请直接修复，无需通知我们。
+我们感谢所有的贡献。如果您需要修复任何bug，请直接修复，无需通知我们。
 
 如果您想要为OpenBox添加新的特性和模块，请先开启一个issue或复用一个现有的issue，然后和我们进一步讨论。
 
@@ -186,8 +186,7 @@ Yang Li, Shen Yu, Jiawei Jiang, Jinyang Gao, Ce Zhang, Bin Cui; The Thirty-Fifth
 --------
 
 -  `提交 issue <https://github.com/thomas-young-2013/open-box/issues>`__
-
--  Email：liyang.cs@pku.edu.cn
+-  Email：liyang.cs@pku.edu.cn 或 shenyu@pku.edu.cn
 
 ------------------------------------------------
 
