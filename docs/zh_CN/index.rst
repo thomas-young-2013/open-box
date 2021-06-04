@@ -26,7 +26,7 @@ OpenBox: 高效通用的黑盒优化系统
 
 ------------------------------------------------
 
-OpenBox 为谁提供？
+OpenBox 针对的用户群体
 ---------------------------------
 
 -  想要为ML任务自动执行 **超参数调优** 的用户。
@@ -41,7 +41,7 @@ OpenBox 为谁提供？
 
 .. _openbox-characteristics--capabilities:
 
-OpenBox 的强大特性
+OpenBox 的功能特性
 --------------------------------------
 
 OpenBox 有很多强大的功能和特性，包括：
@@ -72,7 +72,7 @@ HpBandSter     ×          √      ×          ×       √
 **OpenBox**    √          √      √          √       √
 ============== ========== ====== ========== ======= ===========
 
--  **FIOC**: 支持不同的输入变量类型，包活 Float, Integer, Ordinal 和 Categorical。
+-  **FIOC**: 支持不同的输入变量类型，包括 Float, Integer, Ordinal 和 Categorical。
 
 -  **多目标**: 支持多目标优化。
 
