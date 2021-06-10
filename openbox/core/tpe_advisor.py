@@ -145,7 +145,7 @@ class TPE_Advisor:
             if best_vector is None:
                 self.logger.debug(
                     "Sampling based optimization with %i samples failed -> using random configuration" % self.num_samples)
-                sample = self.sample_random_configs(1, history_container)[0].get_dictionary()
+                config = self.sample_random_configs(1, history_container)[0]
             else:
                 self.logger.debug(
                     'best_vector: {}, {}, {}, {}'.format(best_vector, best, l(best_vector), g(best_vector)))
@@ -157,18 +157,12 @@ class TPE_Advisor:
                             ConfigSpace.hyperparameters.CategoricalHyperparameter
                     ):
                         best_vector[i] = int(np.rint(best_vector[i]))
-                sample = ConfigSpace.Configuration(self.config_space, vector=best_vector).get_dictionary()
-
                 try:
-                    sample = ConfigSpace.util.deactivate_inactive_hyperparameters(
-                        configuration_space=self.config_space,
-                        configuration=sample
-                    )
-
+                    config = ConfigSpace.Configuration(self.config_space, vector=best_vector)
                 except Exception as e:
-                    self.logger.warning(("=" * 50 + "\n") * 3 + \
-                                        "Error converting configuration:\n%s" % sample + \
-                                        "\n here is a traceback:" + \
+                    self.logger.warning(("=" * 50 + "\n") * 3 +
+                                        "Error converting configuration:\n%s" % best_vector +
+                                        "\n here is a traceback:" +
                                         traceback.format_exc())
                     raise e
 
@@ -176,9 +170,9 @@ class TPE_Advisor:
             self.logger.warning(
                 "Sampling based optimization with %i samples failed\n %s \nUsing random configuration" % (
                     self.num_samples, traceback.format_exc()))
-            sample = self.sample_random_configs(1, history_container)[0]
+            config = self.sample_random_configs(1, history_container)[0]
 
-        return sample
+        return config
 
     def impute_conditional_data(self, array):
 
