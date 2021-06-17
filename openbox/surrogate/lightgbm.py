@@ -29,10 +29,12 @@ class LightGBM(AbstractModel):
         self.model_config["objective"] = "regression"
         self.model_config["metric"] = "rmse"
         self.model_config["boosting_type"] = "gbdt"
-        self.model_config["num_leaves"] = 1000
+        self.model_config["num_leaves"] = 2 ^ 20
         self.model_config["learning_rate"] = 0.03
-        self.model_config["n_estimators"] = 128
+        self.model_config["n_estimators"] = 100
         self.model_config["max_depth"] = 10
+        self.model_config["feature_fraction"] = 5. / 6
+        self.model_config["min_child_samples"] = 3
 
         self.ensemble_size = ensemble_size
         self.models = list()
