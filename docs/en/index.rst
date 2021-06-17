@@ -186,7 +186,7 @@ Related Publications
 Yang Li, Yu Shen, Wentao Zhang, Yuanwei Chen, Huaijun Jiang, Mingchao Liu, Jiawei Jiang, Jinyang Gao, Wentao Wu, Zhi Yang, Ce Zhang, Bin Cui; ACM SIGKDD Conference on Knowledge Discovery and Data Mining (KDD 2021).
 
 **MFES-HB: Efficient Hyperband with Multi-Fidelity Quality Measurements**
-Yang Li, Shen Yu, Jiawei Jiang, Jinyang Gao, Ce Zhang, Bin Cui; The Thirty-Fifth AAAI Conference on Artificial Intelligence (AAAI 2021).
+Yang Li, Yu Shen, Jiawei Jiang, Jinyang Gao, Ce Zhang, Bin Cui; The Thirty-Fifth AAAI Conference on Artificial Intelligence (AAAI 2021).
 
 
 --------------------
@@ -209,7 +209,7 @@ Feedback
    issue <https://github.com/thomas-young-2013/open-box/issues>`__ on
    GitHub.
 
--  Email us via liyang.cs@pku.edu.cn.
+-  Email us via liyang.cs@pku.edu.cn or shenyu@pku.edu.cn.
 
 ------------------------------------------------
 

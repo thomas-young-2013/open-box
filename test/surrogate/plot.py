@@ -17,16 +17,17 @@ import matplotlib.pyplot as plt
 # plt.rc('text', usetex=True)
 # plt.rc('font', **{'size': 16, 'family': 'Helvetica'})
 
-plt.rc('font', size=16.0, family='sans-serif')
-plt.rcParams['font.sans-serif'] = "Tahoma"
+# plt.rc('font', size=16.0, family='sans-serif')
+# plt.rcParams['font.sans-serif'] = "Tahoma"
 
-plt.rcParams['figure.figsize'] = (8.0, 4.5)
-#plt.rcParams['text.latex.preamble'] = [r"\usepackage{amsmath}"]
-plt.rcParams["legend.frameon"] = True
-plt.rcParams["legend.facecolor"] = 'white'
-plt.rcParams["legend.edgecolor"] = 'gray'
-plt.rcParams["legend.fontsize"] = 16
-label_size = 24
+# plt.rcParams['figure.figsize'] = (8.0, 4.5)
+# plt.rcParams['text.latex.preamble'] = [r"\usepackage{amsmath}"]
+# plt.rcParams["legend.frameon"] = True
+# plt.rcParams["legend.facecolor"] = 'white'
+# plt.rcParams["legend.edgecolor"] = 'gray'
+# plt.rcParams["legend.fontsize"] = 16
+# label_size = 24
+label_size = 16
 
 sys.path.insert(0, os.getcwd())
 from test.reproduction.test_utils import descending
@@ -53,9 +54,9 @@ def fetch_color_marker(m_list):
         marker_dict[name] = markers[idx]
 
     for name in m_list:
-        if name.startswith('gp'):
+        if name.startswith('gp_mcmc'):
             fill_values(name, 0)
-        elif name.startswith('gp_mcmc'):
+        elif name.startswith('gp'):
             fill_values(name, 1)
         elif name.startswith('prf'):
             fill_values(name, 2)
@@ -110,6 +111,12 @@ else:
 # print(f'title={title}, log_obj={log_obj}, log_func={log_func}, std_scale={std_scale}.')
 
 color_dict, marker_dict = fetch_color_marker(mths)
+# point_num = 10000
+lw = 2
+markersize = 6
+# markevery = int(point_num / 10)
+markevery = int(max_runs / 10)
+alpha = 0.2
 
 plot_list = []
 legend_list = []
@@ -133,19 +140,25 @@ for mth in mths:
     std_res = np.std(result, axis=0)
 
     # plot
-    x = np.arange(len(result)) + 1
-    p, = plt.plot(x, result, label=get_mth_legend(mth), color=color_dict[mth])
+    x = np.arange(len(mean_res)) + 1
+    p, = plt.plot(x, mean_res, lw=lw, label=get_mth_legend(mth),
+                  color=color_dict[mth], marker=marker_dict[mth],
+                  markersize=markersize, markevery=markevery)
     # p = plt.errorbar(x, mean_res, yerr=std_res*std_scale, fmt='', capthick=0.5, capsize=3, errorevery=max_runs//10)
-    # plt.fill_between(x, mean_res - std_res * std_scale, mean_res + std_res * std_scale, alpha=0.2,
+    # plt.fill_between(x, mean_res - std_res * std_scale, mean_res + std_res * std_scale, alpha=alpha,
     #                  facecolor=color_dict[mth])
     plot_list.append(p)
 
 plt.legend(ncol=2)
-# plt.title(title, fontsize=18)
-plt.xlabel('\\textbf{Iteration}', fontsize=label_size)
+plt.title(title, fontsize=18)
+# plt.xlabel('\\textbf{Iteration}', fontsize=label_size)
+plt.xlabel('Iteration', fontsize=label_size)
 if log_obj:
-    plt.ylabel('\\textbf{Log Objective Value}', fontsize=label_size)
+    plt.ylabel('Log Objective Value', fontsize=label_size)
+    plt.ylabel('Log Objective Value', fontsize=label_size)
 else:
-    plt.ylabel('\\textbf{Objective Value}', fontsize=label_size)
-#plt.savefig('so_math_%s.pdf' % problem_str)
+    plt.ylabel('Objective Value', fontsize=label_size)
+    plt.ylabel('Objective Value', fontsize=label_size)
+#plt.savefig('surrogate_%s.pdf' % problem_str)
+plt.tight_layout()
 plt.show()
