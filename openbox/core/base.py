@@ -2,9 +2,6 @@ from collections import namedtuple
 from openbox.utils.constants import MAXINT
 from openbox.acquisition_function import *
 from openbox.utils.util_funcs import get_types
-from openbox.surrogate.lightgbm import LightGBM
-from openbox.surrogate.base.build_gp import create_gp_model
-from openbox.surrogate.base.rf_with_instances import RandomForestWithInstances
 
 
 Observation = namedtuple('Observation', ['config', 'trial_state', 'constraints', 'objs', 'elapsed_time'])
@@ -87,12 +84,15 @@ def build_surrogate(func_str='prf', config_space=None, rng=None, history_hpo_dat
     types, bounds = get_types(config_space)
     seed = rng.randint(MAXINT)
     if func_str == 'prf':
+        from openbox.surrogate.base.rf_with_instances import RandomForestWithInstances
         return RandomForestWithInstances(types=types, bounds=bounds, seed=seed)
 
     if func_str == 'lightgbm':
+        from openbox.surrogate.lightgbm import LightGBM
         return LightGBM(config_space, types=types, bounds=bounds, seed=seed)
 
     elif func_str.startswith('gp'):
+        from openbox.surrogate.base.build_gp import create_gp_model
         return create_gp_model(model_type=func_str,
                                config_space=config_space,
                                types=types,

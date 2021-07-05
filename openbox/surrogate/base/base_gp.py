@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple, Union, TYPE_CHECKING
+from typing import List, Optional, Tuple, Union
 
 from ConfigSpace import ConfigurationSpace
 import numpy as np
@@ -7,15 +7,8 @@ import sklearn.gaussian_process.kernels
 from openbox.surrogate.base.base_model import AbstractModel
 import openbox.surrogate.base.gp_base_prior
 
-if TYPE_CHECKING:
-    from skopt.learning.gaussian_process.kernels import Kernel
-    from skopt.learning.gaussian_process import GaussianProcessRegressor
-else:
-    from lazy_import import lazy_callable
-
-    Kernel = lazy_callable('skopt.learning.gaussian_process.kernels.Kernel')
-    GaussianProcessRegressor = lazy_callable(
-        'skopt.learning.gaussian_process.GaussianProcessRegressor')
+from skopt.learning.gaussian_process.kernels import Kernel
+from skopt.learning.gaussian_process import GaussianProcessRegressor
 
 
 class BaseGP(AbstractModel):
