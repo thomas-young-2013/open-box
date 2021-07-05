@@ -7,8 +7,9 @@ bo = SMBO(branin.evaluate,      # objective function
           num_objs=branin.num_objs,  # number of objectives
           num_constraints=branin.num_constraints,  # number of constraints
           max_runs=50,          # number of optimization rounds
-          surrogate_type='prf',
+          surrogate_type='lightgbm',
           time_limit_per_trial=180,
+          # acq_optimizer_type='scipy_global',
           task_id='quick_start')
 history = bo.run()
 print(history)
