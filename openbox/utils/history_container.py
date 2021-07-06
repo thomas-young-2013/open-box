@@ -12,7 +12,6 @@ from openbox.utils.config_space.space_utils import get_config_from_dict
 from openbox.utils.visualization.plot_convergence import plot_convergence
 from openbox.core.base import Observation
 
-
 Perf = collections.namedtuple(
     'perf', ['cost', 'time', 'status', 'additional_info'])
 
@@ -20,8 +19,8 @@ Perf = collections.namedtuple(
 class HistoryContainer(object):
     def __init__(self, task_id, num_constraints=0, config_space=None):
         self.task_id = task_id
-        self.config_space = config_space    # for show_importance
-        self.data = collections.OrderedDict()   # todo: old api. only successful data
+        self.config_space = config_space  # for show_importance
+        self.data = collections.OrderedDict()  # todo: old api. only successful data
         self.config_counter = 0
         self.incumbent_value = MAXINT
         self.incumbents = list()
@@ -29,13 +28,13 @@ class HistoryContainer(object):
 
         self.num_objs = 1
         self.num_constraints = num_constraints
-        self.configurations = list()    # all configurations (include successful and failed)
-        self.perfs = list()             # all perfs
+        self.configurations = list()  # all configurations (include successful and failed)
+        self.perfs = list()  # all perfs
         self.constraint_perfs = list()  # all constraints
-        self.trial_states = list()      # all trial states
-        self.elapsed_times = list()     # all elapsed times
+        self.trial_states = list()  # all trial states
+        self.elapsed_times = list()  # all elapsed times
 
-        self.update_times = list()      # record all update times
+        self.update_times = list()  # record all update times
 
         self.successful_perfs = list()  # perfs of successful trials
         self.failed_index = list()
@@ -57,7 +56,7 @@ class HistoryContainer(object):
         else:
             self.perfs.append(objs)
         self.trial_states.append(trial_state)
-        self.constraint_perfs.append(constraints)   # None if no constraint
+        self.constraint_perfs.append(constraints)  # None if no constraint
         self.elapsed_times.append(elapsed_time)
 
         transform_perf = False
@@ -92,7 +91,7 @@ class HistoryContainer(object):
         if failed:
             self.failed_index.append(cur_idx)
 
-    def add(self, config: Configuration, perf: Perf):   # todo: remove this old api
+    def add(self, config: Configuration, perf: Perf):  # todo: remove this old api
         if config in self.data:
             self.logger.warning('Repeated configuration detected!')
             return
@@ -244,7 +243,7 @@ class HistoryContainer(object):
         ax : `Axes`
             The matplotlib axes.
         """
-        losses = list(self.data.values())   # todo: all perfs
+        losses = list(self.data.values())  # todo: all perfs
 
         n_calls = len(losses)
         iterations = range(1, n_calls + 1)
@@ -265,7 +264,7 @@ class HistoryContainer(object):
                               "HiPlot requires Python 3.6 or newer.")
             raise
 
-        visualize_data_premature = self.data    # todo: all configs
+        visualize_data_premature = self.data  # todo: all configs
         visualize_data = []
         for config, perf in visualize_data_premature.items():
             config_perf = config.get_dictionary()
@@ -308,6 +307,41 @@ class HistoryContainer(object):
         importance_table = AsciiTable(table_data).table
         return importance_table
 
+    def get_shap_importance(self, config_space=None, return_list=False):
+        import shap
+        from lightgbm import LGBMRegressor
+        from terminaltables import AsciiTable
+
+        if config_space is None:
+            config_space = self.config_space
+        if config_space is None:
+            raise ValueError('Please provide config_space to show parameter importance!')
+
+        X = np.array([list(config.get_dictionary().values()) for config in self.configurations])
+        Y = np.array(self.get_transformed_perfs())
+
+        # Fit a LightGBMRegressor with observations
+        lgbr = LGBMRegressor()
+        lgbr.fit(X, Y)
+        explainer = shap.TreeExplainer(lgbr)
+        shap_values = explainer.shap_values(X)
+        feature_importance = np.mean(np.abs(shap_values), axis=0)
+
+        keys = [hp.name for hp in config_space.get_hyperparameters()]
+        importance_list = []
+        for i, hp_name in enumerate(keys):
+            importance_list.append([hp_name, feature_importance[i]])
+        importance_list.sort(key=lambda x: x[1], reverse=True)
+
+        if return_list:
+            return importance_list
+
+        for item in importance_list:
+            item[1] = '%.6f' % item[1]
+        table_data = [["Parameters", "Importance"]] + importance_list
+        importance_table = AsciiTable(table_data).table
+        return importance_table
+
     def save_json(self, fn: str = "history_container.json"):
         """
         saves runhistory on disk
@@ -317,12 +351,12 @@ class HistoryContainer(object):
         fn : str
             file name
         """
-        data = [(k.get_dictionary(), float(v)) for k, v in self.data.items()]   # todo: all configs
+        data = [(k.get_dictionary(), float(v)) for k, v in self.data.items()]  # todo: all configs
 
         with open(fn, "w") as fp:
             json.dump({"data": data}, fp, indent=2)
 
-    def load_history_from_json(self, cs: ConfigurationSpace, fn: str = "history_container.json"):   # todo: all configs
+    def load_history_from_json(self, cs: ConfigurationSpace, fn: str = "history_container.json"):  # todo: all configs
         """Load and runhistory in json representation from disk.
         Parameters
         ----------
@@ -353,6 +387,7 @@ class MOHistoryContainer(HistoryContainer):
     """
     Multi-Objective History Container
     """
+
     def __init__(self, task_id, num_objs, num_constraints=0, ref_point=None):
         super().__init__(task_id=task_id, num_constraints=num_constraints)
         self.pareto = collections.OrderedDict()
@@ -450,6 +485,7 @@ class MultiStartHistoryContainer(object):
     """
     History container for multistart algorithms.
     """
+
     def __init__(self, task_id, num_objs=1, num_constraints=0, ref_point=None):
         self.task_id = task_id
         self.num_objs = num_objs
