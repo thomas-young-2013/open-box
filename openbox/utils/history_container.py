@@ -278,7 +278,10 @@ class HistoryContainer(object):
             import pyrfr.regression as reg
             import pyrfr.util
         except ModuleNotFoundError:
-            self.logger.error('To use get_importance(), please install pyrfr.')
+            self.logger.error(
+                'To use get_importance(), please install pyrfr: '
+                'https://github.com/thomas-young-2013/open-box/blob/master/docs/en/installation/install_pyrfr.md'
+            )
             raise
         from openbox.utils.fanova import fANOVA
         from terminaltables import AsciiTable

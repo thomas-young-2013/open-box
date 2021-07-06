@@ -1,16 +1,9 @@
 # 安装指南
 
-## 系统要求
+## 1 系统要求
 
 安装要求：
 + Python >= 3.6
-+ SWIG >= 3.0.12
-
-## 1 安装 SWIG
-
-请参考我们的 [SWIG 安装指南](./install_swig.md) 来先安装 SWIG。
-
-在安装OpenBox前，请保证SWIG已经被成功安装。
 
 ## 2 安装 OpenBox
 
@@ -32,7 +25,12 @@ cat requirements/main.txt | xargs -n 1 -L 1 pip install
 python setup.py install
 ```
 
-## 3 问题解答
+## 3 进阶功能安装
+
+如果您想使用更高级的功能，比如使用 `pyrfr` （概率随机森林）作为代理模型，或根据历史计算超参数重要性，
+请参考 [Pyrfr安装教程](./install_pyrfr.md) 并安装 `pyrfr`。
+
+## 4 问题解答
 
 对于 macOS 用户，如果您在安装 pyrfr 时遇到了困难，请参考 [提示](./install-pyrfr-on-macos.md)。
 

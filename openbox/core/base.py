@@ -90,7 +90,8 @@ def build_surrogate(func_str='gp', config_space=None, rng=None, history_hpo_data
         except ModuleNotFoundError:
             from openbox.surrogate.base.rf_with_instances_sklearn import skRandomForestWithInstances
             print('[Build Surrogate] Use probabilistic random forest based on scikit-learn. For better performance, '
-                  'please install pyrfr.')
+                  'please install pyrfr: '
+                  'https://github.com/thomas-young-2013/open-box/blob/master/docs/en/installation/install_pyrfr.md')
             return skRandomForestWithInstances(types=types, bounds=bounds, seed=seed)
 
     elif func_str == 'sk_prf':

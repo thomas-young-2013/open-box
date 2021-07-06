@@ -1,16 +1,9 @@
 # Installation Guide
 
-## System Requirements
+## 1 System Requirements
 
 Installation Requirements:
 + Python >= 3.6
-+ SWIG >= 3.0.12
-
-## 1 Install SWIG
-
-To install SWIG, please refer to [SWIG Installation Guide](./install_swig.md)
-
-Make sure that SWIG is installed correctly installing OpenBox.
 
 ## 2 Install OpenBox
 
@@ -32,10 +25,15 @@ cat requirements/main.txt | xargs -n 1 -L 1 pip install
 python setup.py install
 ```
 
-## 3 Trouble Shooting
+## 3 Installation for Advanced Usage
+
+To use advanced features such as `pyrfr` (probabilistic random forest) surrogate and get hyper-parameter 
+importance from history, please refer to [Pyrfr Installation Guide](./install_pyrfr.md) to install `pyrfr`.
+
+## 4 Trouble Shooting
 
 For macOS users who have trouble installing pyrfr, refer to [tips](./install-pyrfr-on-macos.md).
 
-For macOS users who have trouble building scikit-learn， this [documentation](./openmp_macos.md) might help. 
+For macOS users who have trouble building scikit-learn, this [documentation](./openmp_macos.md) might help. 
 
 For Windows users who have trouble installing lazy_import, refer to [tips](./install-lazy_import-on-windows.md).
