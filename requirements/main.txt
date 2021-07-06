@@ -9,6 +9,7 @@ emcee
 tqdm
 terminaltables
 matplotlib
+pandas
 numpy>=1.7.1
 scipy>=0.18.1
 platypus-opt==1.0.4

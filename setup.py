@@ -24,9 +24,26 @@ version = pkginfo.version
 package_name = pkginfo.package_name
 
 
+# Get the platform info.
+def get_platform():
+    platforms = {
+        'linux': 'Linux',
+        'linux1': 'Linux',
+        'linux2': 'Linux',
+        'darwin': 'OSX',
+        'win32': 'Windows'
+    }
+    if sys.platform not in platforms:
+        raise ValueError('Unsupported platform - %s.' % sys.platform)
+    return platforms[sys.platform]
+
+platform = get_platform()
+
+# Check the version of Python.
 if sys.version_info < (3, 6):
     raise RuntimeError('%s requires at least Python 3.6!' % package_name)
 
+# Special settings of requirements for the Python 3.6.
 if (3, 6) <= sys.version_info < (3, 7):
     for extra in ["dev", "main"]:
         reqs = list()
@@ -36,10 +53,14 @@ if (3, 6) <= sys.version_info < (3, 7):
             elif req.startswith('matplotlib'):
                 reqs.append('matplotlib<3.3.5')
             else:
-                reqs.append(req)
+                if platform == 'Windows' and req.startswith('pandas'):
+                    reqs.append('pandas<1.1.6')
+                else:
+                    reqs.append(req)
         requirements[extra] = reqs
 
 
+# Get readme strings.
 def readme() -> str:
     return open("README.md", encoding='utf-8').read()
 
