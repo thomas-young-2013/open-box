@@ -3,7 +3,8 @@ from openbox.benchmark.objective_functions.synthetic import Branin
 from openbox.optimizer.generic_smbo import SMBO
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--surrogate', type=str, default='gp', choices=['gp', 'gp_mcmc', 'prf', 'lightgbm', 'tpe'])
+parser.add_argument('--surrogate', type=str, default='gp', choices=['gp', 'gp_mcmc', 'prf', 'lightgbm', 'tpe',
+                                                                    'sk_prf'])
 args = parser.parse_args()
 
 branin = Branin()

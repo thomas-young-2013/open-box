@@ -21,7 +21,7 @@ parser.add_argument('--problem', type=str)      # ackley-16, ackley-32, branin, 
 parser.add_argument('--n', type=int, default=200)
 parser.add_argument('--init', type=int, default=3)
 parser.add_argument('--init_strategy', type=str, default='random_explore_first')
-parser.add_argument('--surrogate', type=str, default='gp', choices=['gp', 'gp_mcmc', 'prf', 'lightgbm', 'tpe'])
+parser.add_argument('--surrogate', type=str, default='gp', choices=['gp', 'gp_mcmc', 'prf', 'lightgbm', 'tpe', 'sk_prf'])
 parser.add_argument('--optimizer', type=str, default='local', choices=['scipy', 'local'])
 parser.add_argument('--rep', type=int, default=1)
 parser.add_argument('--start_id', type=int, default=0)

@@ -78,16 +78,26 @@ def build_optimizer(func_str='local_random', acq_func=None, config_space=None, r
                      rng=rng)
 
 
-def build_surrogate(func_str='prf', config_space=None, rng=None, history_hpo_data=None):
+def build_surrogate(func_str='gp', config_space=None, rng=None, history_hpo_data=None):
     assert config_space is not None
     func_str = func_str.lower()
     types, bounds = get_types(config_space)
     seed = rng.randint(MAXINT)
     if func_str == 'prf':
-        from openbox.surrogate.base.rf_with_instances import RandomForestWithInstances
-        return RandomForestWithInstances(types=types, bounds=bounds, seed=seed)
+        try:
+            from openbox.surrogate.base.rf_with_instances import RandomForestWithInstances
+            return RandomForestWithInstances(types=types, bounds=bounds, seed=seed)
+        except ModuleNotFoundError:
+            from openbox.surrogate.base.rf_with_instances_sklearn import skRandomForestWithInstances
+            print('[Build Surrogate] Use probabilistic random forest based on scikit-learn. For better performance, '
+                  'please install pyrfr.')
+            return skRandomForestWithInstances(types=types, bounds=bounds, seed=seed)
 
-    if func_str == 'lightgbm':
+    elif func_str == 'sk_prf':
+        from openbox.surrogate.base.rf_with_instances_sklearn import skRandomForestWithInstances
+        return skRandomForestWithInstances(types=types, bounds=bounds, seed=seed)
+
+    elif func_str == 'lightgbm':
         from openbox.surrogate.lightgbm import LightGBM
         return LightGBM(config_space, types=types, bounds=bounds, seed=seed)
 

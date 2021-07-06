@@ -37,10 +37,12 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--n', type=int, default=200)
 parser.add_argument('--mths', type=str, default=default_mths)
 parser.add_argument('--problem', type=str, default='branin')
+parser.add_argument('--save', type=int, default=1)
 
 args = parser.parse_args()
 max_runs = args.n
 mths = args.mths.split(',')
+save = bool(args.save)
 
 
 def fetch_color_marker(m_list):
@@ -159,6 +161,8 @@ if log_obj:
 else:
     plt.ylabel('Objective Value', fontsize=label_size)
     plt.ylabel('Objective Value', fontsize=label_size)
-#plt.savefig('surrogate_%s.pdf' % problem_str)
 plt.tight_layout()
-plt.show()
+if save:
+    plt.savefig('surrogate_%s.png' % problem_str, dpi=300)
+else:
+    plt.show()

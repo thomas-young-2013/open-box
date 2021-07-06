@@ -73,8 +73,6 @@ ln -s /usr/bin/swig3.0 /usr/bin/swig
 
 在所有系统下均可使用以下方法安装OpenBox。（请注意，如果您使用conda，需要先切换至对应的环境）
 
-我们建议Windows 10系统用户先阅读后面的**额外说明**。
-
 ### 2.1 通过PyPI安装（推荐）
 
 使用以下命令通过PyPI安装OpenBox：
@@ -189,16 +187,6 @@ if __name__ == '__main__':  # for Windows user, this line is necessary
 恭喜您已完成安装并通过测试！
 
 ## 4 额外说明
-
-### Windows 10系统安装lazy_import库编码错误解决方法
-
-我们建议在安装OpenBox系统以前，尝试使用以下命令安装lazy_import库：
-
-```bash
-pip install lazy_import
-```
-
-如果出现失败，请参考该链接解决：<https://blog.csdn.net/u014437141/article/details/106161018>
 
 ### macOS系统安装pyrfr库失败解决方法
 
