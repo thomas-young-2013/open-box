@@ -104,13 +104,13 @@ class Advisor(object, metaclass=abc.ABCMeta):
                     self.acq_type = 'ei'
                 assert self.acq_type in ['ei', 'eips', 'logei', 'pi', 'lcb', 'lpei', ]
                 if self.surrogate_type is None:
-                    self.surrogate_type = 'prf'
+                    self.surrogate_type = 'gp'
             else:  # with constraints
                 if self.acq_type is None:
                     self.acq_type = 'eic'
                 assert self.acq_type in ['eic', ]
                 if self.surrogate_type is None:
-                    self.surrogate_type = 'prf'
+                    self.surrogate_type = 'gp'
                 if self.constraint_surrogate_type is None:
                     self.constraint_surrogate_type = 'gp'
 
