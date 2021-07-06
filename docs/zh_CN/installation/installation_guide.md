@@ -34,8 +34,8 @@ python setup.py install
 
 ## 3 问题解答
 
-对于 macOS 用户，如果您在安装 pyrfr 时遇到了困难，请参考 [tips](./install-pyrfr-on-macos.md)。
+对于 macOS 用户，如果您在安装 pyrfr 时遇到了困难，请参考 [提示](./install-pyrfr-on-macos.md)。
 
-对于 macOS 用户，如果您在编译 scikit-learn 时遇到了困难。 [这个](./openmp_macos.md) 或许对你有帮助。
+对于 macOS 用户，如果您在编译 scikit-learn 时遇到了困难。 [该教程](./openmp_macos.md) 或许对你有帮助。
 
-对于 Windows 用户，如果您在安装 lazy_import 时遇到了困难，请参考 [tips](./install-lazy_import-on-windows.md)。
+对于 Windows 用户，如果您在安装 lazy_import 时遇到了困难，请参考 [提示](./install-lazy_import-on-windows.md)。

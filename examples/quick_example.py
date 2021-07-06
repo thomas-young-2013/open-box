@@ -47,7 +47,7 @@ if __name__ == "__main__":
 
     print(history)
 
-    print(history.get_importance())
+    # print(history.get_importance())
 
     history.plot_convergence(true_minimum=0.397887)
     plt.show()
