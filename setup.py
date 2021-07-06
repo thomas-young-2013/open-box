@@ -51,14 +51,14 @@ setup(
     long_description=readme(),
     long_description_content_type="text/markdown",
     url='https://github.com/thomas-young-2013/open-box',
-    author="Thomas (Yang) Li from DIR Lab@PKU",
+    author="Thomas (Yang) Li from DAIR Lab@PKU",
     packages=find_packages(),
     license="MIT",
     install_requires=requirements["main"],
     extras_require={"dev": requirements["dev"]},
     package_data={"open-box": ["py.typed"]},
     include_package_data=True,
-    python_requires='>=3.5.2',
+    python_requires='>=3.6.0',
     entry_points={
         "console_scripts": [
             "openbox = openbox.__main__:main",
