@@ -88,34 +88,31 @@ CONSTR             | SRN
 ### System Requirements
 
 Installation Requirements:
-+ Python >= 3.6
-+ SWIG >= 3.0.12
++ Python >= 3.6 (3.7 is recommended!)
 
-Make sure to install SWIG correctly before you install OpenBox.
-
-To install SWIG, please refer to [SWIG Installation Guide](https://github.com/thomas-young-2013/open-box/blob/master/docs/en/installation/install_swig.md)
+We STRONGLY suggest you to create an python environment via [Anaconda](https://www.anaconda.com/products/individual#Downloads):
+```bash
+conda create -n python3.7 python=3.7
+source activate python3.7
+```
 
 ### Installation from PyPI
 
 To install OpenBox from PyPI:
 
 ```bash
-pip install openbox
+pip install openbox --user
 ```
 
 ### Manual Installation from Source
 
-To install OpenBox from command line, please type the following commands on the command line:
+To install the newest version of OpenBox, please type the following scripts on the command line:
 
 ```bash
 git clone https://github.com/thomas-young-2013/open-box.git && cd open-box
-cat requirements/main.txt | xargs -n 1 -L 1 pip install
-python setup.py install
+python setup.py install --user --prefix=
 ```
 
-The tips for installing `pyrfr` on macOS is [here](https://github.com/thomas-young-2013/open-box/blob/master/docs/en/installation/install-pyrfr-on-macos.md). Please make sure you installed `pyrfr` correctly.
-
-The tips for installing `lazy_import` on Windows is [here](https://github.com/thomas-young-2013/open-box/blob/master/docs/en/installation/install-lazy_import-on-windows.md).
 
 ## Quick Start
 
