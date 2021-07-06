@@ -4,7 +4,6 @@ import time
 import numpy as np
 from typing import List
 from collections import OrderedDict
-from tensorboardX import SummaryWriter
 from openbox.utils.logging_utils import setup_logger, get_logger
 
 
@@ -24,7 +23,6 @@ class BOBase(object, metaclass=abc.ABCMeta):
         self.logger_name = None
         self.logger = self._get_logger(_logger_id)
         self.rng = np.random.RandomState(random_state)
-        self.writer = SummaryWriter(log_dir='logs/%s' % task_id)
 
         self.config_space = config_space
         self.objective_function = objective_function
