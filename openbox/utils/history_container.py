@@ -280,7 +280,7 @@ class HistoryContainer(object):
         except ModuleNotFoundError:
             self.logger.error(
                 'To use get_importance(), please install pyrfr: '
-                'https://github.com/thomas-young-2013/open-box/blob/master/docs/en/installation/install_pyrfr.md'
+                'https://open-box.readthedocs.io/en/latest/installation/install_pyrfr.html'
             )
             raise
         from openbox.utils.fanova import fANOVA
