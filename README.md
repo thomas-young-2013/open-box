@@ -90,7 +90,7 @@ CONSTR             | SRN
 Installation Requirements:
 + Python >= 3.6 (3.7 is recommended!)
 
-We STRONGLY suggest you to create an python environment via [Anaconda](https://www.anaconda.com/products/individual#Downloads):
+We **STRONGLY** suggest you to create a python environment via [Anaconda](https://www.anaconda.com/products/individual#Downloads):
 ```bash
 conda create -n python3.7 python=3.7
 source activate python3.7
