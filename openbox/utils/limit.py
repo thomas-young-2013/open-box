@@ -70,15 +70,15 @@ def no_time_limit_func(objective_function, time, *args, **kwargs):
 
 
 def time_limit(func, time, *args, **kwargs):
-    if _platform == 'Windows':
-        return no_time_limit_func(func, time, *args, **kwargs)
-
-    parent_conn, child_conn = Pipe(False)
-
     # Deal with special case in Bayesian optimization.
     if len(args) == 0 and 'args' in kwargs:
         args = kwargs['args']
         kwargs = kwargs['kwargs']
+
+    if _platform == 'Windows':
+        return no_time_limit_func(func, time, *args, **kwargs)
+
+    parent_conn, child_conn = Pipe(False)
 
     func = dill.dumps(func)
     args = [func] + [child_conn] + [time] + list(args)
