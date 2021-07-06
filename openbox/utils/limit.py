@@ -64,9 +64,15 @@ def wrapper_func(*args, **kwargs):
                 child.kill()
 
 
+def no_time_limit_func(objective_function, time, args, kwargs):
+    ret = objective_function(*args, **kwargs)
+    return Returns(timeout_status=False, results=ret)
+
+
 def time_limit(func, time, *args, **kwargs):
     if _platform == 'Windows':
-        freeze_support()
+        return no_time_limit_func(func, time, args, kwargs)
+
     parent_conn, child_conn = Pipe(False)
 
     # Deal with special case in Bayesian optimization.
@@ -89,29 +95,3 @@ def time_limit(func, time, *args, **kwargs):
     if result[0] is True:
         return Returns(timeout_status=True, results=None)
     return Returns(timeout_status=False, results=result[1])
-
-
-@DeprecationWarning
-def ps_time_limit(func, args, kwargs, time):
-    Returns = namedtuple('return_values', ['status', 'results'])
-    with Manager() as manager:
-        result_container = manager.list()
-        args = list(args) + [result_container]
-        p1 = Process(target=func, args=tuple(args), kwargs=kwargs)
-        p1.start()
-        # def on_terminate(proc):
-        #     print("process {} terminated with exit code {}".format(proc, proc.returncode))
-        procs = psutil.Process().children()
-        # print(p1.pid)
-        # print(os.getpid(), psutil.Process().pid)
-        # print(procs)
-        procs = [p for p in procs if p.pid == p1.pid]
-        # print(procs)
-        gone, alive = psutil.wait_procs(procs, timeout=time)
-        result = list(result_container)
-
-    if len(alive) > 0:
-        for p in alive:
-            p.kill()
-        return Returns(status=False, results=None)
-    return Returns(status=True, results=result)
