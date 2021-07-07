@@ -78,6 +78,9 @@ def time_limit(func, time, *args, **kwargs):
     if _platform == 'Windows':
         return no_time_limit_func(func, time, *args, **kwargs)
 
+    if _platform == 'OSX' and sys.version_info >= (3, 8):
+        return no_time_limit_func(func, time, *args, **kwargs)
+
     parent_conn, child_conn = Pipe(False)
 
     func = dill.dumps(func)
