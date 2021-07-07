@@ -92,8 +92,13 @@ Installation Requirements:
 
 We **STRONGLY** suggest you to create a python environment via [Anaconda](https://www.anaconda.com/products/individual#Downloads):
 ```bash
-conda create -n python3.7 python=3.7
-source activate python3.7
+conda create -n openbox3.7 python=3.7
+source activate openbox3.7
+```
+
+Then we recommend you to update your `pip` and `setuptools` as follows:
+```bash
+pip install pip setuptools --upgrade --user
 ```
 
 ### Installation from PyPI
@@ -110,6 +115,7 @@ To install the newest version of OpenBox, please type the following scripts on t
 
 ```bash
 git clone https://github.com/thomas-young-2013/open-box.git && cd open-box
+cat requirements/main.txt | xargs -n 1 -L 1 pip install
 python setup.py install --user --prefix=
 ```
 
