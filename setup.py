@@ -11,10 +11,16 @@ from setuptools import find_packages
 requirements = dict()
 for extra in ["dev", "main"]:
     # Skip `package @ git+[repo_url]` because not supported by pypi
-    requirements[extra] = [r
-                           for r in Path("requirements/%s.txt" % extra).read_text().splitlines()
-                           if '@' not in r
-                           ]
+    if (3, 6) <= sys.version_info < (3, 7):
+        requirements[extra] = [r
+                               for r in Path("requirements/%s_py36.txt" % extra).read_text().splitlines()
+                               if '@' not in r
+                               ]
+    else:
+        requirements[extra] = [r
+                               for r in Path("requirements/%s.txt" % extra).read_text().splitlines()
+                               if '@' not in r
+                               ]
 
 # Find version number
 spec = importlib.util.spec_from_file_location("openbox.pkginfo", str(Path(__file__).parent / "openbox" / "pkginfo.py"))
@@ -38,26 +44,6 @@ def get_platform():
     return platforms[sys.platform]
 
 platform = get_platform()
-
-# Check the version of Python.
-if sys.version_info < (3, 6):
-    raise RuntimeError('%s requires at least Python 3.6!' % package_name)
-
-# Special settings of requirements for the Python 3.6.
-if (3, 6) <= sys.version_info < (3, 7):
-    for extra in ["dev", "main"]:
-        reqs = list()
-        for req in requirements[extra]:
-            if req.startswith('scipy'):
-                reqs.append('scipy>=0.18.1,<1.5.5')
-            elif req.startswith('matplotlib'):
-                reqs.append('matplotlib<3.3.5')
-            else:
-                if platform == 'Windows' and req.startswith('pandas'):
-                    reqs.append('pandas<1.1.6')
-                else:
-                    reqs.append(req)
-        requirements[extra] = reqs
 
 
 # Get readme strings.
