@@ -131,7 +131,8 @@ history.visualize_jupyter()
 <img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/visualize_jupyter_branin.png" width="90%">
 </p>
 
-Call <font color=#FF0000>**print(history.get_importance())**</font> print the hyperparameter importance:
+Call <font color=#FF0000>**print(history.get_importance())**</font> to print the hyperparameter importance
+(Note that you need to install the `pyrfr` package to use this function. [Pyrfr Installation Guide](../installation/install_pyrfr.md)):
 
 ```python
 print(history.get_importance())

@@ -90,10 +90,10 @@ CONSTR             | SRN
 Installation Requirements:
 + Python >= 3.6 (3.7 is recommended!)
 
-We **STRONGLY** suggest you to create a python environment via [Anaconda](https://www.anaconda.com/products/individual#Downloads):
+We **STRONGLY** suggest you to create a Python environment via [Anaconda](https://www.anaconda.com/products/individual#Downloads):
 ```bash
 conda create -n openbox3.7 python=3.7
-source activate openbox3.7
+conda activate openbox3.7
 ```
 
 Then we recommend you to update your `pip` and `setuptools` as follows:
@@ -119,6 +119,7 @@ cat requirements/main.txt | xargs -n 1 -L 1 pip install
 python setup.py install --user --prefix=
 ```
 
+For more detailed installation instructions, please refer to our [Installation Guide Document](https://open-box.readthedocs.io/en/latest/installation/installation_guide.html).
 
 ## Quick Start
 
