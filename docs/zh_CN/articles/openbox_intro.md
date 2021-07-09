@@ -114,17 +114,17 @@ OpenBox代码已在Github开源，项目地址：<https://github.com/thomas-youn
 
 #### 数学函数优化
 
-首先，我们使用ConfigSpace库定义输入参数空间，并定义优化目标函数（最小化），这里我们使用Branin函数。
+首先，我们定义输入参数空间，并定义优化目标函数（最小化），这里我们使用Branin函数。
 
 ```python
 import numpy as np
-from openbox.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter
+from openbox import sp
 
-# Define Configuration Space
-config_space = ConfigurationSpace()
-x1 = UniformFloatHyperparameter("x1", -5, 10, default_value=0)
-x2 = UniformFloatHyperparameter("x2", 0, 15, default_value=0)
-config_space.add_hyperparameters([x1, x2])
+# Define Search Space
+space = sp.Space()
+x1 = sp.Real("x1", -5, 10, default_value=0)
+x2 = sp.Real("x2", 0, 15, default_value=0)
+space.add_variables([x1, x2])
 
 # Define Objective Function
 def branin(config):
@@ -133,12 +133,12 @@ def branin(config):
     return y
 ```
 
-接下来，我们调用OpenBox贝叶斯优化框架SMBO执行优化。这里我们设置max_runs=50，代表目标函数将计算50次。
+接下来，我们调用OpenBox优化框架Optimizer执行优化。这里我们设置max_runs=50，代表目标函数将计算50次。
 
 ```python
-from openbox.optimizer.generic_smbo import SMBO
-bo = SMBO(branin, config_space, max_runs=50, task_id='quick_start')
-history = bo.run()
+from openbox import Optimizer
+opt = Optimizer(branin, space, max_runs=50, task_id='quick_start')
+history = opt.run()
 ```
 
 优化结束后，打印优化结果如下：
@@ -259,12 +259,12 @@ def objective_function(config):
     return result
 ```
 
-定义好任务和目标函数以后，就可以调用OpenBox贝叶斯优化框架SMBO的封装接口执行优化。优化结束后，可以打印优化结果。
+定义好任务和目标函数以后，就可以调用OpenBox优化框架Optimizer的封装接口执行优化。优化结束后，可以打印优化结果。
 
 ```python
-from openbox.utils.start_smbo import create_smbo
-bo = create_smbo(objective_function, **config_dict)
-history = bo.run()
+from openbox import create_optimizer
+opt = create_optimizer(objective_function, **config_dict)
+history = opt.run()
 ```
 
 打印优化结果如下：
@@ -304,6 +304,8 @@ history.visualize_jupyter()
 系统还集成了超参数敏感度分析功能，依据此次任务分析超参数重要性如下：
 
 ```python
+print(history.get_importance())
+
 +--------------------------------+
 | Parameters        | Importance |
 +-------------------+------------+

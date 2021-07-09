@@ -20,7 +20,7 @@ conda activate openbox3.7
 
 Then we recommend you to update your `pip` and `setuptools` as follows:
 ```bash
-pip install pip setuptools --upgrade --user
+pip install pip setuptools --upgrade
 ```
 
 ## 3 Install OpenBox
