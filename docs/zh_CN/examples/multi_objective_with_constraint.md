@@ -6,8 +6,7 @@
 ## 问题设置
 
 本例中，我们使用带约束的多目标优化问题 CONSTR 作为例子。
-由于CONSTR是一个内置函数，其搜索空间和目标函数可被包装如下：
-
+OpenBox内置了CONSTR函数，其搜索空间和目标函数被包装如下：
 
 ```python
 from openbox.benchmark.objective_functions.synthetic import CONSTR
@@ -18,30 +17,16 @@ initial_runs = 2 * (dim + 1)
 ```
 
 ```python
-from openbox.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter
-params = {'x1': (0.1, 10.0),
-                  'x2': (0.0, 5.0)}
-config_space = ConfigurationSpace()
-config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
-```
-
-```python
 import numpy as np
-from typing import Union
-from openbox.utils.config_space import Configuration
+from openbox import sp
+params = {'x1': (0.1, 10.0),
+          'x2': (0.0, 5.0)}
+space = sp.Space()
+space.add_variables([sp.Real(k, *v) for k, v in params.items()])
 
-def evaluate(self, config: Union[Configuration, np.ndarray], convert=True):
-    if convert:
-        X = np.array(list(config.get_dictionary().values()))
-    else:
-        X = config
-    result = self._evaluate(X)
-    result['objs'] = [e + self.noise_std*self.rng.randn() for e in result['objs']]
-    if 'constraint' in result:
-        result['constraint'] = [e + self.noise_std*self.rng.randn() for e in result['constraint']]
-    return result
+def objective_funtion(config: sp.Configuration):
+    X = np.array(list(config.get_dictionary().values()))
 
-def _evaluate(X):
     result = dict()
     obj1 = X[..., 0]
     obj2 = (1.0 + X[..., 1]) / X[..., 0]
@@ -64,29 +49,30 @@ def _evaluate(X):
  非正的约束值 (**"<=0"**) 表示可行。
 
 
-
 ## 优化
 
 ```python
-from openbox.optimizer.generic_smbo import SMBO
-bo = SMBO(prob.evaluate,
-          prob.config_space,
-          num_objs=prob.num_objs,
-          num_constraints=prob.num_constraints,
-          max_runs=100,
-          surrogate_type='gp',
-          acq_type='ehvic',
-          acq_optimizer_type='random_scipy',
-          initial_runs=initial_runs,
-          init_strategy='sobol',
-          ref_point=prob.ref_point,
-          time_limit_per_trial=10,
-          task_id='moc',
-          random_state=1)
-bo.run()
+from openbox import Optimizer
+opt = Optimizer(
+    prob.evaluate,
+    prob.config_space,
+    num_objs=prob.num_objs,
+    num_constraints=prob.num_constraints,
+    max_runs=100,
+    surrogate_type='gp',
+    acq_type='ehvic',
+    acq_optimizer_type='random_scipy',
+    initial_runs=initial_runs,
+    init_strategy='sobol',
+    ref_point=prob.ref_point,
+    time_limit_per_trial=10,
+    task_id='moc',
+    random_state=1,
+)
+opt.run()
 ```
 
-这里我们创建一个 <font color=#FF0000>**SMBO**</font> 实例，给他传目标函数和搜索空间。
+这里我们创建一个 <font color=#FF0000>**Optimizer**</font> 实例，并传入目标函数和搜索空间。
 其它的参数是：
 
 + **num_objs** 和 **num_constraints** 设置目标函数将返回多少目标和约束。在这个例子中，**num_objs=2**，**num_constraints=2**。
@@ -113,18 +99,18 @@ bo.run()
 
 + **task_id** 用来识别优化过程。
 
-然后，调用 <font color=#FF0000>**bo.run()**</font> 启动优化过程。
+然后，调用 <font color=#FF0000>**opt.run()**</font> 启动优化过程。
 
 ## 可视化
 
 由于我们同时优化了这两个目标，我们得到了一个pareto front作为结果。
-调用 <font color=#FF0000>**bo.get_history().get_pareto_front()**</font> 来获取pareto front。
+调用 <font color=#FF0000>**opt.get_history().get_pareto_front()**</font> 来获取pareto front。
 
 ```python
 import numpy as np
 import matplotlib.pyplot as plt
 # plot pareto front
-pareto_front = np.asarray(bo.get_history().get_pareto_front())
+pareto_front = np.asarray(opt.get_history().get_pareto_front())
 if pareto_front.shape[-1] in (2, 3):
     if pareto_front.shape[-1] == 2:
         plt.scatter(pareto_front[:, 0], pareto_front[:, 1])
@@ -144,11 +130,11 @@ if pareto_front.shape[-1] in (2, 3):
 <img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/plot_pareto_front_constr.png" width="60%">
 </p>
 
-然后绘制优化过程中与理想pareto front相比的hypervolumn差。
+然后绘制优化过程中与理想pareto front相比的hypervolume差。
 
 ```python
 # plot hypervolume
-hypervolume = bo.get_history().hv_data
+hypervolume = opt.get_history().hv_data
 max_hv = 92.02004226679216
 log_hv_diff = np.log10(max_hv - np.asarray(hypervolume))
 plt.plot(log_hv_diff)

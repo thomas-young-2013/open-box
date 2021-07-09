@@ -4,14 +4,14 @@ In this tutorial, we will introduce how to optimize a constrained problem with *
 
 ## Problem Setup
 
-First, **define configuration space** to search and **define objective function**
+First, **define search space** and **define objective function**
 to <font color=#FF0000>**minimize**</font>. Here we use the constrained **Mishra** function.
 
 ```python
 import numpy as np
-from openbox.utils.config_space import ConfigurationSpace, Configuration, UniformFloatHyperparameter
+from openbox import sp
 
-def mishra(config: Configuration):
+def mishra(config: sp.Configuration):
     config_dict = config.get_dictionary()
     X = np.array([config_dict['x%d' % i] for i in range(2)])
     x, y = X[0], X[1]
@@ -30,9 +30,10 @@ params = {
         'x1': (-6.5, 0, -3.25)
     }
 }
-cs = ConfigurationSpace()
-cs.add_hyperparameters([UniformFloatHyperparameter(name, *para)
-                        for name, para in params['float'].items()])
+space = sp.Space()
+space.add_variables([
+    sp.Real(name, *para) for name, para in params['float'].items()
+])
 ```
 
 After evaluation, the objective function returns a <font color=#FF0000>**dict (Recommended)**.</font>
@@ -46,24 +47,27 @@ Non-positive constraint values (**"<=0"**) imply feasibility.
 
 ## Optimization
 
-After defining the configuration space and the objective function, we can run the optimization process as follows:
+After defining the search space and the objective function, we can run the optimization process as follows:
 
 ```python
-from openbox.optimizer.generic_smbo import SMBO
+from openbox import Optimizer
 
-bo = SMBO(mishra,
-          cs,
-          num_constraints=1,
-          num_objs=1,
-          acq_optimizer_type='random_scipy',
-          max_runs=50,
-          time_limit_per_trial=10,
-          task_id='soc')
-history = bo.run()
+opt = Optimizer(
+    mishra,
+    space,
+    num_constraints=1,
+    num_objs=1,
+    surrogate_type='gp',
+    acq_optimizer_type='random_scipy',
+    max_runs=50,
+    time_limit_per_trial=10,
+    task_id='soc',
+)
+history = opt.run()
 ```
 
-Here we create a <font color=#FF0000>**SMBO**</font> instance, and pass the objective function 
-and the configuration space to it. 
+Here we create a <font color=#FF0000>**Optimizer**</font> instance, and pass the objective function 
+and the search space to it. 
 The other parameters are:
 
 + **num_objs=1** and **num_constraints=1** indicate that our function returns a single value with one constraint. 
@@ -75,16 +79,16 @@ evaluation time exceeds this limit, objective function will return as a failed t
 
 + **task_id** is set to identify the optimization process.
 
-Then, <font color=#FF0000>**bo.run()**</font> is called to start the optimization process.
+Then, <font color=#FF0000>**opt.run()**</font> is called to start the optimization process.
 
 ## Visualization
 
-After the optimization, bo.run() returns the optimization history. Or you can call 
-<font color=#FF0000>**bo.get_history()**</font> to get the history.
+After the optimization, opt.run() returns the optimization history. Or you can call 
+<font color=#FF0000>**opt.get_history()**</font> to get the history.
 Then, call print(history) to see the result:
 
 ```python
-history = bo.get_history()
+history = opt.get_history()
 print(history)
 ```
 

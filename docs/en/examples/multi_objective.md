@@ -5,7 +5,7 @@ In this tutorial, we will introduce how to optimize multi-objective problems wit
 ## Problem Setup
 
 We use the multi-objective problem ZDT2 with three input dims in this example. As ZDT2 is a built-in function, 
-its configuration space and objective function is wrapped as follows:
+its search space and objective function are wrapped as follows:
 
 ```python
 from openbox.benchmark.objective_functions.synthetic import ZDT2
@@ -15,29 +15,14 @@ prob = ZDT2(dim=dim)
 ```
 
 ```python
-from openbox.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter
-params = {'x%d' % i: (0, 1) for i in range(1, dim+1)}
-config_space = ConfigurationSpace()
-config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
-```
-
-```python
 import numpy as np
-from typing import Union
-from openbox.utils.config_space import Configuration
+from openbox import sp
+params = {'x%d' % i: (0, 1) for i in range(1, dim+1)}
+space = sp.Space()
+space.add_variables([sp.Real(k, *v) for k, v in params.items()])
 
-def evaluate(self, config: Union[Configuration, np.ndarray], convert=True):
-    if convert:
-        X = np.array(list(config.get_dictionary().values()))
-    else:
-        X = config
-    result = self._evaluate(X)
-    result['objs'] = [e + self.noise_std*self.rng.randn() for e in result['objs']]
-    if 'constraint' in result:
-        result['constraint'] = [e + self.noise_std*self.rng.randn() for e in result['constraint']]
-    return result
-
-def _evaluate(X):
+def objective_function(config: sp.Configuration):
+    X = np.array(list(config.get_dictionary().values()))
     f_0 = X[..., 0]
     g = 1 + 9 * X[..., 1:].mean(axis=-1)
     f_1 = g * (1 - (f_0 / g)**2)
@@ -60,26 +45,28 @@ Non-positive constraint values (**"<=0"**) imply feasibility.
 ## Optimization
 
 ```python
-from openbox.optimizer.generic_smbo import SMBO
-bo = SMBO(prob.evaluate,
-          prob.config_space,
-          num_objs=prob.num_objs,
-          num_constraints=0,
-          max_runs=50,
-          surrogate_type='gp',
-          acq_type='ehvi',
-          acq_optimizer_type='random_scipy',
-          initial_runs=2*(dim+1),
-          init_strategy='sobol',
-          ref_point=prob.ref_point,
-          time_limit_per_trial=10,
-          task_id='mo',
-          random_state=1)
-bo.run()
+from openbox import Optimizer
+opt = Optimizer(
+    prob.evaluate,
+    prob.config_space,
+    num_objs=prob.num_objs,
+    num_constraints=0,
+    max_runs=50,
+    surrogate_type='gp',
+    acq_type='ehvi',
+    acq_optimizer_type='random_scipy',
+    initial_runs=2*(dim+1),
+    init_strategy='sobol',
+    ref_point=prob.ref_point,
+    time_limit_per_trial=10,
+    task_id='mo',
+    random_state=1,
+)
+opt.run()
 ```
 
-Here we create a <font color=#FF0000>**SMBO**</font> instance, and pass the objective function 
-and the configuration space to it. 
+Here we create a <font color=#FF0000>**Optimizer**</font> instance, and pass the objective function 
+and the search space to it. 
 The other parameters are:
 
 + **num_objs** and **num_constraints** set how many objectives and constraints the objective function will return.
@@ -111,19 +98,19 @@ evaluation time exceeds this limit, objective function will return as a failed t
 
 + **task_id** is set to identify the optimization process.
 
-Then, <font color=#FF0000>**bo.run()**</font> is called to start the optimization process.
+Then, <font color=#FF0000>**opt.run()**</font> is called to start the optimization process.
 
 ## Visualization
 
 Since we optimize both objectives at the same time, we get a pareto front as the result.
-Call <font color=#FF0000>**bo.get_history().get_pareto_front()**</font> to get the pareto front.
+Call <font color=#FF0000>**opt.get_history().get_pareto_front()**</font> to get the pareto front.
 
 ```python
 import numpy as np
 import matplotlib.pyplot as plt
 
 # plot pareto front
-pareto_front = np.asarray(bo.get_history().get_pareto_front())
+pareto_front = np.asarray(opt.get_history().get_pareto_front())
 if pareto_front.shape[-1] in (2, 3):
     if pareto_front.shape[-1] == 2:
         plt.scatter(pareto_front[:, 0], pareto_front[:, 1])
@@ -147,7 +134,7 @@ Then plot the hypervolume difference during the optimization compared to the ide
 
 ```python
 # plot hypervolume
-hypervolume = bo.get_history().hv_data
+hypervolume = opt.get_history().hv_data
 log_hv_diff = np.log10(prob.max_hv - np.asarray(hypervolume))
 plt.plot(log_hv_diff)
 plt.xlabel('Iteration')
