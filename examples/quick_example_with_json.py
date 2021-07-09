@@ -1,32 +1,26 @@
+import numpy as np
 import matplotlib.pyplot as plt
-from openbox.utils.start_smbo import create_smbo
+from openbox import create_optimizer
 
 
-def branin(x):
-    import numpy as np
-    xs = x.get_dictionary()
-    x1 = xs['x1']
-    x2 = xs['x2']
-    a = 1.
-    b = 5.1 / (4. * np.pi ** 2)
-    c = 5. / np.pi
-    r = 6.
-    s = 10.
-    t = 1. / (8. * np.pi)
-    ret = a * (x2 - b * x1 ** 2 + c * x1 - r) ** 2 + s * (1 - t) * np.cos(x1) + s
-    return {'objs': (ret,)}
+# Define Objective Function
+def branin(config):
+    x1, x2 = config['x1'], config['x2']
+    y = (x2 - 5.1 / (4 * np.pi ** 2) * x1 ** 2 + 5 / np.pi * x1 - 6) ** 2 \
+        + 10 * (1 - 1 / (8 * np.pi)) * np.cos(x1) + 10
+    return {'objs': (y, )}
 
 
 config_dict = {
     "optimizer": "SMBO",
     "parameters": {
         "x1": {
-            "type": "float",
+            "type": "real",
             "bound": [-5, 10],
             "default": 0
         },
         "x2": {
-            "type": "float",
+            "type": "real",
             "bound": [0, 15]
         },
     },
@@ -34,14 +28,13 @@ config_dict = {
     "max_runs": 50,
     "surrogate_type": 'gp',
     "time_limit_per_trial": 5,
-    "logging_dir": 'logs',
-    "task_id": 'hp1'
+    "task_id": 'quick_example'
 }
 
 
 if __name__ == "__main__":
-    bo = create_smbo(branin, **config_dict)
-    history = bo.run()
+    opt = create_optimizer(branin, **config_dict)
+    history = opt.run()
 
     print(history)
     history.plot_convergence(true_minimum=0.397887)

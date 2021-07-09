@@ -125,14 +125,13 @@ For more detailed installation instructions, please refer to our [Installation G
 
 ```python
 import numpy as np
-from openbox.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter
-from openbox.optimizer.generic_smbo import SMBO
+from openbox import Optimizer, sp
 
-# Define Configuration Space
-config_space = ConfigurationSpace()
-x1 = UniformFloatHyperparameter("x1", -5, 10, default_value=0)
-x2 = UniformFloatHyperparameter("x2", 0, 15, default_value=0)
-config_space.add_hyperparameters([x1, x2])
+# Define Search Space
+space = sp.Space()
+x1 = sp.Real("x1", -5, 10, default_value=0)
+x2 = sp.Real("x2", 0, 15, default_value=0)
+space.add_variables([x1, x2])
 
 # Define Objective Function
 def branin(config):
@@ -142,8 +141,8 @@ def branin(config):
 
 # Run
 if __name__ == '__main__':
-    bo = SMBO(branin, config_space, max_runs=50, task_id='quick_start')
-    history = bo.run()
+    opt = Optimizer(branin, space, max_runs=50, task_id='quick_start')
+    history = opt.run()
     print(history)
 ```
 

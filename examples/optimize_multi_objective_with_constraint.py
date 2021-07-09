@@ -1,11 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from openbox.utils.config_space import Configuration, ConfigurationSpace, UniformFloatHyperparameter
-from openbox.optimizer.generic_smbo import SMBO
+from openbox import Optimizer, sp
 
 
 # objective function
-def CONSTR(config: Configuration):
+def CONSTR(config: sp.Configuration):
     x1, x2 = config['x1'], config['x2']
     
     obj1 = x1
@@ -21,35 +20,36 @@ def CONSTR(config: Configuration):
 
 
 if __name__ == "__main__":
-    # configuration space
-    config_space = ConfigurationSpace()
-    x1 = UniformFloatHyperparameter("x1", 0.1, 10.0)
-    x2 = UniformFloatHyperparameter("x2", 0.0, 5.0)
-    config_space.add_hyperparameters([x1, x2])
-
+    # search space
+    space = sp.Space()
+    x1 = sp.Real("x1", 0.1, 10.0)
+    x2 = sp.Real("x2", 0.0, 5.0)
+    space.add_variables([x1, x2])
 
     # provide reference point if using EHVI method
     ref_point = [10.0, 10.0]
 
     # run
-    bo = SMBO(CONSTR,
-              config_space,
-              num_objs=2,
-              num_constraints=2,
-              max_runs=20,
-              surrogate_type='gp',
-              acq_type='ehvic',
-              acq_optimizer_type='random_scipy',
-              initial_runs=6,
-              init_strategy='sobol',
-              ref_point=ref_point,
-              time_limit_per_trial=10,
-              task_id='moc',
-              random_state=1)
-    bo.run()
+    opt = Optimizer(
+        CONSTR,
+        space,
+        num_objs=2,
+        num_constraints=2,
+        max_runs=20,
+        surrogate_type='gp',
+        acq_type='ehvic',
+        acq_optimizer_type='random_scipy',
+        initial_runs=6,
+        init_strategy='sobol',
+        ref_point=ref_point,
+        time_limit_per_trial=10,
+        task_id='moc',
+        random_state=1,
+    )
+    opt.run()
 
     # plot pareto front
-    pareto_front = np.asarray(bo.get_history().get_pareto_front())
+    pareto_front = np.asarray(opt.get_history().get_pareto_front())
     if pareto_front.shape[-1] in (2, 3):
         if pareto_front.shape[-1] == 2:
             plt.scatter(pareto_front[:, 0], pareto_front[:, 1])

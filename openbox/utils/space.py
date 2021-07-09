@@ -2,6 +2,8 @@
 # The comments are modified based on https://github.com/automl/ConfigSpace/blob/master/ConfigSpace/hyperparameters.pyx
 from typing import List, Dict, Tuple, Union, Optional
 import ConfigSpace as CS
+from ConfigSpace import EqualsCondition, InCondition, ForbiddenAndConjunction, ForbiddenEqualsClause, ForbiddenInClause
+from ConfigSpace import ConfigurationSpace, Configuration
 
 
 # Hyperparameters
@@ -93,6 +95,9 @@ class Real(CS.UniformFloatHyperparameter, Variable):
         super().__init__(name=name, lower=lower, upper=upper,
                          default_value=default_value, q=q,
                          log=log, meta=meta)
+
+
+Float = Real
 
 
 class Categorical(CS.CategoricalHyperparameter, Variable):

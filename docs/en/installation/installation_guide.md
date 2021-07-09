@@ -81,7 +81,7 @@ if __name__ == '__main__':
 
 If you encountered any problem during installation, please refer to the **Trouble Shooting** section.
 
-## 4 Installation for Advanced Usage
+## 4 Installation for Advanced Usage (Optional)
 
 To use advanced features such as `pyrfr` (probabilistic random forest) surrogate and get hyper-parameter 
 importance from history, please refer to [Pyrfr Installation Guide](./install_pyrfr.md) to install `pyrfr`.
