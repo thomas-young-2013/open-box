@@ -4,32 +4,33 @@ This tutorial helps you run your first example with **OpenBox**.
 
 ## Space Definition
 
-First, define a configuration space using the package **ConfigSpace**.
+First, define a search space.
 
 ```python
-from openbox.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter
+from openbox import sp
 
-# Define Configuration Space
-config_space = ConfigurationSpace()
-x1 = UniformFloatHyperparameter("x1", -5, 10, default_value=0)
-x2 = UniformFloatHyperparameter("x2", 0, 15, default_value=0)
-config_space.add_hyperparameters([x1, x2])
+# Define Search Space
+space = sp.Space()
+x1 = sp.Real("x1", -5, 10, default_value=0)
+x2 = sp.Real("x2", 0, 15, default_value=0)
+space.add_variables([x1, x2])
 ```
 
-In this example, we create an empty configuration space, and then add two uniformly distributed float hyperparameters into it.
-The first hyperparameter **x1** ranges from -5 to 10, and the second one **x2** ranges from 0 to 15.
+In this example, we create an empty search space, and then add two real (floating-point) variables into it.
+The first variable **x1** ranges from -5 to 10, and the second one **x2** ranges from 0 to 15.
 
-The package **ConfigSpace** also supports other types of hyperparameters.
-Here are examples of how to define **Integer** and **Categorical** hyperparameters:
+OpenBox also supports other types of variables.
+Here are examples of how to define **Integer** and **Categorical** variables:
 
 ```python
-from openbox.utils.config_space import UniformIntegerHyperparameter, CategoricalHyperparameter
+from openbox import sp
 
-i = UniformIntegerHyperparameter("i", 0, 100) 
-kernel = CategoricalHyperparameter("kernel", ["rbf", "poly", "sigmoid"], default_value="rbf")
+i = sp.Int("i", 0, 100) 
+kernel = sp.Categorical("kernel", ["rbf", "poly", "sigmoid"], default_value="rbf")
 ```
 
-For advanced usage of **ConfigSpace**, please refer to [ConfigSpace’s documentation](https://automl.github.io/ConfigSpace/master/index.html).
+The **Space** in **OpenBox** is implemented based on **ConfigSpace** package.
+For advanced usage, please refer to [ConfigSpace’s documentation](https://automl.github.io/ConfigSpace/master/index.html).
 
 ## Objective Definition
 
@@ -47,31 +48,31 @@ def branin(config):
     return y
 ```
 
-The objective function takes as input a configuration sampled from **ConfigurationSpace**
+The objective function takes as input a configuration sampled from **space**
 and outputs the objective value.
 
 ## Optimization
 
-After defining the configuration space and the objective function, we can run the optimization process 
+After defining the search space and the objective function, we can run the optimization process 
 as follows:
 
 ```python
-from openbox.optimizer.generic_smbo import SMBO
+from openbox import Optimizer
 
-# Run Optimization
-bo = SMBO(branin,
-          config_space,
-          num_objs=1,
-          num_constraints=0,
-          max_runs=50,
-          surrogate_type='gp',
-          time_limit_per_trial=180,
-          task_id='quick_start')
-history = bo.run()
+# Run
+opt = Optimizer(
+    branin,
+    space,
+    max_runs=50,
+    surrogate_type='gp',
+    time_limit_per_trial=30,
+    task_id='quick_start',
+)
+history = opt.run()
 ```
 
-Here we create a <font color=#FF0000>**SMBO**</font> instance, and pass the objective function **branin** and the 
-configuration space **config_space** to it. The other parameters are:
+Here we create a <font color=#FF0000>**Optimizer**</font> instance, and pass the objective function **branin** and the 
+search space **space** to it. The other parameters are:
 
 + **num_objs=1** and **num_constraints=0** indicates our branin function returns a single value with no 
 constraint. 
@@ -86,11 +87,11 @@ evaluation time exceeds this limit, objective function will return as a failed t
 
 + **task_id** is set to identify the optimization process.
 
-Then, <font color=#FF0000>**bo.run()**</font> is called to start the optimization process.
+Then, <font color=#FF0000>**opt.run()**</font> is called to start the optimization process.
 
 ## Visualization
 
-After the optimization, **bo.run()** returns the optimization history.
+After the optimization, **opt.run()** returns the optimization history.
 Call <font color=#FF0000>**print(history)**</font> to see the result:
 
 ```python
@@ -120,8 +121,8 @@ history.plot_convergence(true_minimum=0.397887)
 <img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/plot_convergence_branin.png" width="60%">
 </p>
 
-If you are using the Jupyter Notebook environment, call <font color=#FF0000>**history.visualize_jupyter()**</font> for visualization of 
-each trial:
+If you are using the Jupyter Notebook environment, call <font color=#FF0000>**history.visualize_jupyter()**</font> for 
+visualization of each trial:
 
 ```python
 history.visualize_jupyter()
@@ -131,8 +132,8 @@ history.visualize_jupyter()
 <img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/visualize_jupyter_branin.png" width="90%">
 </p>
 
-Call <font color=#FF0000>**print(history.get_importance())**</font> to print the hyperparameter importance
-(Note that you need to install the `pyrfr` package to use this function. [Pyrfr Installation Guide](../installation/install_pyrfr.md)):
+Call <font color=#FF0000>**print(history.get_importance())**</font> to print the parameter importance:
+(Note that you need to install the `pyrfr` package to use this function. [Pyrfr Installation Guide](../installation/install_pyrfr.md))
 
 ```python
 print(history.get_importance())

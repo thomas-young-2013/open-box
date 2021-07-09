@@ -185,6 +185,13 @@ class Ordinal(CS.OrdinalHyperparameter, Variable):
         super().__init__(name=name, sequence=sequence, default_value=default_value, meta=meta)
 
 
+class Constant(CS.Constant, Variable):
+    def __init__(
+            self, *args, **kwargs,
+    ) -> None:
+        super().__init__(*args, **kwargs)
+
+
 class Space(CS.ConfigurationSpace):
     def __init__(
             self,

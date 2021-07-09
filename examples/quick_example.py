@@ -24,6 +24,7 @@ if __name__ == "__main__":
         branin,
         space,
         max_runs=50,
+        surrogate_type='gp',
         time_limit_per_trial=30,
         task_id='quick_start',
     )

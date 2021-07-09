@@ -1,10 +1,10 @@
 # 单目标的黑盒优化
 
-本教程介绍如何使用**OpenBox**为ML任务调超参数。
+本教程介绍如何使用**OpenBox**为机器学习任务调优超参数。
 
 ## 数据准备
 
-首先，给ML模型 **准备数据**。
+首先，给机器学习模型 **准备数据**。
 这里我们用sklearn中的digits数据集。
 
 
@@ -19,33 +19,31 @@ x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratif
 
 ## 问题设置
 
-第二，定义搜索的**搜索空间**和想要<font color=#FF0000>**最小化**</font>的**目标函数**。
-这里，我们使用 [LightGBM](https://lightgbm.readthedocs.io/en/latest/)  -- 一个微软开发的梯度提升算法框架作为分类模型。
+其次，定义**搜索空间**和想要<font color=#FF0000>**最小化**</font>的**目标函数**。
+这里，我们使用 [LightGBM](https://lightgbm.readthedocs.io/en/latest/)  -- 一个由微软开发的梯度提升算法框架作为分类模型。
 
 
 ```python
-from openbox.utils.config_space import ConfigurationSpace, Configuration
-from openbox.utils.config_space import UniformFloatHyperparameter, \
-    CategoricalHyperparameter, Constant, UniformIntegerHyperparameter
+from openbox import sp
 from sklearn.metrics import balanced_accuracy_score
 from lightgbm import LGBMClassifier
 
 
 def get_configspace():
-    cs = ConfigurationSpace()
-    n_estimators = UniformIntegerHyperparameter("n_estimators", 100, 1000, default_value=500, q=50)
-    num_leaves = UniformIntegerHyperparameter("num_leaves", 31, 2047, default_value=128)
-    max_depth = Constant('max_depth', 15)
-    learning_rate = UniformFloatHyperparameter("learning_rate", 1e-3, 0.3, default_value=0.1, log=True)
-    min_child_samples = UniformIntegerHyperparameter("min_child_samples", 5, 30, default_value=20)
-    subsample = UniformFloatHyperparameter("subsample", 0.7, 1, default_value=1, q=0.1)
-    colsample_bytree = UniformFloatHyperparameter("colsample_bytree", 0.7, 1, default_value=1, q=0.1)
-    cs.add_hyperparameters([n_estimators, num_leaves, max_depth, learning_rate, min_child_samples, subsample,
-                            colsample_bytree])
-    return cs
+    space = sp.Space()
+    n_estimators = sp.Int("n_estimators", 100, 1000, default_value=500, q=50)
+    num_leaves = sp.Int("num_leaves", 31, 2047, default_value=128)
+    max_depth = sp.Constant('max_depth', 15)
+    learning_rate = sp.Real("learning_rate", 1e-3, 0.3, default_value=0.1, log=True)
+    min_child_samples = sp.Int("min_child_samples", 5, 30, default_value=20)
+    subsample = sp.Real("subsample", 0.7, 1, default_value=1, q=0.1)
+    colsample_bytree = sp.Real("colsample_bytree", 0.7, 1, default_value=1, q=0.1)
+    cs.add_variables([n_estimators, num_leaves, max_depth, learning_rate, min_child_samples, subsample,
+                      colsample_bytree])
+    return space
 
 
-def objective_function(config: Configuration):
+def objective_function(config: sp.Configuration):
     params = config.get_dictionary()
     params['n_jobs'] = 2
     params['random_state'] = 47
@@ -58,7 +56,7 @@ def objective_function(config: Configuration):
     return dict(objs=(loss, ))
 ```
 
-下面给出了一些如何用 [ConfigSpace](https://automl.github.io/ConfigSpace/master/index.html) 定义配置空间的提示：
+下面给出了一些定义搜索空间的提示：
 
 + 当我们定义 **n_estimators** 时，我们设置 **q=50**，
 表示超参数配置采样的间隔是50。
@@ -66,7 +64,7 @@ def objective_function(config: Configuration):
 + 当我们定义 **learning_rate** 时，我们设置 **log=True**，
 表示超参数的值以对数方式采样。
 
-**objective function** 的输入是一个从 **ConfigurationSpace** 中采样的 **Configuration** 实例。
+**objective function** 的输入是一个从 **space** 中采样的 **Configuration** 实例。
 你可以调用 <font color=#FF0000>**config.get_dictionary()**</font> 来把 **Configuration** 转化成一个 Python **dict**。
 
 在这个超参数优化任务中，一旦采样出一个新的超参数配置，我们就根据输入配置构建模型。
@@ -88,25 +86,27 @@ def objective_function(config: Configuration):
 
 ## 优化
 
-在定义了配置空间和目标函数后，我们按如下方式运行优化过程：
+在定义了搜索空间和目标函数后，我们按如下方式运行优化过程：
 
 
 ```python
-from openbox.optimizer.generic_smbo import SMBO
+from openbox import Optimizer
 
-# Run Optimization
-bo = SMBO(objective_function,
-          get_configspace(),
-          num_objs=1,
-          num_constraints=0,
-          max_runs=100,
-          surrogate_type='prf',
-          time_limit_per_trial=180,
-          task_id='so_hpo')
-history = bo.run()
+# Run
+opt = Optimizer(
+    objective_function,
+    get_configspace(),
+    num_objs=1,
+    num_constraints=0,
+    max_runs=100,
+    surrogate_type='prf',
+    time_limit_per_trial=180,
+    task_id='so_hpo',
+)
+history = opt.run()
 ```
 
-这里我们创建一个 <font color=#FF0000>**SMBO**</font> 实例，传入目标函数和配置空间。
+这里我们创建一个 <font color=#FF0000>**Optimizer**</font> 实例，传入目标函数和配置空间。
 其它的参数是：
 
 + **num_objs=1** 和 **num_constraints=0** 表示我们的函数返回一个没有约束的单目标值。
@@ -120,17 +120,17 @@ history = bo.run()
   
 + **task_id** 用来识别优化过程。
 
-然后，调用 <font color=#FF0000>**bo.run()**</font> 启动优化过程。
+然后，调用 <font color=#FF0000>**opt.run()**</font> 启动优化过程。
 
 
 ## 可视化
 
-在优化完成后，bo.run() 会返回优化的历史过程。或者你可以调用 <font color=#FF0000>**bo.get_history()**</font> 来获得优化历史。
+在优化完成后，opt.run() 会返回优化的历史过程。或者你可以调用 <font color=#FF0000>**opt.get_history()**</font> 来获得优化历史。
 接下来，调用 print(history) 来查看结果：
 
 
 ```python
-history = bo.get_history()
+history = opt.get_history()
 print(history)
 ```
 
@@ -174,6 +174,7 @@ history.visualize_jupyter()
 </p>
 
 调用 <font color=#FF0000>**print(history.get_importance())**</font> 来输出超参数的重要性：
+(注意：使用该功能需要额外安装`pyrfr`包：[Pyrfr安装教程](../installation/install_pyrfr.md))
 
 ```python
 print(history.get_importance())

@@ -17,34 +17,32 @@ x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratif
 
 ## Problem Setup
 
-Second, **define the configuration space** to search and **define the objective function**
+Second, define the **configuration space** to search and the **objective function**
 to <font color=#FF0000>**minimize**</font>.
-Here, we use [LightGBM](https://lightgbm.readthedocs.io/en/latest/) -- a gradient boosting framework developed by Microsoft,
-as the classification model.
+Here, we use [LightGBM](https://lightgbm.readthedocs.io/en/latest/) -- a gradient boosting framework 
+developed by Microsoft, as the classification model.
 
 ```python
-from openbox.utils.config_space import ConfigurationSpace, Configuration
-from openbox.utils.config_space import UniformFloatHyperparameter, \
-    CategoricalHyperparameter, Constant, UniformIntegerHyperparameter
+from openbox import sp
 from sklearn.metrics import balanced_accuracy_score
 from lightgbm import LGBMClassifier
 
 
 def get_configspace():
-    cs = ConfigurationSpace()
-    n_estimators = UniformIntegerHyperparameter("n_estimators", 100, 1000, default_value=500, q=50)
-    num_leaves = UniformIntegerHyperparameter("num_leaves", 31, 2047, default_value=128)
-    max_depth = Constant('max_depth', 15)
-    learning_rate = UniformFloatHyperparameter("learning_rate", 1e-3, 0.3, default_value=0.1, log=True)
-    min_child_samples = UniformIntegerHyperparameter("min_child_samples", 5, 30, default_value=20)
-    subsample = UniformFloatHyperparameter("subsample", 0.7, 1, default_value=1, q=0.1)
-    colsample_bytree = UniformFloatHyperparameter("colsample_bytree", 0.7, 1, default_value=1, q=0.1)
-    cs.add_hyperparameters([n_estimators, num_leaves, max_depth, learning_rate, min_child_samples, subsample,
-                            colsample_bytree])
-    return cs
+    space = sp.Space()
+    n_estimators = sp.Int("n_estimators", 100, 1000, default_value=500, q=50)
+    num_leaves = sp.Int("num_leaves", 31, 2047, default_value=128)
+    max_depth = sp.Constant('max_depth', 15)
+    learning_rate = sp.Real("learning_rate", 1e-3, 0.3, default_value=0.1, log=True)
+    min_child_samples = sp.Int("min_child_samples", 5, 30, default_value=20)
+    subsample = sp.Real("subsample", 0.7, 1, default_value=1, q=0.1)
+    colsample_bytree = sp.Real("colsample_bytree", 0.7, 1, default_value=1, q=0.1)
+    cs.add_variables([n_estimators, num_leaves, max_depth, learning_rate, min_child_samples, subsample,
+                      colsample_bytree])
+    return space
 
 
-def objective_function(config: Configuration):
+def objective_function(config: sp.Configuration):
     params = config.get_dictionary()
     params['n_jobs'] = 2
     params['random_state'] = 47
@@ -57,8 +55,7 @@ def objective_function(config: Configuration):
     return dict(objs=(loss, ))
 ```
 
-Here are some instructions on how to **define a configuration space**
-using [ConfigSpace](https://automl.github.io/ConfigSpace/master/index.html):
+Here are some instructions on how to **define a configuration space**:
 
 + When we define **n_estimators**, we set **q=50**,
 which means the values of the hyperparameter will be sampled at an interval of 50.
@@ -66,7 +63,7 @@ which means the values of the hyperparameter will be sampled at an interval of 5
 + When we define **learning_rate**, we set **log=True**,
 which means the values of the hyperparameter will be sampled on a logarithmic scale.
 
-The input of the **objective function** is a **Configuration** instance sampled from **ConfigurationSpace**.
+The input of the **objective function** is a **Configuration** instance sampled from the **space**.
 You can call <font color=#FF0000>**config.get_dictionary()**</font> to convert **Configuration** into Python **dict**.
 
 During this hyperparameter optimization task, once a new hyperparameter configuration is suggested,
@@ -93,21 +90,23 @@ After defining the configuration space and the objective function, we can run th
 
 
 ```python
-from openbox.optimizer.generic_smbo import SMBO
+from openbox import Optimizer
 
-# Run Optimization
-bo = SMBO(objective_function,
-          get_configspace(),
-          num_objs=1,
-          num_constraints=0,
-          max_runs=100,
-          surrogate_type='prf',
-          time_limit_per_trial=180,
-          task_id='so_hpo')
-history = bo.run()
+# Run
+opt = Optimizer(
+    objective_function,
+    get_configspace(),
+    num_objs=1,
+    num_constraints=0,
+    max_runs=100,
+    surrogate_type='prf',
+    time_limit_per_trial=180,
+    task_id='so_hpo',
+)
+history = opt.run()
 ```
 
-Here we create a <font color=#FF0000>**SMBO**</font> instance, and pass the objective function 
+Here we create a <font color=#FF0000>**Optimizer**</font> instance, and pass the objective function 
 and the configuration space to it. 
 The other parameters are:
 
@@ -123,16 +122,16 @@ evaluation time exceeds this limit, objective function will return as a failed t
 
 + **task_id** is set to identify the optimization process.
 
-Then, <font color=#FF0000>**bo.run()**</font> is called to start the optimization process.
+Then, <font color=#FF0000>**opt.run()**</font> is called to start the optimization process.
 
 ## Visualization
 
-After the optimization, bo.run() returns the optimization history. Or you can call 
-<font color=#FF0000>**bo.get_history()**</font> to get the history.
+After the optimization, opt.run() returns the optimization history. Or you can call 
+<font color=#FF0000>**opt.get_history()**</font> to get the history.
 Then, call print(history) to see the result:
 
 ```python
-history = bo.get_history()
+history = opt.get_history()
 print(history)
 ```
 
@@ -175,6 +174,7 @@ history.visualize_jupyter()
 </p>
 
 Call <font color=#FF0000>**print(history.get_importance())**</font> print the hyperparameter importance:
+(Note that you need to install the `pyrfr` package to use this function. [Pyrfr Installation Guide](../installation/install_pyrfr.md))
 
 ```python
 print(history.get_importance())

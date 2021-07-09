@@ -204,11 +204,11 @@ OpenBox项目基于 `MIT License <https://github.com/thomas-young-2013/open-box/
 
     概览 <overview/overview>
     安装 <installation/installation_guide>
-    快速上手 <quick_start/quick_start>
+    快速入门 <quick_start/quick_start>
     使用实例 <examples/examples>
     高级 <advanced_usage/advanced_usage>
     OpenBox服务 <openbox_as_service/openbox_as_service>
     研究成果 <research_and_publications/research_and_publications>
-    历史记录 <change_logs/change_logs>
+    更新历史 <change_logs/change_logs>
 
 
