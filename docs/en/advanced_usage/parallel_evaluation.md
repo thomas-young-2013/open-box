@@ -29,60 +29,51 @@ to <font color=#FF0000>**minimize**</font>. Here we use the **Branin** function.
 
 ```python
 import numpy as np
-from openbox.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter
+from openbox import sp
 
-# Define Configuration Space
-config_space = ConfigurationSpace()
-x1 = UniformFloatHyperparameter("x1", -5, 10, default_value=0)
-x2 = UniformFloatHyperparameter("x2", 0, 15, default_value=0)
-config_space.add_hyperparameters([x1, x2])
+# Define Search Space
+space = sp.Space()
+x1 = sp.Real("x1", -5, 10, default_value=0)
+x2 = sp.Real("x2", 0, 15, default_value=0)
+space.add_variables([x1, x2])
+
 
 # Define Objective Function
 def branin(config):
-    config_dict = config.get_dictionary()
-    x1 = config_dict['x1']
-    x2 = config_dict['x2']
-
-    a = 1.
-    b = 5.1 / (4. * np.pi ** 2)
-    c = 5. / np.pi
-    r = 6.
-    s = 10.
-    t = 1. / (8. * np.pi)
-    y = a * (x2 - b * x1 ** 2 + c * x1 - r) ** 2 + s * (1 - t) * np.cos(x1) + s
-
-    ret = dict(
-        objs=(y, )
-    )
-    return ret
+    x1, x2 = config['x1'], config['x2']
+    y = (x2 - 5.1 / (4 * np.pi ** 2) * x1 ** 2 + 5 / np.pi * x1 - 6) ** 2 \
+        + 10 * (1 - 1 / (8 * np.pi)) * np.cos(x1) + 10
+    return {'objs': (y,)}
 ```
 
 If you are not familiar with the problem setup, please refer to [Quick Start Tutorial](../quick_start/quick_start).
 
 ## Parallel Evaluation on Local Machine
 
-This time we use <font color=#FF0000>**pSMBO**</font> to optimize the objective function in a parallel manner 
-on your local machine.
+This time we use <font color=#FF0000>**ParallelOptimizer**</font> to optimize the objective function 
+in a parallel manner on your local machine.
 
 ```python
-from openbox.optimizer.parallel_smbo import pSMBO
+from openbox import ParallelOptimizer
 
 # Parallel Evaluation on Local Machine
-bo = pSMBO(branin,
-           config_space,
-           parallel_strategy='async',
-           batch_size=4,
-           batch_strategy='median_imputation',
-           num_objs=1,
-           num_constraints=0,
-           max_runs=100,
-           surrogate_type='gp',
-           time_limit_per_trial=180,
-           task_id='parallel')
-bo.run()
+opt = ParallelOptimizer(
+    branin,
+    space,
+    parallel_strategy='sync',
+    batch_size=4,
+    batch_strategy='median_imputation',
+    num_objs=1,
+    num_constraints=0,
+    max_runs=50,
+    surrogate_type='gp',
+    time_limit_per_trial=180,
+    task_id='parallel_sync',
+)
+history = opt.run()
 ```
 
-In addition to **objective_function** and **config_space** being passed to **pSMBO**, 
+In addition to **objective_function** and **space** being passed to **ParallelOptimizer**, 
 the other parameters are as follows:
 
 + **parallel_strategy='async' / 'sync'** sets whether the parallel evaluation is performed asynchronously or synchronously.
@@ -105,10 +96,10 @@ evaluation time exceeds this limit, objective function will return as a failed t
 
 + **task_id** is set to identify the optimization process.
 
-After optimization, call <font color=#FF0000>**print(bo.get_history())**</font> to see the result:
+After optimization, call <font color=#FF0000>**print(opt.get_history())**</font> to see the result:
 
 ```python
-print(bo.get_history())
+print(opt.get_history())
 ```
 
 ```
