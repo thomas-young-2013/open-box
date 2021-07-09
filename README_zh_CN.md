@@ -84,10 +84,19 @@ CONSTR             | SRN
 
 ### 系统环境需求
 
-+ Python >= 3.6
-+ SWIG >= 3.0.12
+安装需求：
++ Python >= 3.6 （推荐版本为Python 3.7）
 
-在安装OpenBox之前，请确保已经正确安装了SWIG。您可以参考： [SWIG安装教程](https://github.com/thomas-young-2013/open-box/blob/master/docs/zh_CN/installation/install_swig.md)。
+我们**强烈建议**您为OpenBox创建一个单独的Python环境，例如通过[Anaconda](https://www.anaconda.com/products/individual#Downloads):
+```bash
+conda create -n openbox3.7 python=3.7
+conda activate openbox3.7
+```
+
+我们建议您在安装OpenBox之前通过以下命令更新`pip`和`setuptools`：
+```bash
+pip install pip setuptools --upgrade
+```
 
 ### 通过PyPI安装（推荐）
 
@@ -103,16 +112,15 @@ pip install openbox
 
 使用以下命令通过Github源码安装OpenBox：
 
+（以下命令仅适用于Python >= 3.7，对于Python == 3.6，请参考[安装文档](https://open-box.readthedocs.io/zh_CN/latest/installation/installation_guide.html) ）
+
 ```bash
 git clone https://github.com/thomas-young-2013/open-box.git && cd open-box
 cat requirements/main.txt | xargs -n 1 -L 1 pip install
-python setup.py install
+python setup.py install --user --prefix=
 ```
 
-对于macOS用户，如果安装`pyrfr`失败，请参考[提示](https://github.com/thomas-young-2013/open-box/blob/master/docs/zh_CN/installation/install-pyrfr-on-macos.md)。
-
-对于Windows用户，如果安装`lazy_import`失败，请参考[提示](https://github.com/thomas-young-2013/open-box/blob/master/docs/zh_CN/installation/install-lazy_import-on-windows.md)。
-
+如果您安装遇到问题，请参考我们的[安装文档](https://open-box.readthedocs.io/zh_CN/latest/installation/installation_guide.html)
 
 ## 快速入门
 

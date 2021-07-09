@@ -98,7 +98,7 @@ conda activate openbox3.7
 
 Then we recommend you to update your `pip` and `setuptools` as follows:
 ```bash
-pip install pip setuptools --upgrade --user
+pip install pip setuptools --upgrade
 ```
 
 ### Installation from PyPI
@@ -106,12 +106,14 @@ pip install pip setuptools --upgrade --user
 To install OpenBox from PyPI:
 
 ```bash
-pip install openbox --user
+pip install openbox
 ```
 
 ### Manual Installation from Source
 
 To install the newest version of OpenBox, please type the following scripts on the command line:
+
+(Python >= 3.7 only. For Python == 3.6, please see out [Installation Guide Document](https://open-box.readthedocs.io/en/latest/installation/installation_guide.html))
 
 ```bash
 git clone https://github.com/thomas-young-2013/open-box.git && cd open-box
