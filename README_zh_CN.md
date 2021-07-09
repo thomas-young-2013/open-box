@@ -87,6 +87,11 @@ CONSTR             | SRN
 安装需求：
 + Python >= 3.6 （推荐版本为Python 3.7）
 
+支持系统：
++ Linux (Ubuntu, ...)
++ macOS
++ Windows
+
 我们**强烈建议**您为OpenBox创建一个单独的Python环境，例如通过[Anaconda](https://www.anaconda.com/products/individual#Downloads):
 ```bash
 conda create -n openbox3.7 python=3.7
@@ -105,8 +110,6 @@ pip install pip setuptools --upgrade
 ```bash
 pip install openbox
 ```
-
-请确保所有依赖与系统安装成功。
 
 ### 通过源码手动安装
 

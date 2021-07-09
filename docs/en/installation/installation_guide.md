@@ -53,30 +53,19 @@ python setup.py install
 
 ### 3.3 Test for Installation
 
-You can run this quick start example to test your installation:
+You can run the following code to test your installation:
 
 ```python
-import numpy as np
-from openbox.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter
-from openbox.optimizer.generic_smbo import SMBO
+from openbox import run_test
 
-# Define Configuration Space
-config_space = ConfigurationSpace()
-x1 = UniformFloatHyperparameter("x1", -5, 10, default_value=0)
-x2 = UniformFloatHyperparameter("x2", 0, 15, default_value=0)
-config_space.add_hyperparameters([x1, x2])
-
-# Define Objective Function
-def branin(config):
-    x1, x2 = config['x1'], config['x2']
-    y = (x2-5.1/(4*np.pi**2)*x1**2+5/np.pi*x1-6)**2+10*(1-1/(8*np.pi))*np.cos(x1)+10
-    return y
-
-# Run
 if __name__ == '__main__':
-    bo = SMBO(branin, config_space, max_runs=50, task_id='quick_start')
-    history = bo.run()
-    print(history)
+    run_test()
+```
+
+If successful, you will receive the following message:
+
+```
+===== Congratulations! All trials succeeded. =====
 ```
 
 If you encountered any problem during installation, please refer to the **Trouble Shooting** section.

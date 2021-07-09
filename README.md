@@ -90,6 +90,11 @@ CONSTR             | SRN
 Installation Requirements:
 + Python >= 3.6 (3.7 is recommended!)
 
+Supported Systems:
++ Linux (Ubuntu, ...)
++ macOS
++ Windows
+
 We **STRONGLY** suggest you to create a Python environment via [Anaconda](https://www.anaconda.com/products/individual#Downloads):
 ```bash
 conda create -n openbox3.7 python=3.7

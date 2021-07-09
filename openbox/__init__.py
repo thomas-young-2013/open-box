@@ -13,10 +13,13 @@ from .utils.start_smbo import create_smbo as create_optimizer
 
 from .utils.tuning import get_config_space, get_objective_function
 
+from .utils.test_install import run_test
+
 __all__ = [
     "__version__", "__package__", "package_name",
     "sp",
     "Optimizer", "ParallelOptimizer", "DistributedOptimizer",
     "create_optimizer",
     "get_config_space", "get_objective_function",
+    "run_test",
 ]
