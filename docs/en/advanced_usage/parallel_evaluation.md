@@ -60,7 +60,7 @@ from openbox import ParallelOptimizer
 opt = ParallelOptimizer(
     branin,
     space,
-    parallel_strategy='sync',
+    parallel_strategy='async',
     batch_size=4,
     batch_strategy='median_imputation',
     num_objs=1,
