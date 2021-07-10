@@ -20,7 +20,7 @@ XGBoost是一个高效的分布式梯度提升库，在使用时，用户需要�
 在使用OpenBox进行优化之前，我们需要定义任务搜索空间（即超参数空间）和优化目标函数。OpenBox对XGBoost模型的超参数空间和目标函数进行了封装，用户可通过以下代码便捷调用（定义目标函数需提供训练与验证数据）：
 
 ```python
-from openbox.utils.tuning import get_config_space, get_objective_function
+from openbox import get_config_space, get_objective_function
 config_space = get_config_space('xgboost')
 # please prepare your data (x_train, x_val, y_train, y_val) first
 objective_function = get_objective_function('xgboost', x_train, x_val, y_train, y_val)
@@ -30,24 +30,23 @@ objective_function = get_objective_function('xgboost', x_train, x_val, y_train, 
 
 ### 定义超参数空间
 
-首先，我们使用ConfigSpace库定义超参数空间。在这个例子中，我们的超参数空间包含9个超参数。
+首先，我们定义超参数空间。在这个例子中，我们的超参数空间包含9个超参数。
 
 ```python
-from openbox.utils.config_space import ConfigurationSpace
-from openbox.utils.config_space import UniformFloatHyperparameter, UniformIntegerHyperparameter
+from openbox import sp
 
 def get_config_space():
-    cs = ConfigurationSpace()
-    n_estimators = UniformIntegerHyperparameter("n_estimators", 100, 1000, q=50, default_value=500)
-    max_depth = UniformIntegerHyperparameter("max_depth", 1, 12)
-    learning_rate = UniformFloatHyperparameter("learning_rate", 1e-3, 0.9, log=True, default_value=0.1)
-    min_child_weight = UniformFloatHyperparameter("min_child_weight", 0, 10, q=0.1, default_value=1)
-    subsample = UniformFloatHyperparameter("subsample", 0.1, 1, q=0.1, default_value=1)
-    colsample_bytree = UniformFloatHyperparameter("colsample_bytree", 0.1, 1, q=0.1, default_value=1)
-    gamma = UniformFloatHyperparameter("gamma", 0, 10, q=0.1, default_value=0)
-    reg_alpha = UniformFloatHyperparameter("reg_alpha", 0, 10, q=0.1, default_value=0)
-    reg_lambda = UniformFloatHyperparameter("reg_lambda", 1, 10, q=0.1, default_value=1)
-    cs.add_hyperparameters([n_estimators, max_depth, learning_rate, min_child_weight, subsample, colsample_bytree, gamma, reg_alpha, reg_lambda])
+    cs = sp.Space()
+    n_estimators = sp.Int("n_estimators", 100, 1000, default_value=500, q=50)
+    max_depth = sp.Int("max_depth", 1, 12)
+    learning_rate = sp.Real("learning_rate", 1e-3, 0.9, log=True, default_value=0.1)
+    min_child_weight = sp.Real("min_child_weight", 0, 10, q=0.1, default_value=1)
+    subsample = sp.Real("subsample", 0.1, 1, q=0.1, default_value=1)
+    colsample_bytree = sp.Real("colsample_bytree", 0.1, 1, q=0.1, default_value=1)
+    gamma = sp.Real("gamma", 0, 10, q=0.1, default_value=0)
+    reg_alpha = sp.Real("reg_alpha", 0, 10, q=0.1, default_value=0)
+    reg_lambda = sp.Real("reg_lambda", 1, 10, q=0.1, default_value=1)
+    cs.add_variables([n_estimators, max_depth, learning_rate, min_child_weight, subsample, colsample_bytree, gamma, reg_alpha, reg_lambda])
     return cs
 
 config_space = get_config_space()
@@ -92,16 +91,19 @@ def objective_function(config):
 
 ### 执行优化
 
-定义好任务和目标函数以后，就可以调用OpenBox贝叶斯优化框架SMBO执行优化。我们设置优化轮数（max_runs）为100，代表将对XGBoost模型调参100轮。每轮最大验证时间（time_limit_per_trial）设置为180秒，超时的任务将被终止。优化结束后，可以打印优化结果。
+定义好任务和目标函数以后，就可以调用OpenBox优化框架Optimizer执行优化。我们设置优化轮数（max_runs）为100，代表将对XGBoost模型调参100轮。每轮最大验证时间（time_limit_per_trial）设置为180秒，超时的任务将被终止。优化结束后，可以打印优化结果。
 
 ```python
-from openbox.optimizer.generic_smbo import SMBO
-bo = SMBO(objective_function,
-          config_space,
-          max_runs=100,
-          time_limit_per_trial=180,
-          task_id='tuning_xgboost')
-history = bo.run()
+from openbox import Optimizer
+opt = Optimizer(
+    objective_function,
+    config_space,
+    max_runs=100,
+    time_limit_per_trial=180,
+    surrogate_type='prf',
+    task_id='tuning_xgboost',
+)
+history = opt.run()
 ```
 
 打印优化结果如下：
@@ -145,6 +147,8 @@ history.visualize_jupyter()
 系统还集成了超参数敏感度分析功能，依据此次任务分析超参数重要性如下：
 
 ```python
+print(history.get_importance())
+
 +--------------------------------+
 | Parameters        | Importance |
 +-------------------+------------+

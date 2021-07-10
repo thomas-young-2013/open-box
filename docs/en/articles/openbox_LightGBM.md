@@ -19,7 +19,7 @@ LightGBM is a popular library that provides an effective and efficient gradient 
 Before optimizing using OpenBox, we need to define the task search space (i.e., the hyperparameter space) and the objective function. OpenBox has provided wrapped APIs for ease of use. The users can tune their LightGBM by simply writing the following three lines of code:
 
 ```python
-from openbox.utils.tuning import get_config_space, get_objective_function
+from openbox import get_config_space, get_objective_function
 config_space = get_config_space('lightgbm')
 # please prepare your data (x_train, x_val, y_train, y_val) first
 objective_function = get_objective_function('lightgbm', x_train, x_val, y_train, y_val)
@@ -29,23 +29,21 @@ To display the details of defining a task, we then describe the personalized def
 
 ### Search Space
 
-First, we can use the package ConfigSpace to define the search space. In the following example, the search space contains seven hyperparameters. Since the hyperparameter *num_leaves* could to some extent limit the depth of each decision tree, we set the hyperparameter *max_depth* as a constant.
+First, we define the search space. In the following example, the search space contains seven hyperparameters. Since the hyperparameter *num_leaves* could to some extent limit the depth of each decision tree, we set the hyperparameter *max_depth* as a constant.
 
 ```python
-from openbox.utils.config_space import ConfigurationSpace
-from openbox.utils.config_space import UniformFloatHyperparameter, \
-    Constant, UniformIntegerHyperparameter
+from openbox import sp
 
 def get_config_space():
-    cs = ConfigurationSpace()
-    n_estimators = UniformIntegerHyperparameter("n_estimators", 100, 1000, default_value=500, q=50)
-    num_leaves = UniformIntegerHyperparameter("num_leaves", 31, 2047, default_value=128)
-    max_depth = Constant('max_depth', 15)
-    learning_rate = UniformFloatHyperparameter("learning_rate", 1e-3, 0.3, default_value=0.1, log=True)
-    min_child_samples = UniformIntegerHyperparameter("min_child_samples", 5, 30, default_value=20)
-    subsample = UniformFloatHyperparameter("subsample", 0.7, 1, default_value=1, q=0.1)
-    colsample_bytree = UniformFloatHyperparameter("colsample_bytree", 0.7, 1, default_value=1, q=0.1)
-    cs.add_hyperparameters([n_estimators, num_leaves, max_depth, learning_rate, min_child_samples, subsample, colsample_bytree])
+    cs = sp.Space()
+    n_estimators = sp.Int("n_estimators", 100, 1000, default_value=500, q=50)
+    num_leaves = sp.Int("num_leaves", 31, 2047, default_value=128)
+    max_depth = sp.Constant('max_depth', 15)
+    learning_rate = sp.Real("learning_rate", 1e-3, 0.3, default_value=0.1, log=True)
+    min_child_samples = sp.Int("min_child_samples", 5, 30, default_value=20)
+    subsample = sp.Real("subsample", 0.7, 1, default_value=1, q=0.1)
+    colsample_bytree = sp.Real("colsample_bytree", 0.7, 1, default_value=1, q=0.1)
+    cs.add_variables([n_estimators, num_leaves, max_depth, learning_rate, min_child_samples, subsample, colsample_bytree])
     return cs
 
 config_space = get_config_space()
@@ -89,16 +87,19 @@ def objective_function(config):
 
 ### <span id = "anchor">Optimization</span>
 
-After defining the search space and the objective function, we can use the built-in Bayesian optimization framework to perform optimization. In the following example, we set *max_runs* to 100, which means OpenBox will tune LightGBM 100 times. In addition, each run is given a time limit of 180 seconds by setting *time_limit_per_trial*. 
+After defining the search space and the objective function, we can use the built-in optimization framework to perform optimization. In the following example, we set *max_runs* to 100, which means OpenBox will tune LightGBM 100 times. In addition, each run is given a time limit of 180 seconds by setting *time_limit_per_trial*. 
 
 ```python
-from openbox.optimizer.generic_smbo import SMBO
-bo = SMBO(objective_function,
-          config_space,
-          max_runs=100,
-          time_limit_per_trial=180,
-          task_id='tuning_lightgbm')
-history = bo.run()
+from openbox import Optimizer
+opt = Optimizer(
+    objective_function,
+    config_space,
+    max_runs=100,
+    time_limit_per_trial=180,
+    surrogate_type='prf',
+    task_id='tuning_lightgbm',
+)
+history = opt.run()
 ```
 
 After the optimization, the run history can be printed as follows:
@@ -140,6 +141,8 @@ The left figure shows the best observed objective during the optimization while 
 In addition, Openbox has also integrated the functionality of analyzing hyperparameter importance.
 
 ```python
+print(history.get_importance())
+
 +-------------------+------------+
 | Parameters        | Importance |
 +-------------------+------------+

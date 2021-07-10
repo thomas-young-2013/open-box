@@ -121,17 +121,17 @@ In the following, we offer two examples, that is, 1) optimizing mathematical fun
 
 #### Optimizing Mathematical Function
 
-First, we define the search space using the package ConfigSpace and define the objective function to be minimized. Here we use the Branin function.
+First, we define the search space and the objective function to be minimized. Here we use the Branin function.
 
 ```python
 import numpy as np
-from openbox.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter
+from openbox import sp
 
-# Define Configuration Space
-config_space = ConfigurationSpace()
-x1 = UniformFloatHyperparameter("x1", -5, 10, default_value=0)
-x2 = UniformFloatHyperparameter("x2", 0, 15, default_value=0)
-config_space.add_hyperparameters([x1, x2])
+# Define Search Space
+space = sp.Space()
+x1 = sp.Real("x1", -5, 10, default_value=0)
+x2 = sp.Real("x2", 0, 15, default_value=0)
+space.add_variables([x1, x2])
 
 # Define Objective Function
 def branin(config):
@@ -140,12 +140,12 @@ def branin(config):
     return y
 ```
 
-Next, we call the OpenBox Bayesian optimization framework SMBO to perform optimization. Here we set *max_runs*=50, which means that the objective function will be tuned 50 times.
+Next, we call the OpenBox optimization framework Optimizer to perform optimization. Here we set *max_runs*=50, which means that the objective function will be tuned 50 times.
 
 ```python
-from openbox.optimizer.generic_smbo import SMBO
-bo = SMBO(branin, config_space, max_runs=50, task_id='quick_start')
-history = bo.run()
+from openbox import Optimizer
+opt = Optimizer(branin, space, max_runs=50, task_id='quick_start')
+history = opt.run()
 ```
 
 After optimization, the result is printed as follows:
@@ -265,12 +265,13 @@ def objective_function(config):
     return result
 ```
 
-After we define the task and the objective function, we use the built-in interface of OpenBox Bayesian optimization framework SMBO to perform optimization.
+After we define the task and the objective function, we use the built-in interface of OpenBox 
+optimization framework Optimizer to perform optimization.
 
 ```python
-from openbox.utils.start_smbo import create_smbo
-bo = create_smbo(objective_function, **config_dict)
-history = bo.run()
+from openbox import create_optimizer
+opt = create_optimizer(objective_function, **config_dict)
+history = opt.run()
 ```
 
 After the optimization, the run history can be printed as follows:
@@ -310,6 +311,8 @@ The left figure shows the best observed objective during the optimization while 
 In addition, Openbox has also integrated the functionality of analyzing hyperparameter importance.
 
 ```python
+print(history.get_importance())
+
 +-------------------+------------+
 | Parameters        | Importance |
 +-------------------+------------+

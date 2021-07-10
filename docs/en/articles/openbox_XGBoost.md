@@ -20,7 +20,7 @@ XGBoost is a popular library that provides an effective and efficient gradient b
 Before optimizing using OpenBox, we need to define the task search space (i.e., the hyperparameter space) and the objective function. OpenBox has provided wrapped APIs for ease of use. The users can tune their XGBoost by simply writing the following three lines of code:
 
 ```python
-from openbox.utils.tuning import get_config_space, get_objective_function
+from openbox import get_config_space, get_objective_function
 config_space = get_config_space('xgboost')
 # please prepare your data (x_train, x_val, y_train, y_val) first
 objective_function = get_objective_function('xgboost', x_train, x_val, y_train, y_val)
@@ -30,24 +30,23 @@ To display the details of defining a task, we then describe the personalized def
 
 ### Search Space
 
-First, we can use the package ConfigSpace to define the search space. In the following example, the search space contains nine hyperparameters.
+First, we define the search space. In the following example, the search space contains nine hyperparameters.
 
 ```python
-from openbox.utils.config_space import ConfigurationSpace
-from openbox.utils.config_space import UniformFloatHyperparameter, UniformIntegerHyperparameter
+from openbox import sp
 
 def get_config_space():
-    cs = ConfigurationSpace()
-    n_estimators = UniformIntegerHyperparameter("n_estimators", 100, 1000, q=50, default_value=500)
-    max_depth = UniformIntegerHyperparameter("max_depth", 1, 12)
-    learning_rate = UniformFloatHyperparameter("learning_rate", 1e-3, 0.9, log=True, default_value=0.1)
-    min_child_weight = UniformFloatHyperparameter("min_child_weight", 0, 10, q=0.1, default_value=1)
-    subsample = UniformFloatHyperparameter("subsample", 0.1, 1, q=0.1, default_value=1)
-    colsample_bytree = UniformFloatHyperparameter("colsample_bytree", 0.1, 1, q=0.1, default_value=1)
-    gamma = UniformFloatHyperparameter("gamma", 0, 10, q=0.1, default_value=0)
-    reg_alpha = UniformFloatHyperparameter("reg_alpha", 0, 10, q=0.1, default_value=0)
-    reg_lambda = UniformFloatHyperparameter("reg_lambda", 1, 10, q=0.1, default_value=1)
-    cs.add_hyperparameters([n_estimators, max_depth, learning_rate, min_child_weight, subsample, colsample_bytree, gamma, reg_alpha, reg_lambda])
+    cs = sp.Space()
+    n_estimators = sp.Int("n_estimators", 100, 1000, default_value=500, q=50)
+    max_depth = sp.Int("max_depth", 1, 12)
+    learning_rate = sp.Real("learning_rate", 1e-3, 0.9, log=True, default_value=0.1)
+    min_child_weight = sp.Real("min_child_weight", 0, 10, q=0.1, default_value=1)
+    subsample = sp.Real("subsample", 0.1, 1, q=0.1, default_value=1)
+    colsample_bytree = sp.Real("colsample_bytree", 0.1, 1, q=0.1, default_value=1)
+    gamma = sp.Real("gamma", 0, 10, q=0.1, default_value=0)
+    reg_alpha = sp.Real("reg_alpha", 0, 10, q=0.1, default_value=0)
+    reg_lambda = sp.Real("reg_lambda", 1, 10, q=0.1, default_value=1)
+    cs.add_variables([n_estimators, max_depth, learning_rate, min_child_weight, subsample, colsample_bytree, gamma, reg_alpha, reg_lambda])
     return cs
 
 config_space = get_config_space()
@@ -91,16 +90,19 @@ def objective_function(config):
 
 ### Optimization
 
-After defining the search space and the objective function, we can use the built-in Bayesian optimization framework to perform optimization. In the following example, we set *max_runs* to 100, which means OpenBox will tune XGBoost 100 times. In addition, each run is given a time limit of 180 seconds by setting *time_limit_per_trial*. 
+After defining the search space and the objective function, we can use the built-in optimization framework to perform optimization. In the following example, we set *max_runs* to 100, which means OpenBox will tune XGBoost 100 times. In addition, each run is given a time limit of 180 seconds by setting *time_limit_per_trial*. 
 
 ```python
-from openbox.optimizer.generic_smbo import SMBO
-bo = SMBO(objective_function,
-          config_space,
-          max_runs=100,
-          time_limit_per_trial=180,
-          task_id='tuning_xgboost')
-history = bo.run()
+from openbox import Optimizer
+opt = Optimizer(
+    objective_function,
+    config_space,
+    max_runs=100,
+    time_limit_per_trial=180,
+    surrogate_type='prf',
+    task_id='tuning_xgboost',
+)
+history = opt.run()
 ```
 
 After the optimization, the run history can be printed as follows:
@@ -144,6 +146,8 @@ The left figure shows the best observed objective during the optimization while 
 In addition, Openbox has also integrated the functionality of analyzing hyperparameter importance.
 
 ```python
+print(history.get_importance())
+
 +-------------------+------------+
 | Parameters        | Importance |
 +-------------------+------------+

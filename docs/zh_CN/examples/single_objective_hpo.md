@@ -38,7 +38,7 @@ def get_configspace():
     min_child_samples = sp.Int("min_child_samples", 5, 30, default_value=20)
     subsample = sp.Real("subsample", 0.7, 1, default_value=1, q=0.1)
     colsample_bytree = sp.Real("colsample_bytree", 0.7, 1, default_value=1, q=0.1)
-    cs.add_variables([n_estimators, num_leaves, max_depth, learning_rate, min_child_samples, subsample,
+    space.add_variables([n_estimators, num_leaves, max_depth, learning_rate, min_child_samples, subsample,
                       colsample_bytree])
     return space
 
