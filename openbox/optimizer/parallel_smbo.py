@@ -11,6 +11,7 @@ from openbox.utils.limit import time_limit, TimeoutException
 from openbox.utils.util_funcs import get_result
 from openbox.core.sync_batch_advisor import SyncBatchAdvisor
 from openbox.core.async_batch_advisor import AsyncBatchAdvisor
+from openbox.core.ea_advisor import EA_Advisor
 from openbox.core.base import Observation
 from openbox.optimizer.base import BOBase
 
@@ -73,38 +74,60 @@ class pSMBO(BOBase):
                          history_bo_data=history_bo_data)
 
         if parallel_strategy == 'sync':
-            self.config_advisor = SyncBatchAdvisor(config_space, self.task_info,
-                                                   batch_size=batch_size,
-                                                   batch_strategy=batch_strategy,
-                                                   initial_trials=initial_runs,
-                                                   initial_configurations=initial_configurations,
-                                                   init_strategy=init_strategy,
-                                                   history_bo_data=history_bo_data,
-                                                   optimization_strategy=sample_strategy,
-                                                   surrogate_type=surrogate_type,
-                                                   acq_type=acq_type,
-                                                   acq_optimizer_type=acq_optimizer_type,
-                                                   ref_point=ref_point,
-                                                   task_id=task_id,
-                                                   output_dir=logging_dir,
-                                                   random_state=random_state)
+            if sample_strategy in ['random', 'bo']:
+                self.config_advisor = SyncBatchAdvisor(config_space, self.task_info,
+                                                       batch_size=batch_size,
+                                                       batch_strategy=batch_strategy,
+                                                       initial_trials=initial_runs,
+                                                       initial_configurations=initial_configurations,
+                                                       init_strategy=init_strategy,
+                                                       history_bo_data=history_bo_data,
+                                                       optimization_strategy=sample_strategy,
+                                                       surrogate_type=surrogate_type,
+                                                       acq_type=acq_type,
+                                                       acq_optimizer_type=acq_optimizer_type,
+                                                       ref_point=ref_point,
+                                                       task_id=task_id,
+                                                       output_dir=logging_dir,
+                                                       random_state=random_state)
+            elif sample_strategy == 'ea':
+                assert num_objs == 1 and num_constraints == 0
+                self.config_advisor = EA_Advisor(config_space, self.task_info,
+                                                 optimization_strategy=sample_strategy,
+                                                 batch_size=batch_size,
+                                                 task_id=task_id,
+                                                 output_dir=logging_dir,
+                                                 random_state=random_state)
+            else:
+                raise ValueError('Unknown sample_strategy: %s' % sample_strategy)
         elif parallel_strategy == 'async':
-            self.config_advisor = AsyncBatchAdvisor(config_space, self.task_info,
-                                                    batch_size=batch_size,
-                                                    batch_strategy=batch_strategy,
-                                                    initial_trials=initial_runs,
-                                                    initial_configurations=initial_configurations,
-                                                    init_strategy=init_strategy,
-                                                    history_bo_data=history_bo_data,
-                                                    optimization_strategy=sample_strategy,
-                                                    surrogate_type=surrogate_type,
-                                                    acq_type=acq_type,
-                                                    acq_optimizer_type=acq_optimizer_type,
-                                                    ref_point=ref_point,
-                                                    task_id=task_id,
-                                                    output_dir=logging_dir,
-                                                    random_state=random_state)
             self.advisor_lock = Lock()
+            if sample_strategy in ['random', 'bo']:
+                self.config_advisor = AsyncBatchAdvisor(config_space, self.task_info,
+                                                        batch_size=batch_size,
+                                                        batch_strategy=batch_strategy,
+                                                        initial_trials=initial_runs,
+                                                        initial_configurations=initial_configurations,
+                                                        init_strategy=init_strategy,
+                                                        history_bo_data=history_bo_data,
+                                                        optimization_strategy=sample_strategy,
+                                                        surrogate_type=surrogate_type,
+                                                        acq_type=acq_type,
+                                                        acq_optimizer_type=acq_optimizer_type,
+                                                        ref_point=ref_point,
+                                                        task_id=task_id,
+                                                        output_dir=logging_dir,
+                                                        random_state=random_state)
+            elif sample_strategy == 'ea':
+                assert num_objs == 1 and num_constraints == 0
+                self.config_advisor = EA_Advisor(config_space, self.task_info,
+                                                 optimization_strategy=sample_strategy,
+                                                 batch_size=batch_size,
+                                                 task_id=task_id,
+                                                 output_dir=logging_dir,
+                                                 random_state=random_state)
+            else:
+                raise ValueError('Unknown sample_strategy: %s' % sample_strategy)
         else:
             raise ValueError('Invalid parallel strategy - %s.' % parallel_strategy)
 
@@ -117,12 +140,12 @@ class pSMBO(BOBase):
             observation = Observation(config, trial_state, constraints, self.FAILED_PERF, elapsed_time)
         # Report the result, and remove the config from the running queue.
         with self.advisor_lock:
+            # Parent process: collect the result and increment id.
             self.config_advisor.update_observation(observation)
-            self.logger.info('Update observation %d: %s.' % (self.iteration_id, str(observation)))
-        # Parent process: collect the result and increment id.
-        self.iteration_id += 1
+            self.logger.info('Update observation %d: %s.' % (self.iteration_id + 1, str(observation)))
+            self.iteration_id += 1  # must increment id after updating
 
-    # TODO: Wrong logic. Need to wait before return.
+    # TODO: Wrong logic. Need to wait before return?
     def async_run(self):
         with ParallelEvaluation(wrapper, n_worker=self.batch_size) as proc:
             while self.iteration_id < self.max_iterations:

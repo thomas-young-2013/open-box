@@ -86,6 +86,16 @@ class SMBO(BOBase):
             from openbox.core.tpe_advisor import TPE_Advisor
             assert num_objs == 1 and num_constraints == 0
             self.config_advisor = TPE_Advisor(config_space, task_id=task_id, random_state=random_state)
+        elif advisor_type == 'ea':
+            from openbox.core.ea_advisor import EA_Advisor
+            assert num_objs == 1 and num_constraints == 0
+            self.config_advisor = EA_Advisor(config_space, self.task_info,
+                                             optimization_strategy=sample_strategy,
+                                             batch_size=1,
+                                             task_id=task_id,
+                                             output_dir=logging_dir,
+                                             random_state=random_state,
+                                             **kwargs)
         elif advisor_type == 'random':
             from openbox.core.random_advisor import RandomAdvisor
             self.config_advisor = RandomAdvisor(config_space, self.task_info,
