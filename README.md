@@ -90,15 +90,20 @@ CONSTR             | SRN
 Installation Requirements:
 + Python >= 3.6 (3.7 is recommended!)
 
-We **STRONGLY** suggest you to create a python environment via [Anaconda](https://www.anaconda.com/products/individual#Downloads):
+Supported Systems:
++ Linux (Ubuntu, ...)
++ macOS
++ Windows
+
+We **STRONGLY** suggest you to create a Python environment via [Anaconda](https://www.anaconda.com/products/individual#Downloads):
 ```bash
 conda create -n openbox3.7 python=3.7
-source activate openbox3.7
+conda activate openbox3.7
 ```
 
 Then we recommend you to update your `pip` and `setuptools` as follows:
 ```bash
-pip install pip setuptools --upgrade --user
+pip install pip setuptools --upgrade
 ```
 
 ### Installation from PyPI
@@ -106,12 +111,14 @@ pip install pip setuptools --upgrade --user
 To install OpenBox from PyPI:
 
 ```bash
-pip install openbox --user
+pip install openbox
 ```
 
 ### Manual Installation from Source
 
 To install the newest version of OpenBox, please type the following scripts on the command line:
+
+(Python >= 3.7 only. For Python == 3.6, please see out [Installation Guide Document](https://open-box.readthedocs.io/en/latest/installation/installation_guide.html))
 
 ```bash
 git clone https://github.com/thomas-young-2013/open-box.git && cd open-box
@@ -119,19 +126,19 @@ cat requirements/main.txt | xargs -n 1 -L 1 pip install
 python setup.py install --user --prefix=
 ```
 
+For more detailed installation instructions, please refer to our [Installation Guide Document](https://open-box.readthedocs.io/en/latest/installation/installation_guide.html).
 
 ## Quick Start
 
 ```python
 import numpy as np
-from openbox.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter
-from openbox.optimizer.generic_smbo import SMBO
+from openbox import Optimizer, sp
 
-# Define Configuration Space
-config_space = ConfigurationSpace()
-x1 = UniformFloatHyperparameter("x1", -5, 10, default_value=0)
-x2 = UniformFloatHyperparameter("x2", 0, 15, default_value=0)
-config_space.add_hyperparameters([x1, x2])
+# Define Search Space
+space = sp.Space()
+x1 = sp.Real("x1", -5, 10, default_value=0)
+x2 = sp.Real("x2", 0, 15, default_value=0)
+space.add_variables([x1, x2])
 
 # Define Objective Function
 def branin(config):
@@ -141,8 +148,8 @@ def branin(config):
 
 # Run
 if __name__ == '__main__':
-    bo = SMBO(branin, config_space, max_runs=50, task_id='quick_start')
-    history = bo.run()
+    opt = Optimizer(branin, space, max_runs=50, task_id='quick_start')
+    history = opt.run()
     print(history)
 ```
 

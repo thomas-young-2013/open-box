@@ -267,7 +267,8 @@ class HistoryContainer(object):
         visualize_data_premature = self.data  # todo: all configs
         visualize_data = []
         for config, perf in visualize_data_premature.items():
-            config_perf = config.get_dictionary()
+            config_perf = config.get_dictionary().copy()
+            assert 'perf' not in config_perf.keys()
             config_perf['perf'] = perf
             visualize_data.append(config_perf)
         hip.Experiment.from_iterable(visualize_data).display()

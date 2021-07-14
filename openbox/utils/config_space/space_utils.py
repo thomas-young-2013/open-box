@@ -178,7 +178,7 @@ def get_config_space_from_dict(space_dict: dict):
     for key in params_dict:
         param_dict = params_dict[key]
         param_type = param_dict['type']
-        if param_type in ['float', 'int']:
+        if param_type in ['float', 'real', 'int', 'integer']:
             bound = param_dict['bound']
             optional_args = dict()
             if 'default' in param_dict:
@@ -188,19 +188,19 @@ def get_config_space_from_dict(space_dict: dict):
             if 'q' in param_dict:
                 optional_args['q'] = param_dict['q']
 
-            if param_type == 'float':
+            if param_type in ['float', 'real']:
                 param = UniformFloatHyperparameter(key, bound[0], bound[1], **optional_args)
             else:
                 param = UniformIntegerHyperparameter(key, bound[0], bound[1], **optional_args)
 
-        elif param_type == 'cat':
+        elif param_type in ['cat', 'cate', 'categorical']:
             choices = param_dict['choice']
             optional_args = dict()
             if 'default' in param_dict:
                 optional_args['default_value'] = param_dict['default']
             param = CategoricalHyperparameter(key, choices, **optional_args)
 
-        elif param_type == 'const':
+        elif param_type in ['const', 'constant']:
             value = param_dict['value']
             param = Constant(key, value)
 

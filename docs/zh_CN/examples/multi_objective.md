@@ -4,9 +4,7 @@
 
 ## 问题设置
 
-
-在这个例子中，我们使用了具有三个输入维度的的多目标问题ZDT2。由于ZDT2是一个内置函数，其配置空间和目标函数被包装如下：
-
+在这个例子中，我们使用了具有三个输入维度的的多目标问题ZDT2。OpenBox内置了ZDT2函数，其搜索空间和目标函数被包装如下：
 
 ```python
 from openbox.benchmark.objective_functions.synthetic import ZDT2
@@ -16,29 +14,14 @@ prob = ZDT2(dim=dim)
 ```
 
 ```python
-from openbox.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter
-params = {'x%d' % i: (0, 1) for i in range(1, dim+1)}
-config_space = ConfigurationSpace()
-config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
-```
-
-```python
 import numpy as np
-from typing import Union
-from openbox.utils.config_space import Configuration
+from openbox import sp
+params = {'x%d' % i: (0, 1) for i in range(1, dim+1)}
+space = sp.Space()
+space.add_variables([sp.Real(k, *v) for k, v in params.items()])
 
-def evaluate(self, config: Union[Configuration, np.ndarray], convert=True):
-    if convert:
-        X = np.array(list(config.get_dictionary().values()))
-    else:
-        X = config
-    result = self._evaluate(X)
-    result['objs'] = [e + self.noise_std*self.rng.randn() for e in result['objs']]
-    if 'constraint' in result:
-        result['constraint'] = [e + self.noise_std*self.rng.randn() for e in result['constraint']]
-    return result
-
-def _evaluate(X):
+def objective_function(config: sp.Configuration):
+    X = np.array(list(config.get_dictionary().values()))
     f_0 = X[..., 0]
     g = 1 + 9 * X[..., 1:].mean(axis=-1)
     f_1 = g * (1 - (f_0 / g)**2)
@@ -47,7 +30,6 @@ def _evaluate(X):
     result['objs'] = np.stack([f_0, f_1], axis=-1)
     return result
 ```
-
 
 在评估后，目标函数返回一个 <font color=#FF0000>**dict (Recommended)**</font>。
 这个结果目录包含：
@@ -63,25 +45,27 @@ def _evaluate(X):
 ## 优化
 
 ```python
-from openbox.optimizer.generic_smbo import SMBO
-bo = SMBO(prob.evaluate,
-          prob.config_space,
-          num_objs=prob.num_objs,
-          num_constraints=0,
-          max_runs=50,
-          surrogate_type='gp',
-          acq_type='ehvi',
-          acq_optimizer_type='random_scipy',
-          initial_runs=2*(dim+1),
-          init_strategy='sobol',
-          ref_point=prob.ref_point,
-          time_limit_per_trial=10,
-          task_id='mo',
-          random_state=1)
-bo.run()
+from openbox import Optimizer
+opt = Optimizer(
+    prob.evaluate,
+    prob.config_space,
+    num_objs=prob.num_objs,
+    num_constraints=0,
+    max_runs=50,
+    surrogate_type='gp',
+    acq_type='ehvi',
+    acq_optimizer_type='random_scipy',
+    initial_runs=2*(dim+1),
+    init_strategy='sobol',
+    ref_point=prob.ref_point,
+    time_limit_per_trial=10,
+    task_id='mo',
+    random_state=1,
+)
+opt.run()
 ```
 
-这里我们创建一个 <font color=#FF0000>**SMBO**</font> 实例，给他传目标函数和配置空间。
+这里我们创建一个 <font color=#FF0000>**Optimizer**</font> 实例，并传入目标函数和搜索空间。
 其它的参数是：
 
 + **num_objs** 和 **num_constraints** 设置目标函数将返回多少目标和约束。在这个例子中，**num_objs=2**。
@@ -109,19 +93,19 @@ bo.run()
 
 + **task_id** 用来识别优化过程。
 
-然后，调用 <font color=#FF0000>**bo.run()**</font> 启动优化过程。
+然后，调用 <font color=#FF0000>**opt.run()**</font> 启动优化过程。
 
 ## 可视化
 
 由于我们同时优化了这两个目标，我们得到了一个pareto front作为结果。
-调用 <font color=#FF0000>**bo.get_history().get_pareto_front()**</font> 来获取pareto front。
+调用 <font color=#FF0000>**opt.get_history().get_pareto_front()**</font> 来获取pareto front。
 
 ```python
 import numpy as np
 import matplotlib.pyplot as plt
 
 # plot pareto front
-pareto_front = np.asarray(bo.get_history().get_pareto_front())
+pareto_front = np.asarray(opt.get_history().get_pareto_front())
 if pareto_front.shape[-1] in (2, 3):
     if pareto_front.shape[-1] == 2:
         plt.scatter(pareto_front[:, 0], pareto_front[:, 1])
@@ -141,11 +125,11 @@ if pareto_front.shape[-1] in (2, 3):
 <img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/plot_pareto_front_zdt2.png" width="60%">
 </p>
 
-然后绘制优化过程中与理想pareto front相比的hypervolumn差。
+然后绘制优化过程中与理想pareto front相比的hypervolume差。
 
 ```python
 # plot hypervolume
-hypervolume = bo.get_history().hv_data
+hypervolume = opt.get_history().hv_data
 log_hv_diff = np.log10(prob.max_hv - np.asarray(hypervolume))
 plt.plot(log_hv_diff)
 plt.xlabel('Iteration')

@@ -1,11 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from openbox.utils.config_space import ConfigurationSpace, Configuration, UniformFloatHyperparameter
-from openbox.optimizer.generic_smbo import SMBO
+from openbox import Optimizer, sp
 
 
-def mishra(config: Configuration):
-    import numpy as np
+def mishra(config: sp.Configuration):
     config_dict = config.get_dictionary()
     X = np.array([config_dict['x%d' % i] for i in range(2)])
     x, y = X[0], X[1]
@@ -26,20 +24,23 @@ if __name__ == "__main__":
             'x1': (-6.5, 0, -3.25)
         }
     }
-    cs = ConfigurationSpace()
-    cs.add_hyperparameters([UniformFloatHyperparameter(name, *para)
-                            for name, para in params['float'].items()])
+    space = sp.Space()
+    space.add_variables([
+        sp.Real(name, *para) for name, para in params['float'].items()
+    ])
 
-
-    bo = SMBO(mishra,
-              cs,
-              num_constraints=1,
-              num_objs=1,
-              acq_optimizer_type='random_scipy',
-              max_runs=50,
-              time_limit_per_trial=10,
-              task_id='soc')
-    history = bo.run()
+    opt = Optimizer(
+        mishra,
+        space,
+        num_constraints=1,
+        num_objs=1,
+        surrogate_type='gp',
+        acq_optimizer_type='random_scipy',
+        max_runs=50,
+        time_limit_per_trial=10,
+        task_id='soc',
+    )
+    history = opt.run()
 
     print(history)
 
