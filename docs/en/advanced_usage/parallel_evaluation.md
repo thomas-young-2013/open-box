@@ -1,4 +1,4 @@
-# Parallel Evaluation
+# Parallel and Distributed Evaluation
 
 Most proposed Bayesian optimization (BO) approaches only allow the exploration of the search space to occur 
 sequentially. To fully utilize computing resources in a parallel infrastructure, **OpenBox** provides a 
@@ -48,7 +48,7 @@ def branin(config):
 
 If you are not familiar with the problem setup, please refer to [Quick Start Tutorial](../quick_start/quick_start).
 
-## Parallel Evaluation on Local Machine
+## Parallel Evaluation on Local
 
 This time we use <font color=#FF0000>**ParallelOptimizer**</font> to optimize the objective function 
 in a parallel manner on your local machine.
@@ -97,6 +97,93 @@ evaluation time exceeds this limit, objective function will return as a failed t
 + **task_id** is set to identify the optimization process.
 
 After optimization, call <font color=#FF0000>**print(opt.get_history())**</font> to see the result:
+
+```python
+print(opt.get_history())
+```
+
+```
++----------------------------------------------+
+| Parameters              | Optimal Value      |
++-------------------------+--------------------+
+| x1                      | -3.138286          |
+| x2                      | 12.292733          |
++-------------------------+--------------------+
+| Optimal Objective Value | 0.3985991718620365 |
++-------------------------+--------------------+
+| Num Configs             | 100                |
++-------------------------+--------------------+
+```
+
+# Distributed Evaluation
+
+**OpenBox** provides an efficient way to perform distributed optimization.
+
+First, start the master node with the <font color=#FF0000>**DistributedOptimizer**</font>.
+We use the branin objective function defined previously.
+
+```python
+from openbox import DistributedOptimizer
+
+# Distributed Evaluation
+n_workers = 4
+opt = DistributedOptimizer(
+    branin,
+    space,
+    parallel_strategy='async',
+    batch_size=n_workers,
+    batch_strategy='median_imputation',
+    num_objs=1,
+    num_constraints=0,
+    max_runs=50,
+    surrogate_type='gp',
+    time_limit_per_trial=180,
+    task_id='distributed_opt',
+    port=13579,
+    authkey=b'abc',
+)
+history = opt.run()
+```
+
+In addition to **objective_function** and **space** being passed to **DistributedOptimizer**, 
+the other parameters are as follows:
+
++ **port**: network port of optimizer on master node.
+
++ **authkey**: authorization key for worker to connect the master.
+
++ **parallel_strategy='async' / 'sync'** sets whether the parallel evaluation is performed asynchronously or synchronously.
+We suggest using **'async'** because it makes better use of resources and achieves better performance than **'sync'**.
+
++ **batch_size=4** sets the number of parallel workers.
+
++ **batch_strategy='median_imputation'** sets the strategy on how to make multiple suggestions at the same time.
+We suggest using **'median_imputation'** by default for stable performance.
+
++ **num_objs=1** and **num_constraints=0** indicates that our function returns a single objective value with no constraint. 
+
++ **max_runs=100** means the optimization will take 100 rounds (optimizing the objective function 100 times). 
+
++ **surrogate_type='gp'**. For mathematical problem, we suggest using Gaussian Process (**'gp'**) as Bayesian surrogate
+model. For practical problems such as hyperparameter optimization (HPO), we suggest using Random Forest (**'prf'**).
+
++ **time_limit_per_trial** sets the time budget (seconds) of each objective function evaluation. Once the 
+evaluation time exceeds this limit, objective function will return as a failed trial.
+
++ **task_id** is set to identify the optimization process.
+
+Next, start the worker nodes to receive jobs from master and evaluate configurations.
+In addition to the objective function, please specify **ip** of master node and **port**, **authkey** 
+you set when starting the optimizer.
+
+```python
+from openbox import DistributedWorker
+
+worker = DistributedWorker(branin, ip="127.0.0.1", port=13579, authkey=b'abc')
+worker.run()
+```
+
+After optimization, call <font color=#FF0000>**print(opt.get_history())**</font> on master node to see the result:
 
 ```python
 print(opt.get_history())
