@@ -115,7 +115,7 @@ print(opt.get_history())
 +-------------------------+--------------------+
 ```
 
-# Distributed Evaluation
+## Distributed Evaluation
 
 **OpenBox** provides an efficient way to perform distributed optimization.
 

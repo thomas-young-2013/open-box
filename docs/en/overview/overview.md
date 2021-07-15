@@ -72,7 +72,7 @@ Web UI for users to track and manage their running tasks. For deployment details
 ## Performance Comparison
 We compare OpenBox with six competitive open-source BBO systems on tuning LightGBM using 25 datasets. 
 The performance rank (the lower, the better) is shown in the following figure. 
-For dataset information and more experimental results, please refer to our [published article]().
+For dataset information and more experimental results, please refer to our [published article](https://arxiv.org/abs/2106.00421).
 
 <p align="center">
 <img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/ranking_lgb_7.svg" width="80%">
