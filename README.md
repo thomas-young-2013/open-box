@@ -51,7 +51,7 @@ OpenBox’s design satisfies the following desiderata:
 ## Links
 + [Documentations](https://open-box.readthedocs.io/en/latest/?badge=latest)
 + [Examples](https://github.com/thomas-young-2013/open-box/tree/master/examples)
-+ [Pypi package](https://pypi.org/project/open-box/)
++ [Pypi package](https://pypi.org/project/openbox/)
 + Conda package: [to appear soon]()
 + Blog post: [to appear soon]()
 
