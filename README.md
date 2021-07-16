@@ -62,11 +62,13 @@ OpenBox’s design satisfies the following desiderata:
 ## Benchmark Results
 
 Single-objective problems
+
 Ackley-4                  | Hartmann
 :-------------------------:|:-------------------------:
 ![](https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/experiments/so_math_ackley-4.png)  |  ![](https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/experiments/so_math_hartmann.png)
 
 Single-objective problems with constraints
+
 Mishra                  | Keane-10
 :-------------------------:|:-------------------------:
 ![](https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/experiments/soc_math_mishra.png)  |  ![](https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/experiments/soc_math_keane.png)
