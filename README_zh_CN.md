@@ -127,6 +127,8 @@ python setup.py install --user --prefix=
 
 ## 快速入门
 
+快速入门示例：
+
 ```python
 import numpy as np
 from openbox import Optimizer, sp
@@ -149,6 +151,42 @@ if __name__ == '__main__':
     history = opt.run()
     print(history)
 ```
+
+多目标带约束优化问题示例：
+
+```python
+from openbox import Optimizer, sp
+
+# Define Search Space
+space = sp.Space()
+x1 = sp.Real("x1", 0.1, 10.0)
+x2 = sp.Real("x2", 0.0, 5.0)
+space.add_variables([x1, x2])
+
+# Define Objective Function
+def CONSTR(config):
+    x1, x2 = config['x1'], config['x2']
+    y1, y2 = x1, (1.0 + x2) / x1
+    c1, c2 = 6.0 - 9.0 * x1 - x2, 1.0 - 9.0 * x1 + x2
+    return dict(objs=[y1, y2], constraints=[c1, c2])
+
+# Run
+if __name__ == "__main__":
+    opt = Optimizer(CONSTR, space, num_objs=2, num_constraints=2,
+                    max_runs=50, ref_point=[10.0, 10.0], task_id='moc')
+    opt.run()
+    print(opt.get_history().get_pareto())
+```
+
+更多示例：
++ [单目标带约束优化](https://github.com/thomas-young-2013/open-box/blob/master/examples/optimize_problem_with_constraint.py)
++ [多目标优化](https://github.com/thomas-young-2013/open-box/blob/master/examples/optimize_multi_objective.py)
++ [多目标带约束优化](https://github.com/thomas-young-2013/open-box/blob/master/examples/optimize_multi_objective_with_constraint.py)
++ [单机并行验证](https://github.com/thomas-young-2013/open-box/blob/master/examples/evaluate_async_parallel_optimization.py)
++ [分布式并行验证](https://github.com/thomas-young-2013/open-box/blob/master/examples/distributed_optimization.py)
++ [LightGBM调参](https://github.com/thomas-young-2013/open-box/blob/master/examples/tuning_lightgbm.py)
++ [XGBoost调参](https://github.com/thomas-young-2013/open-box/blob/master/examples/tuning_xgboost.py)
+
 
 ## **参与贡献**
 如果您在使用OpenBox的过程中遇到Bug，请向我们[提交issue](https://github.com/thomas-young-2013/open-box/issues/new/choose)。如果您对Bug进行了修复，欢迎直接向我们提交。
