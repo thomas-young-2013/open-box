@@ -1,5 +1,5 @@
 <p align="center">
-<img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/logo.png" width="68%">
+<img src="docs/imgs/logo.png" width="40%">
 </p>
 
 -----------
@@ -60,25 +60,25 @@ OpenBox是一个提供通用黑盒优化服务的系统。用户可以使用REST
 
 Ackley-4                  | Hartmann
 :-------------------------:|:-------------------------:
-![](https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/experiments/so_math_ackley-4.png)  |  ![](https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/experiments/so_math_hartmann.png)
+![](docs/experiments/so_math_ackley-4.png)  |  ![](docs/experiments/so_math_hartmann.png)
 
 单目标带约束优化问题
 
 Mishra                  | Keane-10
 :-------------------------:|:-------------------------:
-![](https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/experiments/soc_math_mishra.png)  |  ![](https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/experiments/soc_math_keane.png)
+![](docs/experiments/soc_math_mishra.png)  |  ![](docs/experiments/soc_math_keane.png)
 
 多目标问题
 
 DTLZ1-6-5             | ZDT2-3 
 :-------------------------:|:-------------------------:
-![](https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/experiments/mo_math_dtlz1-6-5.png)  |  ![](https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/experiments/mo_math_zdt2-3.png)
+![](docs/experiments/mo_math_dtlz1-6-5.png)  |  ![](docs/experiments/mo_math_zdt2-3.png)
 
 多目标带约束问题
 
 CONSTR             | SRN 
 :-------------------------:|:-------------------------:
-![](https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/experiments/moc_math_constr.png)  |  ![](https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/experiments/moc_math_srn.png)
+![](docs/experiments/moc_math_constr.png)  |  ![](docs/experiments/moc_math_srn.png)
 
 ## 安装教程
 
