@@ -51,7 +51,7 @@ OpenBox’s design satisfies the following desiderata:
 ## Links
 + [Documentations](https://open-box.readthedocs.io/en/latest/?badge=latest) | [中文文档](https://open-box.readthedocs.io/zh_CN/latest/)
 + [Examples](https://github.com/thomas-young-2013/open-box/tree/master/examples)
-+ [Pypi package](https://pypi.org/project/open-box/)
++ [Pypi package](https://pypi.org/project/openbox/)
 + Conda package: [to appear soon]()
 + Blog post: [to appear soon]()
 
@@ -62,11 +62,13 @@ OpenBox’s design satisfies the following desiderata:
 ## Benchmark Results
 
 Single-objective problems
+
 Ackley-4                  | Hartmann
 :-------------------------:|:-------------------------:
 ![](https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/experiments/so_math_ackley-4.png)  |  ![](https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/experiments/so_math_hartmann.png)
 
 Single-objective problems with constraints
+
 Mishra                  | Keane-10
 :-------------------------:|:-------------------------:
 ![](https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/experiments/soc_math_mishra.png)  |  ![](https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/experiments/soc_math_keane.png)
@@ -130,6 +132,8 @@ For more detailed installation instructions, please refer to our [Installation G
 
 ## Quick Start
 
+Quick start example:
+
 ```python
 import numpy as np
 from openbox import Optimizer, sp
@@ -152,6 +156,41 @@ if __name__ == '__main__':
     history = opt.run()
     print(history)
 ```
+
+Multi-objective with constraints optimization example:
+
+```python
+from openbox import Optimizer, sp
+
+# Define Search Space
+space = sp.Space()
+x1 = sp.Real("x1", 0.1, 10.0)
+x2 = sp.Real("x2", 0.0, 5.0)
+space.add_variables([x1, x2])
+
+# Define Objective Function
+def CONSTR(config):
+    x1, x2 = config['x1'], config['x2']
+    y1, y2 = x1, (1.0 + x2) / x1
+    c1, c2 = 6.0 - 9.0 * x1 - x2, 1.0 - 9.0 * x1 + x2
+    return dict(objs=[y1, y2], constraints=[c1, c2])
+
+# Run
+if __name__ == "__main__":
+    opt = Optimizer(CONSTR, space, num_objs=2, num_constraints=2,
+                    max_runs=50, ref_point=[10.0, 10.0], task_id='moc')
+    opt.run()
+    print(opt.get_history().get_pareto())
+```
+
+More examples:
++ [Single-Objective with Constraints](https://github.com/thomas-young-2013/open-box/blob/master/examples/optimize_problem_with_constraint.py)
++ [Multi-Objective](https://github.com/thomas-young-2013/open-box/blob/master/examples/optimize_multi_objective.py)
++ [Multi-Objective with Constraints](https://github.com/thomas-young-2013/open-box/blob/master/examples/optimize_multi_objective_with_constraint.py)
++ [Parallel Evaluation on Local](https://github.com/thomas-young-2013/open-box/blob/master/examples/evaluate_async_parallel_optimization.py)
++ [Distributed Evaluation](https://github.com/thomas-young-2013/open-box/blob/master/examples/distributed_optimization.py)
++ [Tuning LightGBM](https://github.com/thomas-young-2013/open-box/blob/master/examples/tuning_lightgbm.py)
++ [Tuning XGBoost](https://github.com/thomas-young-2013/open-box/blob/master/examples/tuning_xgboost.py)
 
 ## **Releases and Contributing**
 OpenBox has a frequent release cycle. Please let us know if you encounter a bug by [filling an issue](https://github.com/thomas-young-2013/open-box/issues/new/choose).
