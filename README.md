@@ -13,7 +13,7 @@
 [![Join the chat at https://gitter.im/bbo-open-box](https://badges.gitter.im/bbo-open-box.svg)](https://gitter.im/bbo-open-box?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Documentation Status](https://readthedocs.org/projects/open-box/badge/?version=latest)](https://open-box.readthedocs.io/en/latest/?badge=latest)
 
-[OpenBox Doc](https://open-box.readthedocs.io) | [简体中文](README_zh_CN.md)
+[OpenBox Doc](https://open-box.readthedocs.io) | [OpenBox中文文档](https://open-box.readthedocs.io/zh_CN/latest/)
 
 ## OpenBox: Generalized and Efficient Blackbox Optimization System.
 OpenBox is an efficient and generalized blackbox optimization (BBO) system, which owns the following characteristics:
@@ -24,7 +24,7 @@ OpenBox is an efficient and generalized blackbox optimization (BBO) system, whic
 5. BBO with early stops.
 
 
-## Deployment Artifacts
+## Software Artifacts
 #### Standalone Python package.
 Users can install the released package and use it using Python.
 
@@ -49,13 +49,13 @@ OpenBox’s design satisfies the following desiderata:
 + **Fault tolerance**, **extensibility**, and **data privacy protection**.
 
 ## Links
-+ [Documentations](https://open-box.readthedocs.io/en/latest/?badge=latest)
++ [Documentations](https://open-box.readthedocs.io/en/latest/?badge=latest) | [中文文档](https://open-box.readthedocs.io/zh_CN/latest/)
 + [Examples](https://github.com/thomas-young-2013/open-box/tree/master/examples)
 + [Pypi package](https://pypi.org/project/open-box/)
 + Conda package: [to appear soon]()
 + Blog post: [to appear soon]()
 
-## Application Tutorials
+## Application Examples
 + [Tuning LightGBM with OpenBox](https://github.com/thomas-young-2013/open-box/blob/master/docs/en/articles/openbox_LightGBM.md)
 + [Tuning XGBoost using OpenBox](https://github.com/thomas-young-2013/open-box/blob/master/docs/en/articles/openbox_XGBoost.md)
 
@@ -174,7 +174,7 @@ We appreciate all contributions and thank all the contributors!
 
 Targeting at openness and advancing AutoML ecosystems, we had also released few other open source projects.
 
-* [VolcanoML](https://github.com/thomas-young-2013/soln-ml) : an open source system that provides end-to-end ML model training and inference capabilities.
+* [MindWare](https://github.com/thomas-young-2013/mindware): an open source system that provides end-to-end ML model training and inference capabilities.
 
 
 ---------------------
