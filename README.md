@@ -1,5 +1,5 @@
 <p align="center">
-<img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/logo.png" width="68%">
+<img src="docs/imgs/logo.png" width="68%">
 </p>
 
 -----------
@@ -65,25 +65,25 @@ Single-objective problems
 
 Ackley-4                  | Hartmann
 :-------------------------:|:-------------------------:
-![](https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/experiments/so_math_ackley-4.png)  |  ![](https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/experiments/so_math_hartmann.png)
+![](docs/experiments/so_math_ackley-4.png)  |  ![](docs/experiments/so_math_hartmann.png)
 
 Single-objective problems with constraints
 
 Mishra                  | Keane-10
 :-------------------------:|:-------------------------:
-![](https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/experiments/soc_math_mishra.png)  |  ![](https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/experiments/soc_math_keane.png)
+![](docs/experiments/soc_math_mishra.png)  |  ![](docs/experiments/soc_math_keane.png)
 
 Multi-objective problems
 
 DTLZ1-6-5             | ZDT2-3 
 :-------------------------:|:-------------------------:
-![](https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/experiments/mo_math_dtlz1-6-5.png)  |  ![](https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/experiments/mo_math_zdt2-3.png)
+![](docs/experiments/mo_math_dtlz1-6-5.png)  |  ![](docs/experiments/mo_math_zdt2-3.png)
 
 Multi-objective problems with constraints
 
 CONSTR             | SRN 
 :-------------------------:|:-------------------------:
-![](https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/experiments/moc_math_constr.png)  |  ![](https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/experiments/moc_math_srn.png)
+![](docs/experiments/moc_math_constr.png)  |  ![](docs/experiments/moc_math_srn.png)
 
 ## Installation
 
