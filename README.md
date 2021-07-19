@@ -1,5 +1,5 @@
 <p align="center">
-<img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/logo.png" width="68%">
+<img src="https://raw.githubusercontent.com/thomas-young-2013/open-box/master/docs/imgs/logo.png" width="40%">
 </p>
 
 -----------
@@ -55,9 +55,6 @@ OpenBox’s design satisfies the following desiderata:
 + Conda package: [to appear soon]()
 + Blog post: [to appear soon]()
 
-## Application Examples
-+ [Tuning LightGBM with OpenBox](https://github.com/thomas-young-2013/open-box/blob/master/docs/en/articles/openbox_LightGBM.md)
-+ [Tuning XGBoost using OpenBox](https://github.com/thomas-young-2013/open-box/blob/master/docs/en/articles/openbox_XGBoost.md)
 
 ## Benchmark Results
 
