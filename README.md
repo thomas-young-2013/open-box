@@ -16,12 +16,8 @@
 [OpenBox Doc](https://open-box.readthedocs.io) | [OpenBox中文文档](https://open-box.readthedocs.io/zh_CN/latest/)
 
 ## OpenBox: Generalized and Efficient Blackbox Optimization System.
-OpenBox is an efficient and generalized blackbox optimization (BBO) system, which owns the following characteristics:
-1. BBO with multiple objectives and constraints.
-2. BBO with transfer learning.
-3. BBO with distributed parallelization.
-4. BBO with multi-fidelity acceleration.
-5. BBO with early stops.
+**OpenBox** is an efficient and generalized blackbox optimization (BBO) system, which supports the following characteristics: 1) **BBO with multiple objectives and constraints**, 2) **BBO with transfer learning**, 3) **BBO with distributed parallelization**, 4) **BBO with multi-fidelity acceleration** and 5) **BBO with early stops**.
+OpenBox is designed and developed by the AutoML team from the <a href="http://net.pku.edu.cn/~cuibin/" target="_blank" rel="nofollow">DAIR Lab</a> at Peking University, and its goal is to make blackbox optimization easier to apply both in industry and academia, and help facilitate data science.
 
 
 ## Software Artifacts
