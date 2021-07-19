@@ -52,31 +52,79 @@ OpenBox’s design satisfies the following desiderata:
 + Blog post: [to appear soon]()
 
 
-## Benchmark Results
+## OpenBox Capabilities in a Glance
+<table>
+  <tbody>
+    <tr align="center" valign="bottom">
+      <td>
+        <b>Build-in Optimization Components</b>
+      </td>
+      <td>
+        <b>Optimization Algorithms</b>
+      </td>
+      <td>
+        <b>Optimization Services</b>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td>
+      <ul><li><b>Surrogate Model</b></li>
+        <ul>
+          <li>Gaussian Process</li>
+          <li>TPE</li>
+          <li>Probabilistic Random Forest</li>
+          <li>LightGBM</li>
+        </ul>
+        </ul>
+      <ul>
+        <li><b>Acquisition Function</b></li>
+          <ul>
+           <li>EI</li>
+           <li>PI</li>
+           <li>UCB</li>
+           <li>MES</li>
+           <li>EHVI</li>
+           <li>TS</li>
+          </ul>
+      </ul>
+        <ul>
+        <li><b>Acquisition Optimizer</b></li>
+        <ul>
+           <li>Random Search</li>
+           <li>Local Search</li>
+           <li>Interleaved RS and LS</li>
+           <li>Differential Evolution</li>
+           <li>L-BFGS-B</li>
+          </ul>
+        </ul>
+      </td>
+      <td align="left" >
+        <ul>
+        <li><b>Random Search</b></li>
+        <li><b>SMAC</b></li>
+        <li><b>GP based Optimizer</b></li>
+        <li><b>TPE</b></li>
+        <li><b>Hyperband</b></li>
+        <li><b>BOHB</b></li>
+        <li><b>MFES-HB</b></li>
+        <li><b>Anneal</b></li>
+        <li><b>PBT</b></li>
+        <li><b>Regularized EA</b></li>
+        <li><b>NSGA-II</b></li>
+        </ul>
+      </td>
+      <td>
+      <ul>
+        <li><a href="https://open-box.readthedocs.io/en/latest/advanced_usage/parallel_evaluation.html">Local Machine</a></li>
+        <li><a href="https://open-box.readthedocs.io/en/latest/advanced_usage/parallel_evaluation.html">Cluster Servers</a></li>
+        <li><a href="https://open-box.readthedocs.io/en/latest/advanced_usage/parallel_evaluation.html">Hybrid mode</a></li>
+        <li><a href="https://open-box.readthedocs.io/en/latest/openbox_as_service/openbox_as_service.html">Software as a Service</a></li>
+      </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
 
-Single-objective problems
-
-Ackley-4                  | Hartmann
-:-------------------------:|:-------------------------:
-![](docs/experiments/so_math_ackley-4.png)  |  ![](docs/experiments/so_math_hartmann.png)
-
-Single-objective problems with constraints
-
-Mishra                  | Keane-10
-:-------------------------:|:-------------------------:
-![](docs/experiments/soc_math_mishra.png)  |  ![](docs/experiments/soc_math_keane.png)
-
-Multi-objective problems
-
-DTLZ1-6-5             | ZDT2-3 
-:-------------------------:|:-------------------------:
-![](docs/experiments/mo_math_dtlz1-6-5.png)  |  ![](docs/experiments/mo_math_zdt2-3.png)
-
-Multi-objective problems with constraints
-
-CONSTR             | SRN 
-:-------------------------:|:-------------------------:
-![](docs/experiments/moc_math_constr.png)  |  ![](docs/experiments/moc_math_srn.png)
 
 ## Installation
 
