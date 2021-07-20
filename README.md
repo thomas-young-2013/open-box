@@ -15,19 +15,14 @@
 
 [OpenBox Doc](https://open-box.readthedocs.io) | [OpenBox中文文档](https://open-box.readthedocs.io/zh_CN/latest/)
 
-## OpenBox: Generalized and Efficient Blackbox Optimization System.
-OpenBox is an efficient and generalized blackbox optimization (BBO) system, which owns the following characteristics:
-1. BBO with multiple objectives and constraints.
-2. BBO with transfer learning.
-3. BBO with distributed parallelization.
-4. BBO with multi-fidelity acceleration.
-5. BBO with early stops.
+## OpenBox: Generalized and Efficient Blackbox Optimization System
+**OpenBox** is an efficient and generalized blackbox optimization (BBO) system, which supports the following characteristics: 1) **BBO with multiple objectives and constraints**, 2) **BBO with transfer learning**, 3) **BBO with distributed parallelization**, 4) **BBO with multi-fidelity acceleration** and 5) **BBO with early stops**.
+OpenBox is designed and developed by the AutoML team from the <a href="http://net.pku.edu.cn/~cuibin/" target="_blank" rel="nofollow">DAIR Lab</a> at Peking University, and its goal is to make blackbox optimization easier to apply both in industry and academia, and help facilitate data science.
 
 
 ## Software Artifacts
 #### Standalone Python package.
 Users can install the released package and use it using Python.
-
 #### Distributed BBO service.
 We adopt the "BBO as a service" paradigm and implement OpenBox as a managed general service for black-box optimization. Users can access this service via REST API conveniently, and do not need to worry about other issues such as environment setup, software maintenance, programming, and optimization of the execution. Moreover, we also provide a Web UI,
 through which users can easily track and manage the tasks.
@@ -35,17 +30,12 @@ through which users can easily track and manage the tasks.
 
 ## Design Goal
 
-OpenBox’s design satisfies the following desiderata:
+The design of OpenBox follows the following principles:
 + **Ease of use**: Minimal user effort, and user-friendly visualization for tracking and managing BBO tasks.
-
 + **Consistent performance**: Host state-of-the-art optimization algorithms; Choose the proper algorithm automatically.
-
 + **Resource-aware management**: Give cost-model-based advice to users, e.g., minimal workers or time-budget.
-
 + **Scalability**: Scale to dimensions on the number of input variables, objectives, tasks, trials, and parallel evaluations.
-
 + **High efficiency**: Effective use of parallel resources, system optimization with transfer-learning and multi-fidelities, etc.
-
 + **Fault tolerance**, **extensibility**, and **data privacy protection**.
 
 ## Links
@@ -56,51 +46,99 @@ OpenBox’s design satisfies the following desiderata:
 + Blog post: [to appear soon]()
 
 
-## Benchmark Results
+## OpenBox Capabilities in a Glance
+<table>
+  <tbody>
+    <tr align="center" valign="bottom">
+      <td>
+        <b>Build-in Optimization Components</b>
+      </td>
+      <td>
+        <b>Optimization Algorithms</b>
+      </td>
+      <td>
+        <b>Optimization Services</b>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td>
+      <ul><li><b>Surrogate Model</b></li>
+        <ul>
+          <li>Gaussian Process</li>
+          <li>TPE</li>
+          <li>Probabilistic Random Forest</li>
+          <li>LightGBM</li>
+        </ul>
+        </ul>
+      <ul>
+        <li><b>Acquisition Function</b></li>
+          <ul>
+           <li>EI</li>
+           <li>PI</li>
+           <li>UCB</li>
+           <li>MES</li>
+           <li>EHVI</li>
+           <li>TS</li>
+          </ul>
+      </ul>
+        <ul>
+        <li><b>Acquisition Optimizer</b></li>
+        <ul>
+           <li>Random Search</li>
+           <li>Local Search</li>
+           <li>Interleaved RS and LS</li>
+           <li>Differential Evolution</li>
+           <li>L-BFGS-B</li>
+          </ul>
+        </ul>
+      </td>
+      <td align="left" >
+        <ul>
+        <li><b>Random Search</b></li>
+        <li><b>SMAC</b></li>
+        <li><b>GP based Optimizer</b></li>
+        <li><b>TPE</b></li>
+        <li><b>Hyperband</b></li>
+        <li><b>BOHB</b></li>
+        <li><b>MFES-HB</b></li>
+        <li><b>Anneal</b></li>
+        <li><b>PBT</b></li>
+        <li><b>Regularized EA</b></li>
+        <li><b>NSGA-II</b></li>
+        </ul>
+      </td>
+      <td>
+      <ul>
+        <li><a href="https://open-box.readthedocs.io/en/latest/advanced_usage/parallel_evaluation.html">Local Machine</a></li>
+        <li><a href="https://open-box.readthedocs.io/en/latest/advanced_usage/parallel_evaluation.html">Cluster Servers</a></li>
+        <li><a href="https://open-box.readthedocs.io/en/latest/advanced_usage/parallel_evaluation.html">Hybrid mode</a></li>
+        <li><a href="https://open-box.readthedocs.io/en/latest/openbox_as_service/openbox_as_service.html">Software as a Service</a></li>
+      </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
 
-Single-objective problems
-
-Ackley-4                  | Hartmann
-:-------------------------:|:-------------------------:
-![](docs/experiments/so_math_ackley-4.png)  |  ![](docs/experiments/so_math_hartmann.png)
-
-Single-objective problems with constraints
-
-Mishra                  | Keane-10
-:-------------------------:|:-------------------------:
-![](docs/experiments/soc_math_mishra.png)  |  ![](docs/experiments/soc_math_keane.png)
-
-Multi-objective problems
-
-DTLZ1-6-5             | ZDT2-3 
-:-------------------------:|:-------------------------:
-![](docs/experiments/mo_math_dtlz1-6-5.png)  |  ![](docs/experiments/mo_math_zdt2-3.png)
-
-Multi-objective problems with constraints
-
-CONSTR             | SRN 
-:-------------------------:|:-------------------------:
-![](docs/experiments/moc_math_constr.png)  |  ![](docs/experiments/moc_math_srn.png)
 
 ## Installation
 
 ### System Requirements
 
 Installation Requirements:
-+ Python >= 3.6 (3.7 is recommended!)
++ Python >= 3.6 (Python 3.7 is recommended!)
 
 Supported Systems:
 + Linux (Ubuntu, ...)
 + macOS
 + Windows
 
-We **STRONGLY** suggest you to create a Python environment via [Anaconda](https://www.anaconda.com/products/individual#Downloads):
+We **strongly** suggest you to create a Python environment via [Anaconda](https://www.anaconda.com/products/individual#Downloads):
 ```bash
 conda create -n openbox3.7 python=3.7
 conda activate openbox3.7
 ```
 
-Then we recommend you to update your `pip` and `setuptools` as follows:
+Then update your `pip` and `setuptools` as follows:
 ```bash
 pip install pip setuptools --upgrade
 ```
@@ -115,7 +153,7 @@ pip install openbox
 
 ### Manual Installation from Source
 
-To install the newest version of OpenBox, please type the following scripts on the command line:
+To install the newest OpenBox package, just type the following scripts on the command line:
 
 (Python >= 3.7 only. For Python == 3.6, please see out [Installation Guide Document](https://open-box.readthedocs.io/en/latest/installation/installation_guide.html))
 
@@ -125,11 +163,11 @@ cat requirements/main.txt | xargs -n 1 -L 1 pip install
 python setup.py install --user --prefix=
 ```
 
-For more detailed installation instructions, please refer to our [Installation Guide Document](https://open-box.readthedocs.io/en/latest/installation/installation_guide.html).
+For more details about installation instructions, please refer to the [Installation Guide Document](https://open-box.readthedocs.io/en/latest/installation/installation_guide.html).
 
 ## Quick Start
 
-Quick start example:
+A quick start example is given by:
 
 ```python
 import numpy as np
@@ -154,7 +192,7 @@ if __name__ == '__main__':
     print(history)
 ```
 
-Multi-objective with constraints optimization example:
+The example with multi-objectives and constraints is as follows:
 
 ```python
 from openbox import Optimizer, sp
@@ -180,7 +218,7 @@ if __name__ == "__main__":
     print(opt.get_history().get_pareto())
 ```
 
-More examples:
+**More Examples**:
 + [Single-Objective with Constraints](https://github.com/thomas-young-2013/open-box/blob/master/examples/optimize_problem_with_constraint.py)
 + [Multi-Objective](https://github.com/thomas-young-2013/open-box/blob/master/examples/optimize_multi_objective.py)
 + [Multi-Objective with Constraints](https://github.com/thomas-young-2013/open-box/blob/master/examples/optimize_multi_objective_with_constraint.py)
@@ -218,9 +256,11 @@ Targeting at openness and advancing AutoML ecosystems, we had also released few 
 
 **OpenBox: A Generalized Black-box Optimization Service**
 Yang Li, Yu Shen, Wentao Zhang, Yuanwei Chen, Huaijun Jiang, Mingchao Liu, Jiawei Jiang, Jinyang Gao, Wentao Wu, Zhi Yang, Ce Zhang, Bin Cui; ACM SIGKDD Conference on Knowledge Discovery and Data Mining (KDD 2021).
+https://arxiv.org/abs/2106.00421
 
 **MFES-HB: Efficient Hyperband with Multi-Fidelity Quality Measurements**
 Yang Li, Yu Shen, Jiawei Jiang, Jinyang Gao, Ce Zhang, Bin Cui; The Thirty-Fifth AAAI Conference on Artificial Intelligence (AAAI 2021).
+https://arxiv.org/abs/2012.03011
 
 ## **License**
 
