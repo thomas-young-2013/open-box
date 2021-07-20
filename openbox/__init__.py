@@ -3,6 +3,7 @@
 
 from .pkginfo import version as __version__, package_name
 
+from .utils import space
 from .utils import space as sp
 
 from .optimizer.generic_smbo import SMBO as Optimizer
@@ -18,7 +19,7 @@ from .utils.test_install import run_test
 
 __all__ = [
     "__version__", "__package__", "package_name",
-    "sp",
+    "sp", "space",
     "Optimizer", "ParallelOptimizer", "DistributedOptimizer", "DistributedWorker",
     "create_optimizer",
     "get_config_space", "get_objective_function",
