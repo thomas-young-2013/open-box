@@ -20,7 +20,7 @@ class HistoryContainer(object):
     def __init__(self, task_id, num_constraints=0, config_space=None):
         self.task_id = task_id
         self.config_space = config_space  # for show_importance
-        self.data = collections.OrderedDict()  # todo: old api. only successful data
+        self.data = collections.OrderedDict()  # only successful data
         self.config_counter = 0
         self.incumbent_value = MAXINT
         self.incumbents = list()
@@ -67,19 +67,29 @@ class HistoryContainer(object):
                 failed = True
                 transform_perf = True
             else:
+                # If infeasible, transform perf to the largest found objective value
+                feasible = True
+                if self.num_constraints > 0 and any(c > 0 for c in constraints):
+                    transform_perf = True
+                    feasible = False
+
                 if self.num_objs == 1:
                     self.successful_perfs.append(objs[0])
-                    self.add(config, objs[0])
+                    if feasible:
+                        self.add(config, objs[0])
+                    else:
+                        self.add(config, MAXINT)
                 else:
                     self.successful_perfs.append(objs)
-                    self.add(config, objs)
+                    if feasible:
+                        self.add(config, objs)
+                    else:
+                        self.add(config, [MAXINT] * self.num_objs)
 
                 self.perc = np.percentile(self.successful_perfs, self.scale_perc, axis=0)
                 self.min_y = np.min(self.successful_perfs, axis=0).tolist()
                 self.max_y = np.max(self.successful_perfs, axis=0).tolist()
-                # If infeasible, transform perf to the largest found objective value
-                if self.num_constraints > 0 and any(c > 0 for c in constraints):
-                    transform_perf = True
+
         else:
             # failed trial
             failed = True
@@ -91,7 +101,7 @@ class HistoryContainer(object):
         if failed:
             self.failed_index.append(cur_idx)
 
-    def add(self, config: Configuration, perf: Perf):  # todo: remove this old api
+    def add(self, config: Configuration, perf: Perf):
         if config in self.data:
             self.logger.warning('Repeated configuration detected!')
             return
@@ -154,7 +164,7 @@ class HistoryContainer(object):
     def get_incumbents(self):
         return self.incumbents
 
-    def get_str(self):  # todo all configs
+    def get_str(self):
         from terminaltables import AsciiTable
         incumbents = self.get_incumbents()
         if not incumbents:
@@ -181,7 +191,7 @@ class HistoryContainer(object):
         table_data = ([configs_title] +
                       configs_table +
                       [["Optimal Objective Value"] + [perf for config, perf in incumbents]] +
-                      [["Num Configs"] + [str(self.config_counter)]]  # todo: all configs
+                      [["Num Configs"] + [str(len(self.configurations))]]
                       )
 
         M = 2
@@ -243,7 +253,7 @@ class HistoryContainer(object):
         ax : `Axes`
             The matplotlib axes.
         """
-        losses = list(self.data.values())  # todo: all perfs
+        losses = list(self.perfs)
 
         n_calls = len(losses)
         iterations = range(1, n_calls + 1)
@@ -264,9 +274,8 @@ class HistoryContainer(object):
                               "HiPlot requires Python 3.6 or newer.")
             raise
 
-        visualize_data_premature = self.data  # todo: all configs
         visualize_data = []
-        for config, perf in visualize_data_premature.items():
+        for config, perf in zip(self.configurations, self.perfs):
             config_perf = config.get_dictionary().copy()
             assert 'perf' not in config_perf.keys()
             config_perf['perf'] = perf
