@@ -72,10 +72,10 @@ def get_result(result):
     elif isinstance(result, dict):  # recommended usage
         objs = result['objs']
         if isinstance(objs, number_typing_list):
-            objs = (objs, )
+            objs = [objs, ]
         constraints = result.get('constraints', None)
     elif isinstance(result, number_typing_list):
-        objs = (result, )
+        objs = [result, ]
         constraints = None
     else:
         objs = result
