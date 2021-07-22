@@ -8,7 +8,7 @@ from openbox.utils.constants import MAXINT
 
 class NSGABase(object, metaclass=abc.ABCMeta):
     def __init__(self, objective_function, config_space, task_id='task_id', output_dir='logs/',
-                 random_state=1, max_runs=50):
+                 random_state=1, max_runs=2500):
         self.output_dir = output_dir
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
@@ -23,7 +23,7 @@ class NSGABase(object, metaclass=abc.ABCMeta):
         self.config_space = config_space
         self.config_space.seed(self.rng.randint(MAXINT))
         self.objective_function = objective_function
-        self.max_iterations = int(1e10) if max_runs is None else max_runs
+        self.max_iterations = max_runs
 
     def run(self):
         raise NotImplementedError()

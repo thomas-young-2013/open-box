@@ -3,10 +3,12 @@ import time
 import traceback
 import random
 import copy
+import numpy as np
 from openbox.optimizer.nsga_base import NSGABase
 from openbox.utils.constants import MAXINT
 from openbox.core.base import Observation
 from openbox.utils.platypus_utils import get_variator, set_problem_types, objective_wrapper
+from openbox.utils.config_space import Configuration
 from platypus import Problem, NSGAII
 from platypus import nondominated as _nondominated
 
@@ -69,18 +71,22 @@ class NSGAOptimizer(NSGABase):
         return self
 
     def get_incumbent(self):
-        raise
+        solutions = self.get_solutions(feasible=True, nondominated=True, decode=True)
+        pareto_set = [Configuration(self.config_space, vector=np.asarray(s.variables)) for s in solutions]
+        pareto_front = np.array([s.objectives for s in solutions])
+        return pareto_set, pareto_front
 
     def get_pareto_set(self):
-        raise
+        solutions = self.get_solutions(feasible=True, nondominated=True, decode=True)
+        pareto_set = [Configuration(self.config_space, vector=np.asarray(s.variables)) for s in solutions]
+        return pareto_set
 
     def get_pareto_front(self):
-        raise
+        solutions = self.get_solutions(feasible=True, nondominated=True, decode=True)
+        pareto_front = np.array([s.objectives for s in solutions])
+        return pareto_front
 
-    def get_result(self):
-        return self.get_solutions(feasible=True, nondominated=True, decode=True)
-
-    def get_solutions(self, feasible=False, nondominated=False, decode=True):
+    def get_solutions(self, feasible=True, nondominated=True, decode=True):
         solutions = copy.deepcopy(self.algorithm.result)
         if feasible:
             solutions = [s for s in solutions if s.feasible]

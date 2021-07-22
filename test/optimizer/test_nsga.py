@@ -27,4 +27,5 @@ opt = NSGAOptimizer(
     task_id='test_nsga',
 )
 opt.run()
-print(opt.get_result())
+
+print(opt.get_incumbent())
