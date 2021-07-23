@@ -18,7 +18,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
                  optimization_strategy='bo',
                  surrogate_type='gp',
                  output_dir='logs',
-                 task_id=None,
+                 task_id='default_task_id',
                  rng=None):
 
         # Create output (logging) directory.

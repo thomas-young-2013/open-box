@@ -22,7 +22,7 @@ class BatchBayesianOptimization(BaseFacade):
                  initial_configurations=None,
                  initial_batch=1,
                  batch_size=3,
-                 task_id=None,
+                 task_id='default_task_id',
                  rng=None):
         super().__init__(config_space, task_id, output_dir=logging_dir)
         self.logger = super()._get_logger(self.__class__.__name__)

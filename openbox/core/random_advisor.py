@@ -18,7 +18,7 @@ class RandomAdvisor(Advisor):
                  acq_optimizer_type='local_random',
                  ref_point=None,
                  output_dir='logs',
-                 task_id=None,
+                 task_id='default_task_id',
                  random_state=None):
 
         super().__init__(config_space, task_info, initial_trials, initial_configurations,

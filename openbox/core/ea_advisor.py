@@ -23,7 +23,7 @@ class EA_Advisor(object, metaclass=abc.ABCMeta):
                  optimization_strategy='ea',
                  batch_size=1,
                  output_dir='logs',
-                 task_id=None,
+                 task_id='default_task_id',
                  random_state=None):
 
         # Create output (logging) directory.

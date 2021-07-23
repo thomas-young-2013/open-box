@@ -14,7 +14,7 @@ class MFBatchAdvisor(Advisor):
                  history_bo_data=None,
                  surrogate_type='mfgpe',
                  output_dir='logs',
-                 task_id=None,
+                 task_id='default_task_id',
                  rng=None):
 
         self.batch_strategy = batch_strategy

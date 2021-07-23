@@ -21,7 +21,7 @@ class TPE_Advisor:
                  random_fraction=1 / 3,
                  bandwidth_factor=3,
                  min_bandwidth=1e-3,
-                 task_id=None,
+                 task_id='default_task_id',
                  output_dir='logs',
                  random_state=1):
         self.top_n_percent = top_n_percent

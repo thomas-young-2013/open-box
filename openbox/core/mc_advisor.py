@@ -23,7 +23,7 @@ class MCAdvisor(Advisor):
                  use_trust_region=False,
                  ref_point=None,
                  output_dir='logs',
-                 task_id=None,
+                 task_id='default_task_id',
                  random_state=None):
 
         self.mc_times = mc_times

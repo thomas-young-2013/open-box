@@ -110,7 +110,7 @@ class SMBO(BOBase):
                  ref_point=None,
                  history_bo_data: List[OrderedDict] = None,
                  logging_dir='logs',
-                 task_id=None,
+                 task_id='default_task_id',
                  random_state=1,
                  **kwargs):
 

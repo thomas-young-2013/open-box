@@ -461,7 +461,8 @@ class LPEI(EI):
 class PI(AbstractAcquisitionFunction):
     def __init__(self,
                  model: AbstractModel,
-                 par: float = 0.0):
+                 par: float = 0.0,
+                 **kwargs):
 
         """Computes the probability of improvement for a given x over the best so far value as
         acquisition value.
@@ -512,7 +513,8 @@ class PI(AbstractAcquisitionFunction):
 class LCB(AbstractAcquisitionFunction):
     def __init__(self,
                  model: AbstractModel,
-                 par: float = 1.0):
+                 par: float = 1.0,
+                 **kwargs):
 
         """Computes the lower confidence bound for a given x over the best so far value as
         acquisition value.
@@ -564,7 +566,8 @@ class LCB(AbstractAcquisitionFunction):
 class Uncertainty(AbstractAcquisitionFunction):
     def __init__(self,
                  model: AbstractModel,
-                 par: float = 1.0):
+                 par: float = 1.0,
+                 **kwargs):
 
         """Computes half of the difference between upper and lower confidence bound (Uncertainty).
 

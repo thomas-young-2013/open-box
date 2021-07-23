@@ -22,7 +22,7 @@ class AsyncBatchAdvisor(Advisor):
                  acq_optimizer_type='local_random',
                  ref_point=None,
                  output_dir='logs',
-                 task_id=None,
+                 task_id='default_task_id',
                  random_state=None):
 
         self.batch_size = batch_size

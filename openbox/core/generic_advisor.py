@@ -31,7 +31,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
                  acq_optimizer_type='local_random',
                  ref_point=None,
                  output_dir='logs',
-                 task_id=None,
+                 task_id='default_task_id',
                  random_state=None):
 
         # Create output (logging) directory.
