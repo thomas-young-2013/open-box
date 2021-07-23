@@ -188,6 +188,20 @@ if __name__ == "__main__":
 + [XGBoost调参](https://github.com/thomas-young-2013/open-box/blob/master/examples/tuning_xgboost.py)
 
 
+## **企业用户**
+<p align="left">
+<img src="docs/imgs/logo_alibaba.png" width="35%">
+</p>
+
+* [阿里巴巴集团](https://www.alibabagroup.com/cn/global/home)
+
+<p align="left">
+<img src="docs/imgs/logo_kuaishou.png" width="35%">
+</p>
+
+* [快手科技](https://www.kuaishou.com)
+
+
 ## **参与贡献**
 如果您在使用OpenBox的过程中遇到Bug，请向我们[提交issue](https://github.com/thomas-young-2013/open-box/issues/new/choose)。如果您对Bug进行了修复，欢迎直接向我们提交。
 
@@ -207,7 +221,19 @@ if __name__ == "__main__":
 
 以开放性和推进AutoML生态系统为目标，我们还发布了一些其他的开源项目：
 
-* [VocalnoML](https://github.com/thomas-young-2013/soln-ml) : 提供端到端机器学习模型训练和预测功能的开源系统。
+* [MindWare](https://github.com/thomas-young-2013/mindware) : 提供端到端机器学习模型训练和预测功能的开源系统。
+
+
+---------------------
+## **相关文献发表**
+
+**OpenBox: A Generalized Black-box Optimization Service**
+Yang Li, Yu Shen, Wentao Zhang, Yuanwei Chen, Huaijun Jiang, Mingchao Liu, Jiawei Jiang, Jinyang Gao, Wentao Wu, Zhi Yang, Ce Zhang, Bin Cui; ACM SIGKDD Conference on Knowledge Discovery and Data Mining (KDD 2021).
+https://arxiv.org/abs/2106.00421
+
+**MFES-HB: Efficient Hyperband with Multi-Fidelity Quality Measurements**
+Yang Li, Yu Shen, Jiawei Jiang, Jinyang Gao, Ce Zhang, Bin Cui; The Thirty-Fifth AAAI Conference on Artificial Intelligence (AAAI 2021).
+https://arxiv.org/abs/2012.03011
 
 
 ## **许可协议**
