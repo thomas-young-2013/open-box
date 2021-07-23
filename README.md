@@ -227,6 +227,20 @@ if __name__ == "__main__":
 + [Tuning LightGBM](https://github.com/thomas-young-2013/open-box/blob/master/examples/tuning_lightgbm.py)
 + [Tuning XGBoost](https://github.com/thomas-young-2013/open-box/blob/master/examples/tuning_xgboost.py)
 
+## **Enterprise Users**
+<p align="left">
+<img src="docs/imgs/logo_alibaba.png" width="40%">
+</p>
+
+* [Alibaba Group](https://www.alibabagroup.com/en/global/home)
+
+<p align="left">
+<img src="docs/imgs/logo_alibaba.png" width="40%">
+</p>
+
+* [Kuaishou Technology](https://www.kuaishou.com/en)
+
+
 ## **Releases and Contributing**
 OpenBox has a frequent release cycle. Please let us know if you encounter a bug by [filling an issue](https://github.com/thomas-young-2013/open-box/issues/new/choose).
 
