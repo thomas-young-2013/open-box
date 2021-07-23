@@ -1,5 +1,6 @@
 from typing import List, Tuple
 from itertools import product
+import random
 
 import numpy as np
 from scipy.stats import norm
@@ -8,6 +9,8 @@ from sklearn.kernel_approximation import RBFSampler
 from openbox.acquisition_function.acquisition import AbstractAcquisitionFunction, Uncertainty
 from openbox.surrogate.base.base_model import AbstractModel
 from openbox.surrogate.base.gp import GaussianProcess
+from openbox.utils.platypus_utils import set_problem_types, get_variator
+from openbox.utils.constants import MAXINT
 
 from platypus import NSGAII, Problem, Real
 
@@ -261,8 +264,7 @@ class MESMO(AbstractAcquisitionFunction):
 
     def __init__(self,
                  model: List[AbstractModel],
-                 types: List[int],
-                 bounds: List[Tuple[float, float]],
+                 config_space,
                  sample_num=1,
                  random_state=1,
                  **kwargs):
@@ -273,19 +275,12 @@ class MESMO(AbstractAcquisitionFunction):
         model : List[AbstractEPM]
             A list of surrogate that implements at least
                  - predict_marginalized_over_instances(X)
-        types : List[int]
-            Specifies the number of categorical values of an input dimension where
-            the i-th entry corresponds to the i-th input dimension. Let's say we
-            have 2 dimension where the first dimension consists of 3 different
-            categorical choices and the second dimension is continuous than we
-            have to pass [3, 0]. Note that we count starting from 0.
-        bounds : List[Tuple[float, float]]
-            Bounds of input dimensions: (lower, upper) for continuous dims; (n_cat, np.nan) for categorical dims
-            # todo cat dims
+        config_space : openbox.space.Space
+            Configuration space
         sample_num : int
-
-        random_state :
-
+            Number of Monte-Carlo samples.
+        random_state : int
+            Random seed for RNG.
         """
 
         super(MESMO, self).__init__(model)
@@ -293,22 +288,14 @@ class MESMO(AbstractAcquisitionFunction):
         self.sample_num = sample_num
         self.random_state = random_state
         self.rng = np.random.RandomState(self.random_state)
-        self.types = np.asarray(types)
-        self.bounds = np.asarray(bounds)
+        random.seed(self.rng.randint(MAXINT))
+        self.config_space = config_space
         self.X = None
         self.Y = None
         self.X_dim = None
         self.Y_dim = None
         self.Multiplemes = None
         self.min_samples = None
-        self.check_types_bounds()
-
-    def check_types_bounds(self):
-        # todo
-        for i, (t, b) in enumerate(zip(self.types, self.bounds)):
-            if np.isnan(b[1]):
-                self.logger.error("Only int and float hyperparameters are supported in MESMO at present!")
-                raise ValueError("Only int and float hyperparameters are supported in MESMO at present!")
 
     def update(self, **kwargs):
         """
@@ -337,10 +324,11 @@ class MESMO(AbstractAcquisitionFunction):
                 return y
 
             problem = Problem(self.X_dim, self.Y_dim)
-            for k in range(self.X_dim):
-                problem.types[k] = Real(self.bounds[k][0], self.bounds[k][1])  # todo other types
+            set_problem_types(self.config_space, problem)
             problem.function = CMO
-            algorithm = NSGAII(problem)
+
+            variator = get_variator(self.config_space)
+            algorithm = NSGAII(problem, population_size=100, variator=variator)
             algorithm.run(1500)
             cheap_pareto_front = [list(solution.objectives) for solution in algorithm.result]
             # picking the min over the pareto: best case
@@ -384,8 +372,7 @@ class MESMOC(AbstractAcquisitionFunction):
     def __init__(self,
                  model: List[AbstractModel],
                  constraint_models: List[AbstractModel],
-                 types: List[int],
-                 bounds: List[Tuple[float, float]],
+                 config_space,
                  sample_num=1,
                  random_state=1,
                  **kwargs):
@@ -399,19 +386,12 @@ class MESMOC(AbstractAcquisitionFunction):
         constraint_models : List[AbstractEPM]
             A list of constraint surrogate that implements at least
                  - predict_marginalized_over_instances(X)
-        types : List[int]
-            Specifies the number of categorical values of an input dimension where
-            the i-th entry corresponds to the i-th input dimension. Let's say we
-            have 2 dimension where the first dimension consists of 3 different
-            categorical choices and the second dimension is continuous than we
-            have to pass [3, 0]. Note that we count starting from 0.
-        bounds : List[Tuple[float, float]]
-            Bounds of input dimensions: (lower, upper) for continuous dims; (n_cat, np.nan) for categorical dims
-            # todo cat dims
+        config_space : openbox.space.Space
+            Configuration space
         sample_num : int
-
-        random_state :
-
+            Number of Monte-Carlo samples.
+        random_state : int
+            Random seed for RNG.
         """
 
         super(MESMOC, self).__init__(model)
@@ -419,8 +399,8 @@ class MESMOC(AbstractAcquisitionFunction):
         self.sample_num = sample_num
         self.random_state = random_state
         self.rng = np.random.RandomState(random_state)
-        self.types = np.asarray(types)
-        self.bounds = np.asarray(bounds)
+        random.seed(self.rng.randint(MAXINT))
+        self.config_space = config_space
         self.constraint_models = constraint_models
         self.num_constraints = len(constraint_models)
         self.constraint_perfs = None
@@ -432,14 +412,6 @@ class MESMOC(AbstractAcquisitionFunction):
         self.Multiplemes_constraints = None
         self.min_samples = None
         self.min_samples_constraints = None
-        self.check_types_bounds()
-
-    def check_types_bounds(self):
-        # todo
-        for i, (t, b) in enumerate(zip(self.types, self.bounds)):
-            if np.isnan(b[1]):
-                self.logger.error("Only int and float hyperparameters are supported in MESMOC at present!")
-                raise ValueError("Only int and float hyperparameters are supported in MESMOC at present!")
 
     def update(self, **kwargs):
         """
@@ -479,11 +451,12 @@ class MESMOC(AbstractAcquisitionFunction):
                 return y, y_c
 
             problem = Problem(self.X_dim, self.Y_dim, self.num_constraints)
-            for k in range(self.X_dim):
-                problem.types[k] = Real(self.bounds[k][0], self.bounds[k][1])  # todo other types
-            problem.constraints[:] = "<=0"  # todo confirm
+            set_problem_types(self.config_space, problem)
+            problem.constraints[:] = "<=0"
             problem.function = CMO
-            algorithm = NSGAII(problem)
+
+            variator = get_variator(self.config_space)
+            algorithm = NSGAII(problem, population_size=100, variator=variator)
             algorithm.run(1500)
             cheap_pareto_front = [list(solution.objectives) for solution in algorithm.result]
             cheap_constraints_values = [list(solution.constraints) for solution in algorithm.result]
@@ -539,8 +512,7 @@ class MESMOC2(MESMO):
     def __init__(self,
                  model: List[AbstractModel],
                  constraint_models: List[AbstractModel],
-                 types: List[int],
-                 bounds: List[Tuple[float, float]],
+                 config_space,
                  sample_num=1,
                  random_state=1,
                  **kwargs):
@@ -554,21 +526,14 @@ class MESMOC2(MESMO):
         constraint_models : List[AbstractEPM]
             A list of constraint surrogate that implements at least
                  - predict_marginalized_over_instances(X)
-        types : List[int]
-            Specifies the number of categorical values of an input dimension where
-            the i-th entry corresponds to the i-th input dimension. Let's say we
-            have 2 dimension where the first dimension consists of 3 different
-            categorical choices and the second dimension is continuous than we
-            have to pass [3, 0]. Note that we count starting from 0.
-        bounds : List[Tuple[float, float]]
-            Bounds of input dimensions: (lower, upper) for continuous dims; (n_cat, np.nan) for categorical dims
-            # todo cat dims
+        config_space : openbox.space.Space
+            Configuration space
         sample_num : int
-
-        random_state :
-
+            Number of Monte-Carlo samples.
+        random_state : int
+            Random seed for RNG.
         """
-        super(MESMOC2, self).__init__(model, types, bounds, sample_num, random_state)
+        super().__init__(model, config_space, sample_num, random_state, **kwargs)
         self.constraint_models = constraint_models
         self.long_name = 'MESMOC2'
 
@@ -605,8 +570,8 @@ class USeMO(AbstractAcquisitionFunction):
 
     def __init__(self,
                  model: List[AbstractModel],
-                 types: List[int],
-                 bounds: List[Tuple[float, float]],
+                 config_space,
+                 random_state=1,
                  acq_type='ei',
                  **kwargs):
         """Constructor
@@ -616,23 +581,19 @@ class USeMO(AbstractAcquisitionFunction):
         model : List[AbstractEPM]
             A list of surrogate that implements at least
                  - predict_marginalized_over_instances(X)
-        types : List[int]
-            Specifies the number of categorical values of an input dimension where
-            the i-th entry corresponds to the i-th input dimension. Let's say we
-            have 2 dimension where the first dimension consists of 3 different
-            categorical choices and the second dimension is continuous than we
-            have to pass [3, 0]. Note that we count starting from 0.
-        bounds : List[Tuple[float, float]]
-            Bounds of input dimensions: (lower, upper) for continuous dims; (n_cat, np.nan) for categorical dims
-            # todo cat dims
+        config_space : openbox.space.Space
+            Configuration space
+        random_state : int
+            Random seed for RNG.
         acq_type:
-            todo
+            Type of base acquisition function.
         """
 
         super(USeMO, self).__init__(model)
         self.long_name = 'Uncertainty-Aware Search'
-        self.types = np.asarray(types)
-        self.bounds = np.asarray(bounds)
+        self.rng = np.random.RandomState(random_state)
+        random.seed(self.rng.randint(MAXINT))
+        self.config_space = config_space
         from openbox.core.base import build_acq_func
         self.single_acq = [build_acq_func(func_str=acq_type, model=m) for m in model]
         self.uncertainty_acq = [Uncertainty(model=m) for m in model]
@@ -644,14 +605,6 @@ class USeMO(AbstractAcquisitionFunction):
         self.num_data = None
         self.uncertainties = None
         self.candidates = None
-        self.check_types_bounds()
-
-    def check_types_bounds(self):
-        # todo
-        for i, (t, b) in enumerate(zip(self.types, self.bounds)):
-            if np.isnan(b[1]):
-                self.logger.error("Only int and float hyperparameters are supported in USeMO at present!")
-                raise ValueError("Only int and float hyperparameters are supported in USeMO at present!")
 
     def update(self, **kwargs):
         """
@@ -680,11 +633,15 @@ class USeMO(AbstractAcquisitionFunction):
             return [-self.single_acq[i](x, convert=False)[0][0] for i in range(self.Y_dim)]
 
         problem = Problem(self.X_dim, self.Y_dim)
-        for k in range(self.X_dim):
-            problem.types[k] = Real(self.bounds[k][0], self.bounds[k][1])  # todo other types
+        set_problem_types(self.config_space, problem)
         problem.function = CMO
-        algorithm = NSGAII(problem)  # todo population_size
+
+        variator = get_variator(self.config_space)
+        algorithm = NSGAII(problem, population_size=100, variator=variator)
         algorithm.run(2500)
+        # decode
+        for s in algorithm.result:
+            s.variables[:] = [problem.types[i].decode(s.variables[i]) for i in range(problem.nvars)]
         cheap_pareto_set = [solution.variables for solution in algorithm.result]
         # cheap_pareto_set_unique = []
         # for i in range(len(cheap_pareto_set)):

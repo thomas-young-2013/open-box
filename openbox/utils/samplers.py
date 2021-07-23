@@ -3,6 +3,9 @@ from skopt.sampler import Sobol, Lhs
 
 from openbox.utils.config_space import ConfigurationSpace, Configuration
 from openbox.utils.util_funcs import get_types, check_random_state
+from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
+    UniformFloatHyperparameter, UniformIntegerHyperparameter, Constant, \
+    OrdinalHyperparameter
 
 
 class Sampler(object):
@@ -32,18 +35,17 @@ class Sampler(object):
         """
         self.config_space = config_space
 
-        types, bounds = get_types(config_space)
         self.search_dims = []
-        for i in range(len(types)):
-            if types[i] == 0 and bounds[i][1] == 1.0:  # Integer and float
+        for i, param in enumerate(config_space.get_hyperparameters()):
+            if isinstance(param, UniformFloatHyperparameter):
                 self.search_dims.append((0.0, 1.0))
-            elif types[i] > 0:  # Categorical
-                self.search_dims.append(list(range(types[i])))
+            elif isinstance(param, UniformIntegerHyperparameter):
+                self.search_dims.append((0.0, 1.0))
             else:
-                raise NotImplementedError()
+                raise NotImplementedError('Only Integer and Float are supported in %s.' % self.__class__.__name__)
 
         self.size = size
-        default_lb, default_ub = zip(*bounds)
+        default_lb, default_ub = zip(*self.search_dims)
         self.lower_bounds = np.array(default_lb) if lower_bounds is None else np.clip(lower_bounds, default_lb, default_ub)
         self.upper_bounds = np.array(default_ub) if upper_bounds is None else np.clip(upper_bounds, default_lb, default_ub)
 

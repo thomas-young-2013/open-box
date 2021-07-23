@@ -575,7 +575,7 @@ class ScipyOptimizer(AcquisitionFunctionMaximizer):
         self.random_chooser = ChooserProb(prob=rand_prob, rng=rng)
 
         types, bounds = get_types(self.config_space)
-        assert all(types == 0)
+        assert all(types == 0), 'Scipy optimizer (L-BFGS-B) only supports Integer and Float parameters.'
         self.bounds = bounds
 
         options = dict(disp=False, maxiter=1000)
@@ -935,10 +935,7 @@ class StagedBatchScipyOptimizer(AcquisitionFunctionMaximizer):
         raise NotImplementedError()
 
 
-MESMO_Optimizer = RandomScipyOptimizer
-
-
-class MESMO_Optimizer2(AcquisitionFunctionMaximizer):
+class MESMO_Optimizer(AcquisitionFunctionMaximizer):
     """Implements Scipy optimizer for MESMO. Only on continuous dims
 
     Parameters

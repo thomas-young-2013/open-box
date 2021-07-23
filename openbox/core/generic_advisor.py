@@ -2,7 +2,6 @@ import os
 import abc
 import numpy as np
 
-from openbox.utils.util_funcs import get_types
 from openbox.utils.logging_utils import get_logger
 from openbox.utils.history_container import HistoryContainer, MOHistoryContainer, \
     MultiStartHistoryContainer
@@ -181,12 +180,10 @@ class Advisor(object, metaclass=abc.ABCMeta):
                                                       rng=self.rng) for _ in range(self.num_constraints)]
 
         if self.acq_type in ['mesmo', 'mesmoc', 'mesmoc2', 'usemo']:
-            types, bounds = get_types(self.config_space)
             self.acquisition_function = build_acq_func(func_str=self.acq_type,
                                                        model=self.surrogate_model,
                                                        constraint_models=self.constraint_models,
-                                                       types=types,
-                                                       bounds=bounds)
+                                                       config_space=self.config_space)
         else:
             self.acquisition_function = build_acq_func(func_str=self.acq_type,
                                                        model=self.surrogate_model,
@@ -194,8 +191,6 @@ class Advisor(object, metaclass=abc.ABCMeta):
                                                        ref_point=self.ref_point)
         if self.acq_type == 'usemo':
             self.acq_optimizer_type = 'usemo_optimizer'
-        elif self.acq_type.startswith('mesmo'):
-            self.acq_optimizer_type = 'mesmo_optimizer'
         self.optimizer = build_optimizer(func_str=self.acq_optimizer_type,
                                          acq_func=self.acquisition_function,
                                          config_space=self.config_space,
