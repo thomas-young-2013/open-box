@@ -196,7 +196,7 @@ Related Project
 Targeting at openness and advancing the AutoML ecosystem,
 we have also released another open-source project.
 
--  `VolcanoML <https://github.com/thomas-young-2013/soln-ml>`__: an
+-  `MindWare <https://github.com/PKU-DAIR/mindware>`__: an
    open-source system that provides end-to-end ML model training and inference capabilities.
 
 ------------------------------------------------

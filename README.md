@@ -262,7 +262,7 @@ We appreciate all contributions and thank all the contributors!
 
 Targeting at openness and advancing AutoML ecosystems, we had also released few other open source projects.
 
-* [MindWare](https://github.com/thomas-young-2013/mindware): an open source system that provides end-to-end ML model training and inference capabilities.
+* [MindWare](https://github.com/PKU-DAIR/mindware): an open source system that provides end-to-end ML model training and inference capabilities.
 
 
 ---------------------

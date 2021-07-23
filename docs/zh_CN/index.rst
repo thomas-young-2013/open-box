@@ -177,7 +177,7 @@ Yang Li, Yu Shen, Jiawei Jiang, Jinyang Gao, Ce Zhang, Bin Cui; The Thirty-Fifth
 
 我们的其它AutoML项目：
 
--  `VolcanoML <https://github.com/thomas-young-2013/soln-ml>`__ ：一个开源的，提供自动化且端到端的ML模型训练和预测的系统。
+-  `MindWare <https://github.com/PKU-DAIR/mindware>`__ ：一个开源的，提供自动化且端到端的ML模型训练和预测的系统。
 
 ------------------------------------------------
 
