@@ -17,6 +17,82 @@ from openbox.core.base import Observation
 
 
 class SMBO(BOBase):
+    """
+    Parameters
+    ----------
+    objective_function : callable
+        Objective function to optimize.
+    config_space : openbox.space.Space
+        Configuration space.
+    num_constraints : int
+        Number of constraints in objective function.
+    num_objs : int
+        Number of objectives in objective function.
+    max_runs : int
+        Number of optimization iterations.
+    runtime_limit : int or float, optional
+        Time budget for the whole optimization process. None means no limit.
+    time_limit_per_trial : int or float
+        Time budget for a single evaluation trial.
+    advisor_type : str
+        Type of advisor to produce configuration suggestion.
+        - 'default' (default): Bayesian Optimization
+        - 'tpe': Tree-structured Parzen Estimator
+        - 'ea': Evolutionary Algorithms
+        - 'random': Random Search
+        - 'mcadvisor': Bayesian Optimization with Monte Carlo Sampling
+    surrogate_type : str
+        Type of surrogate model in Bayesian optimization.
+        - 'gp' (default): Gaussian Process. Better performance for mathematical problems.
+        - 'prf': Probability Random Forest. Better performance for hyper-parameter optimization (HPO).
+        - 'lightgbm': LightGBM.
+    acq_type : str
+        Type of acquisition function in Bayesian optimization.
+        For single objective problem:
+        - 'ei' (default): Expected Improvement
+        - 'eips': Expected Improvement per Second
+        - 'logei': Logarithm Expected Improvement
+        - 'pi': Probability of Improvement
+        - 'lcb': Lower Confidence Bound
+        For single objective problem with constraints:
+        - 'eic' (default): Expected Constrained Improvement
+        For multi-objective problem:
+        - 'ehvi (default)': Expected Hypervolume Improvement
+        - 'mesmo': Multi-Objective Max-value Entropy Search
+        - 'usemo': Multi-Objective Uncertainty-Aware Search
+        - 'parego': ParEGO
+        For multi-objective problem with constraints:
+        - 'ehvic' (default): Expected Hypervolume Improvement with Constraints
+        - 'mesmoc': Multi-Objective Max-value Entropy Search with Constraints
+    acq_optimizer_type : str
+        Type of optimizer to maximize acquisition function.
+        - 'local_random' (default): Interleaved Local and Random Search
+        - 'random_scipy': L-BFGS-B (Scipy) optimizer with random starting points
+        - 'scipy_global': Differential Evolution
+        - 'cma_es': Covariance Matrix Adaptation Evolution Strategy (CMA-ES)
+    initial_runs : int
+        Number of initial iterations of optimization.
+    init_strategy : str
+        Strategy to generate configurations for initial iterations.
+        - 'random_explore_first' (default): Random sampled configs with maximized internal minimum distance
+        - 'random': Random sampling
+        - 'default': Default configuration + random sampling
+        - 'sobol': Sobol sequence sampling
+        - 'latin_hypercube': Latin hypercube sampling
+    initial_configurations : List[Configuration], optional
+        If provided, the initial configurations will be evaluated in initial iterations of optimization.
+    ref_point : List[float], optional
+        Reference point for calculating hypervolume in multi-objective problem.
+        Must be provided if using EHVI based acquisition function.
+    history_bo_data : List[OrderedDict], optional
+        Historical data for transfer learning.
+    logging_dir : str
+        Directory to save log files.
+    task_id : str
+        Task identifier.
+    random_state : int
+        Random seed for RNG.
+    """
     def __init__(self, objective_function: callable, config_space,
                  num_constraints=0,
                  num_objs=1,
