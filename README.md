@@ -155,7 +155,7 @@ pip install openbox
 
 To install the newest OpenBox package, just type the following scripts on the command line:
 
-(Python >= 3.7 only. For Python == 3.6, please see out [Installation Guide Document](https://open-box.readthedocs.io/en/latest/installation/installation_guide.html))
+(Python >= 3.7 only. For Python == 3.6, please see our [Installation Guide Document](https://open-box.readthedocs.io/en/latest/installation/installation_guide.html))
 
 ```bash
 git clone https://github.com/thomas-young-2013/open-box.git && cd open-box
