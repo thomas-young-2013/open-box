@@ -229,16 +229,16 @@ if __name__ == "__main__":
 
 ## **Enterprise Users**
 <p align="left">
-<img src="docs/imgs/logo_alibaba.png" width="35%">
-</p>
-
-* [Alibaba Group](https://www.alibabagroup.com/en/global/home)
-
-<p align="left">
 <img src="docs/imgs/logo_kuaishou.png" width="35%">
 </p>
 
 * [Kuaishou Technology](https://www.kuaishou.com/en)
+
+<p align="left">
+<img src="docs/imgs/logo_alibaba.png" width="35%">
+</p>
+
+* [Alibaba Group](https://www.alibabagroup.com/en/global/home)
 
 
 ## **Releases and Contributing**
