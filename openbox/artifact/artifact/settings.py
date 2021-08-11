@@ -1,3 +1,5 @@
+# License: MIT
+
 """
 Django settings for artifact project.
 

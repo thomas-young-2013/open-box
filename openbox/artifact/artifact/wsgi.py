@@ -1,3 +1,5 @@
+# License: MIT
+
 """
 WSGI config for artifact project.
 

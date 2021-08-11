@@ -1,3 +1,5 @@
+# License: MIT
+
 from typing import List, Optional, Tuple, Union
 
 from ConfigSpace import ConfigurationSpace

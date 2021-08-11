@@ -1,3 +1,5 @@
+# License: MIT
+
 from typing import List
 import numpy as np
 from openbox.utils.config_space import Configuration, ConfigurationSpace

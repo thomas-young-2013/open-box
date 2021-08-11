@@ -1,3 +1,5 @@
+# License: MIT
+
 import copy
 import numpy as np
 

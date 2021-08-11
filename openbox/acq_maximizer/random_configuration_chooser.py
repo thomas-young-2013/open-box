@@ -1,3 +1,5 @@
+# License: MIT
+
 from abc import ABC, abstractmethod
 import logging
 

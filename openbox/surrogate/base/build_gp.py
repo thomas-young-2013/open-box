@@ -1,3 +1,5 @@
+# License: MIT
+
 import numpy as np
 from openbox.surrogate.base.gp import GaussianProcess
 from openbox.surrogate.base.gp_mcmc import GaussianProcessMCMC

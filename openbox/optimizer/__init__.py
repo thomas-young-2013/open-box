@@ -1,3 +1,5 @@
+# License: MIT
+
 import os
 
 from openbox.optimizer.base import BOBase

@@ -1,3 +1,5 @@
+# License: MIT
+
 """
 Distributed Optimization Example
 

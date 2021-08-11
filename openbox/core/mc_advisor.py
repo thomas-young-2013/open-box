@@ -1,3 +1,5 @@
+# License: MIT
+
 import numpy as np
 
 from openbox.core.base import build_acq_func, build_optimizer, build_surrogate, Observation

@@ -1,3 +1,5 @@
+# License: MIT
+
 from openbox.acquisition_function.acquisition import (
     AbstractAcquisitionFunction,
     EI,

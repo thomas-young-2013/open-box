@@ -1,3 +1,5 @@
+# License: MIT
+
 import time
 import os
 import numpy as np

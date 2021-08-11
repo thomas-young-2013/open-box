@@ -1,3 +1,5 @@
+# License: MIT
+
 import itertools
 import numpy as np
 from scipy.optimize import minimize

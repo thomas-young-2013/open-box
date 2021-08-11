@@ -1,3 +1,4 @@
+# License: MIT
 
 from openbox.optimizer import _optimizers
 from openbox.utils.config_space.space_utils import get_config_space_from_dict

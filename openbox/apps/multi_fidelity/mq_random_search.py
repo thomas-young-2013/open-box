@@ -1,3 +1,5 @@
+# License: MIT
+
 import numpy as np
 import time
 from openbox.apps.multi_fidelity.mq_base_facade import mqBaseFacade

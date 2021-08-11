@@ -1,3 +1,5 @@
+# License: MIT
+
 import re
 
 from django.http import HttpResponseRedirect

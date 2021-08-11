@@ -1,3 +1,5 @@
+# License: MIT
+
 # =====for vvv=====
 # after the execution of this part
 # goto the root directory using the command `tensorboard --logdir`
