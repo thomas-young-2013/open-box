@@ -1,3 +1,5 @@
+# License: MIT
+
 import datetime
 import hashlib
 

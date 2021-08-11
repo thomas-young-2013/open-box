@@ -1,3 +1,5 @@
+# License: MIT
+
 import numpy as np
 from sklearn.model_selection import KFold
 from openbox.surrogate.tlbo.base import BaseTLSurrogate

@@ -1,3 +1,5 @@
+# License: MIT
+
 from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
     UniformFloatHyperparameter, UniformIntegerHyperparameter, Constant, \
     OrdinalHyperparameter

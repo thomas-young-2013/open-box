@@ -1,3 +1,5 @@
+# License: MIT
+
 from openbox.utils.config_space import ConfigurationSpace
 from openbox.utils.config_space import UniformFloatHyperparameter, \
     CategoricalHyperparameter, Constant, UniformIntegerHyperparameter

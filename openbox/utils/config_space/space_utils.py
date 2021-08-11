@@ -1,3 +1,5 @@
+# License: MIT
+
 import re
 import numpy as np
 from typing import List

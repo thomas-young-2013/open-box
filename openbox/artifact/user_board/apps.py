@@ -1,3 +1,5 @@
+# License: MIT
+
 from django.apps import AppConfig
 
 

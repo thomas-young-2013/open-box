@@ -1,3 +1,5 @@
+# License: MIT
+
 import sys
 import pkgutil
 import inspect

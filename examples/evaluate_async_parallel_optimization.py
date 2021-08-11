@@ -1,3 +1,5 @@
+# License: MIT
+
 import numpy as np
 import matplotlib.pyplot as plt
 from openbox import ParallelOptimizer, sp

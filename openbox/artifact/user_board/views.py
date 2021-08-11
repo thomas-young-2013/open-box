@@ -1,3 +1,5 @@
+# License: MIT
+
 from bson import ObjectId
 from openbox.artifact.data_manipulation.db_object import User, Task, Runhistory
 

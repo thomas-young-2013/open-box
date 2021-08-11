@@ -1,3 +1,5 @@
+# License: MIT
+
 import numpy as np
 from skopt.sampler import Sobol, Lhs
 

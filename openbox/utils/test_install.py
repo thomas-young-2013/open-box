@@ -1,3 +1,5 @@
+# License: MIT
+
 import numpy as np
 import traceback
 from openbox import Optimizer, sp

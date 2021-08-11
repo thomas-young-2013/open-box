@@ -1,3 +1,5 @@
+# License: MIT
+
 import numpy as np
 from openbox.core.distributed.worker import Worker
 from openbox.utils.config_space import ConfigurationSpace

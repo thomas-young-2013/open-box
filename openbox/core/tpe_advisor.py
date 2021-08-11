@@ -1,3 +1,5 @@
+# License: MIT
+
 import traceback
 import logging
 import ConfigSpace

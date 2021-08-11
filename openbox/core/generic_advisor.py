@@ -1,3 +1,5 @@
+# License: MIT
+
 import os
 import abc
 import numpy as np

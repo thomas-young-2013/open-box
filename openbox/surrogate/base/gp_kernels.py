@@ -1,3 +1,5 @@
+# License: MIT
+
 from inspect import signature, Signature
 import math
 from typing import Optional, Union, Tuple, List, Callable, Dict, Any

@@ -1,3 +1,5 @@
+# License: MIT
+
 import os
 import pymongo
 import configparser

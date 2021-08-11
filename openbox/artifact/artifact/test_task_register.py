@@ -1,3 +1,5 @@
+# License: MIT
+
 import json
 import random
 import requests

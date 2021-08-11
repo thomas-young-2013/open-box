@@ -1,3 +1,5 @@
+# License: MIT
+
 from openbox.utils.config_space import Configuration
 from sklearn.metrics import balanced_accuracy_score
 

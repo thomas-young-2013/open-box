@@ -1,3 +1,5 @@
+# License: MIT
+
 import numpy as np
 from openbox.surrogate.base.base_model import AbstractModel
 from openbox.surrogate.base.rf_with_instances import RandomForestWithInstances

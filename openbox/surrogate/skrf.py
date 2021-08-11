@@ -1,3 +1,5 @@
+# License: MIT
+
 import logging
 import typing
 import numpy as np

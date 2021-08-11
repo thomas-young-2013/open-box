@@ -1,3 +1,5 @@
+# License: MIT
+
 from copy import deepcopy
 import logging
 import typing

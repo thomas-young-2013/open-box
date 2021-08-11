@@ -1,3 +1,5 @@
+# License: MIT
+
 import abc
 import numpy as np
 import random
