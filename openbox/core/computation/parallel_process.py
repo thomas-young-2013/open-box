@@ -1,3 +1,5 @@
+# License: MIT
+
 from openbox.core.computation.nondaemonic_processpool import ProcessPool
 
 

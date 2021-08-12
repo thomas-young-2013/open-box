@@ -1,3 +1,5 @@
+# License: MIT
+
 # More readable wrapped classes based on ConfigSpace.
 # The comments are modified based on https://github.com/automl/ConfigSpace/blob/master/ConfigSpace/hyperparameters.pyx
 from typing import List, Dict, Tuple, Union, Optional

@@ -1,3 +1,5 @@
+# License: MIT
+
 from collections import namedtuple
 from openbox.utils.constants import MAXINT
 from openbox.acquisition_function import *

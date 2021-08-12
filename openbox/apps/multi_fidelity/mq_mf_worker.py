@@ -1,3 +1,5 @@
+# License: MIT
+
 import time
 import sys
 import traceback

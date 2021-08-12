@@ -1,3 +1,5 @@
+# License: MIT
+
 r"""Algorithms for partitioning the non-dominated space into rectangles.
 
 Code is adapted from botorch.

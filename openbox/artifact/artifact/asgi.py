@@ -1,3 +1,5 @@
+# License: MIT
+
 """
 ASGI config for artifact project.
 

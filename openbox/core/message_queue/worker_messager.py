@@ -1,3 +1,5 @@
+# License: MIT
+
 from multiprocessing.managers import BaseManager
 
 

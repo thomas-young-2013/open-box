@@ -1,3 +1,5 @@
+# License: MIT
+
 import time
 import numpy as np
 from math import log, ceil

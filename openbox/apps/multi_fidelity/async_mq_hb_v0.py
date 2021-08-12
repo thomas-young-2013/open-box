@@ -1,3 +1,5 @@
+# License: MIT
+
 from math import ceil
 from openbox.apps.multi_fidelity.utils import sample_configuration
 from openbox.apps.multi_fidelity.async_mq_sh_v0 import async_mqSuccessiveHalving_v0

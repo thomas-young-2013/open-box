@@ -1,3 +1,5 @@
+# License: MIT
+
 from typing import List, Tuple
 from itertools import product
 import random

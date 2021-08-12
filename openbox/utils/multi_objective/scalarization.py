@@ -1,3 +1,5 @@
+# License: MIT
+
 r"""
 Helper utilities for constructing scalarizations adapted from botorch.
 

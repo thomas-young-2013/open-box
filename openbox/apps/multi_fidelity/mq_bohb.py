@@ -1,3 +1,5 @@
+# License: MIT
+
 from openbox.utils.config_space import ConfigurationSpace
 from openbox.core.sync_batch_advisor import SyncBatchAdvisor, SUCCESS
 from openbox.apps.multi_fidelity.mq_hb import mqHyperband

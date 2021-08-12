@@ -1,3 +1,5 @@
+# License: MIT
+
 import abc
 import logging
 import time

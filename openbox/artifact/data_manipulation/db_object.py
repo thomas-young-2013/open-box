@@ -1,3 +1,5 @@
+# License: MIT
+
 from .db_manipulator import DBBase
 
 

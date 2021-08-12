@@ -1,3 +1,5 @@
+# License: MIT
+
 from ConfigSpace import Configuration, ConfigurationSpace
 from ConfigSpace import ConfigurationSpace, Configuration, Constant,\
      CategoricalHyperparameter, UniformFloatHyperparameter, \

@@ -1,3 +1,5 @@
+# License: MIT
+
 # -*- encoding: utf-8 -*-
 import os
 import yaml

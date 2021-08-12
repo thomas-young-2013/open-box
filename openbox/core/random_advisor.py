@@ -1,3 +1,5 @@
+# License: MIT
+
 from openbox.core.base import Observation
 from openbox.core.generic_advisor import Advisor
 
