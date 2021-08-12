@@ -135,7 +135,7 @@ class pSMBO(BOBase):
         self.batch_size = batch_size
 
     def callback(self, observation: Observation):
-        config, trial_state, constraints, objs, elapsed_time = observation
+        config, trial_state, constraints, objs, elapsed_time, _, _ = observation
         if objs is None:
             observation = Observation(config, trial_state, constraints, self.FAILED_PERF, elapsed_time)
         # Report the result, and remove the config from the running queue.
@@ -197,7 +197,7 @@ class pSMBO(BOBase):
                 observations = proc.parallel_execute(params)
                 # Report their results.
                 for idx, observation in enumerate(observations):
-                    config, trial_state, constraints, objs, elapsed_time = observation
+                    config, trial_state, constraints, objs, elapsed_time, _, _ = observation
                     if objs is None:
                         objs = self.FAILED_PERF
                         observation = Observation(config, trial_state, constraints, self.FAILED_PERF, elapsed_time)

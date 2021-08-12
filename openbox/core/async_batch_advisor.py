@@ -117,7 +117,7 @@ class AsyncBatchAdvisor(Advisor):
         return _config
 
     def update_observation(self, observation: Observation):
-        config, trial_state, constraints, objs, elapsed_time = observation
+        config, trial_state, constraints, objs, elapsed_time, _, _ = observation
         assert config in self.running_configs
         self.running_configs.remove(config)
         super().update_observation(observation)

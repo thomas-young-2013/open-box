@@ -4,7 +4,10 @@ from openbox.acquisition_function import *
 from openbox.utils.util_funcs import get_types
 
 
-Observation = namedtuple('Observation', ['config', 'trial_state', 'constraints', 'objs', 'elapsed_time'])
+Observation = namedtuple('Observation',
+                         ['config', 'trial_state', 'constraints', 'objs',
+                          'elapsed_time', 'worker_info', 'extra'],
+                         defaults=[None, None])
 
 
 acq_dict = {
