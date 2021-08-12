@@ -108,7 +108,7 @@ class mqSMBO(BOBase):
                     break
                 # Report result.
                 result_num += 1
-                config, trial_state, constraints, objs, elapsed_time = observation
+                config, trial_state, constraints, objs, elapsed_time, _, _ = observation
                 if objs is None:
                     observation = Observation(config, trial_state, constraints, self.FAILED_PERF, elapsed_time)
                 self.config_advisor.update_observation(observation)
@@ -138,7 +138,7 @@ class mqSMBO(BOBase):
                     continue
                 # Report result.
                 result_num += 1
-                config, trial_state, constraints, objs, elapsed_time = observation
+                config, trial_state, constraints, objs, elapsed_time, _, _ = observation
                 if objs is None:
                     observation = Observation(config, trial_state, constraints, self.FAILED_PERF, elapsed_time)
                 self.config_advisor.update_observation(observation)
