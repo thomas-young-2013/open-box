@@ -24,7 +24,10 @@ class SenderMessager(object):
         self.queue.put(message)
 
     def receive_message(self):
-        raise NotImplementedError
+        if self.queue.empty() is True:
+            return None
+        message = self.queue.get()
+        return message
 
     # def shutdown(self):
     #     raise NotImplementedError
