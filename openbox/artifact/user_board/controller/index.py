@@ -10,6 +10,7 @@ from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
 
+from openbox.artifact.artifact.settings import EMAIL_ACTIVE_ENABLE
 from openbox.artifact.data_manipulation.db_object import User, Runhistory
 from user_board.utils.common import get_password, create_token, authenticate_token
 
@@ -24,7 +25,7 @@ def login(request):
                 return JsonResponse({'code': 0, 'msg': 'User not exists!'})
             if user['password'] != get_password(password):
                 return JsonResponse({'code': 0, 'msg': 'Incorrect email or password.'})
-            elif user['is_active'] == 0:
+            elif user['is_active'] == 0 and EMAIL_ACTIVE_ENABLE is True:
                 return JsonResponse({'code': 0, 'msg': 'Email not activated!'})
             else:
                 request.session["user_email"] = email
@@ -54,6 +55,8 @@ def register(request):
                                              'salt': 'example_salt',
                                              'is_active': 0,
                                              'create_time': datetime.datetime.now()}))
+        if EMAIL_ACTIVE_ENABLE is False:
+            return JsonResponse({'code': 1, 'msg': 'success'})
         account_activation_token = create_token({'user_id': user_id, 'user_is_active': 0}, 60)
         mail_subject = 'Activate your account.'
         current_site = get_current_site(request)
