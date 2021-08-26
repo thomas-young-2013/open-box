@@ -12,6 +12,7 @@ from openbox.utils.config_space import Configuration
 from openbox.core.base import Observation
 
 from openbox.artifact.data_manipulation.db_object import User, Task, Runhistory
+from user_board.utils.common import get_password
 
 # Global mapping from task_id to config advisor
 advisor_dict = {}
@@ -42,7 +43,7 @@ def task_register(request):
             if user is None:
                 return JsonResponse({'code': 0, 'msg': '[bo_advice/views.py] User does not exist'})
             else:
-                if user['password'] != hashlib.md5(password.encode(encoding='utf-8')).hexdigest():
+                if user['password'] != get_password(password):
                     return JsonResponse({'code': 0, 'msg': '[bo_advice/views.py] Incorrect Password'})
 
             # task_id = request.POST.get('task_id')
