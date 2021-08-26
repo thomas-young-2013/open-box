@@ -124,10 +124,11 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, "user_board/static/")
-# STATICFILES_DIRS = [
-#   os.path.join(BASE_DIR, '/user_board/static/'),
-# ]
+STATICFILES_DIRS = [
+  os.path.join(BASE_DIR, '/user_board/static/'),
+]
 
+EMAIL_ACTIVE_ENABLE = False
 EMAIL_HOST = 'smtp.xxxx.com'
 EMAIL_PORT = 465
 EMAIL_HOST_USER = 'xxxx@xxxx.com'
