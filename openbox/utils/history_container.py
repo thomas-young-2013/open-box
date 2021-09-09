@@ -414,7 +414,7 @@ class MOHistoryContainer(HistoryContainer):
         self.pareto = collections.OrderedDict()
         self.num_objs = num_objs
         self.mo_incumbent_value = [MAXINT] * self.num_objs
-        self.mo_incumbents = [list()] * self.num_objs
+        self.mo_incumbents = [list() for _ in range(self.num_objs)]
         self.ref_point = ref_point
         self.hv_data = list()
 
