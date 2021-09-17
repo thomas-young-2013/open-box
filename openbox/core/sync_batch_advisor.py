@@ -70,9 +70,13 @@ class SyncBatchAdvisor(Advisor):
 
         if num_config_evaluated < self.init_num:
             if self.initial_configurations is not None:  # self.init_num equals to len(self.initial_configurations)
-                return self.initial_configurations
+                next_configs = self.initial_configurations[num_config_evaluated: num_config_evaluated + batch_size]
+                if len(next_configs) < batch_size:
+                    next_configs.extend(
+                        self.sample_random_configs(batch_size - len(next_configs), history_container))
+                return next_configs
             else:
-                return self.sample_random_configs(self.init_num, history_container)
+                return self.sample_random_configs(batch_size, history_container)
 
         if self.optimization_strategy == 'random':
             return self.sample_random_configs(batch_size, history_container)
