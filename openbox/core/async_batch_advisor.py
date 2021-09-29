@@ -50,13 +50,13 @@ class AsyncBatchAdvisor(Advisor):
         super().check_setup()
 
         if self.batch_strategy is None:
-            self.batch_strategy = 'median_imputation'
+            self.batch_strategy = 'default'
 
-        assert self.batch_strategy in ['median_imputation', 'local_penalization']
+        assert self.batch_strategy in ['default', 'median_imputation', 'local_penalization']
 
         if self.num_objs > 1 or self.num_constraints > 0:
             # local_penalization only supports single objective with no constraint
-            assert self.batch_strategy in ['median_imputation', ]
+            assert self.batch_strategy in ['default', 'median_imputation', ]
 
         if self.batch_strategy == 'local_penalization':
             self.acq_type = 'lpei'
@@ -112,6 +112,23 @@ class AsyncBatchAdvisor(Advisor):
                 num_points=5000
             )
             _config = challengers.challengers[0]
+
+        elif self.batch_strategy == 'default':
+            # select first N candidates
+            candidates = super().get_suggestion(history_container, return_list=True)
+            idx = 0
+            _config = None
+            # todo: sample configuration proportionally
+            while idx < len(candidates):
+                conf = candidates[idx]
+                idx += 1
+                if conf not in self.running_configs and conf not in history_container.configurations:
+                    _config = conf
+                    break
+            if _config is None:
+                self.logger.info('Sample random config.')
+                _config = self.sample_random_configs(1, history_container,
+                                                     excluded_configs=self.running_configs)[0]
         else:
             raise ValueError('Invalid sampling strategy - %s.' % self.batch_strategy)
 

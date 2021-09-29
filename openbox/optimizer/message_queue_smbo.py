@@ -16,7 +16,7 @@ class mqSMBO(BOBase):
     def __init__(self, objective_function, config_space,
                  parallel_strategy='async',
                  batch_size=4,
-                 batch_strategy='median_imputation',
+                 batch_strategy='default',
                  num_constraints=0,
                  num_objs=1,
                  sample_strategy: str = 'bo',

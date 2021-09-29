@@ -13,7 +13,7 @@ class SyncBatchAdvisor(Advisor):
     def __init__(self, config_space,
                  task_info,
                  batch_size=4,
-                 batch_strategy='median_imputation',
+                 batch_strategy='default',
                  initial_trials=10,
                  initial_configurations=None,
                  init_strategy='random_explore_first',
@@ -48,13 +48,13 @@ class SyncBatchAdvisor(Advisor):
         super().check_setup()
 
         if self.batch_strategy is None:
-            self.batch_strategy = 'median_imputation'
+            self.batch_strategy = 'default'
 
-        assert self.batch_strategy in ['median_imputation', 'local_penalization']
+        assert self.batch_strategy in ['default', 'median_imputation', 'local_penalization']
 
         if self.num_objs > 1 or self.num_constraints > 0:
             # local_penalization only supports single objective with no constraint
-            assert self.batch_strategy in ['median_imputation', ]
+            assert self.batch_strategy in ['default', 'median_imputation', ]
 
         if self.batch_strategy == 'local_penalization':
             self.acq_type = 'lpei'
@@ -123,6 +123,27 @@ class SyncBatchAdvisor(Advisor):
                     num_points=5000,
                 )
                 batch_configs_list.append(challengers.challengers[0])
+        elif self.batch_strategy == 'default':
+            # select first N candidates
+            candidates = super().get_suggestion(history_container, return_list=True)
+            idx = 0
+            while len(batch_configs_list) < batch_size:
+                # todo: sample configuration proportionally
+                if idx >= len(candidates):
+                    self.logger.info('Sample random config.')
+                    cur_config = self.sample_random_configs(1, history_container,
+                                                            excluded_configs=batch_configs_list)[0]
+                else:
+                    cur_config = None
+                    while idx < len(candidates):
+                        conf = candidates[idx]
+                        idx += 1
+                        if conf not in batch_configs_list and conf not in history_container.configurations:
+                            cur_config = conf
+                            break
+                if cur_config is not None:
+                    batch_configs_list.append(cur_config)
+
         else:
             raise ValueError('Invalid sampling strategy - %s.' % self.batch_strategy)
         return batch_configs_list

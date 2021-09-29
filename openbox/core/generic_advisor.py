@@ -254,7 +254,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
 
         return initial_configs
 
-    def get_suggestion(self, history_container=None):
+    def get_suggestion(self, history_container=None, return_list=False):
         """
         Generate a configuration (suggestion) for this query.
         Returns
@@ -330,6 +330,9 @@ class Advisor(object, metaclass=abc.ABCMeta):
             # optimize acquisition function
             challengers = self.optimizer.maximize(runhistory=history_container,
                                                   num_points=5000)
+            if return_list:
+                return challengers.challengers
+
             is_repeated_config = True
             repeated_time = 0
             cur_config = None
@@ -356,7 +359,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
         """
         return self.history_container.update_observation(observation)
 
-    def sample_random_configs(self, num_configs=1, history_container=None):
+    def sample_random_configs(self, num_configs=1, history_container=None, excluded_configs=None):
         """
         Sample a batch of random configurations.
         Parameters
@@ -371,6 +374,8 @@ class Advisor(object, metaclass=abc.ABCMeta):
         """
         if history_container is None:
             history_container = self.history_container
+        if excluded_configs is None:
+            excluded_configs = set()
 
         configs = list()
         sample_cnt = 0
@@ -378,7 +383,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
         while len(configs) < num_configs:
             config = self.config_space.sample_configuration()
             sample_cnt += 1
-            if config not in (history_container.configurations + configs):
+            if config not in (history_container.configurations + configs) and config not in excluded_configs:
                 configs.append(config)
                 sample_cnt = 0
                 continue

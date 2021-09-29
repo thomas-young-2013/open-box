@@ -159,4 +159,5 @@ class EA_Advisor(object, metaclass=abc.ABCMeta):
                 break
             if sample_cnt >= max_sample_cnt:
                 self.logger.warning('Cannot sample non duplicate configuration after %d iterations.' % max_sample_cnt)
+                break
         return config
