@@ -227,7 +227,7 @@ class Branin(BaseSingleObjectiveProblem):
 
 class Hartmann6d(BaseSingleObjectiveProblem):
 
-    optimal_value = -3.86278
+    optimal_value = -3.32237
 
     def __init__(self, **kwargs):
         super().__init__(dim=6, **kwargs)
