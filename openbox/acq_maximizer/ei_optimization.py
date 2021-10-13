@@ -592,6 +592,7 @@ class ScipyOptimizer(AcquisitionFunctionMaximizer):
 
         def negative_acquisition(x):
             # shape of x = (d,)
+            x = np.clip(x, 0.0, 1.0)    # fix numerical problem in L-BFGS-B
             return -self.acquisition_function(x, convert=False)[0]  # shape=(1,)
 
         if initial_config is None:
@@ -608,8 +609,9 @@ class ScipyOptimizer(AcquisitionFunctionMaximizer):
         if not result.success:
             self.logger.debug('Scipy optimizer failed. Info:\n%s' % (result,))
         try:
-            config = Configuration(self.config_space, vector=result.x)
-            acq = self.acquisition_function(result.x, convert=False)
+            x = np.clip(result.x, 0.0, 1.0)  # fix numerical problem in L-BFGS-B
+            config = Configuration(self.config_space, vector=x)
+            acq = self.acquisition_function(x, convert=False)
             acq_configs.append((acq, config))
         except Exception:
             pass
