@@ -286,6 +286,16 @@ class HistoryContainer(object):
         return
 
     def get_importance(self, config_space=None, return_list=False):
+        def _get_X(configurations, config_space):
+            from ConfigSpace import CategoricalHyperparameter, OrdinalHyperparameter, Constant
+            X_from_dict = np.array([list(config.get_dictionary().values()) for config in configurations])
+            X_from_array = np.array([config.get_array() for config in configurations])
+            discrete_types = (CategoricalHyperparameter, OrdinalHyperparameter, Constant)
+            discrete_idx = [isinstance(hp, discrete_types) for hp in config_space.get_hyperparameters()]
+            X = X_from_dict.copy()
+            X[:, discrete_idx] = X_from_array[:, discrete_idx]
+            return X
+
         try:
             import pyrfr.regression as reg
             import pyrfr.util
@@ -303,7 +313,7 @@ class HistoryContainer(object):
         if config_space is None:
             raise ValueError('Please provide config_space to show parameter importance!')
 
-        X = np.array([list(config.get_dictionary().values()) for config in self.configurations])
+        X = _get_X(self.configurations, config_space)
         Y = np.array(self.get_transformed_perfs())
 
         # create an instance of fanova with data for the random forest and the configSpace
