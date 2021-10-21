@@ -53,7 +53,10 @@ class Worker(object):
                 constraints = None
 
             elapsed_time = time.time() - start_time
-            observation = Observation(config, trial_state, constraints, objs, elapsed_time)
+            observation = Observation(
+                config=config, objs=objs, constraints=constraints,
+                trial_state=trial_state, elapsed_time=elapsed_time,
+            )
 
             # Send result
             print("Worker: observation=%s. sending result." % str(observation))

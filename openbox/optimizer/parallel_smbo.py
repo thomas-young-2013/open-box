@@ -39,7 +39,10 @@ def wrapper(param):
         objs = None
         constraints = None
     elapsed_time = time.time() - start_time
-    return Observation(config, trial_state, constraints, objs, elapsed_time)
+    return Observation(
+        config=config, objs=objs, constraints=constraints,
+        trial_state=trial_state, elapsed_time=elapsed_time,
+    )
 
 
 class pSMBO(BOBase):
@@ -137,9 +140,11 @@ class pSMBO(BOBase):
         self.batch_size = batch_size
 
     def callback(self, observation: Observation):
-        config, trial_state, constraints, objs, elapsed_time = observation
-        if objs is None:
-            observation = Observation(config, trial_state, constraints, self.FAILED_PERF, elapsed_time)
+        if observation.objs is None:
+            observation = Observation(
+                config=observation.config, objs=self.FAILED_PERF, constraints=observation.constraints,
+                trial_state=observation.trial_state, elapsed_time=observation.elapsed_time,
+            )
         # Report the result, and remove the config from the running queue.
         with self.advisor_lock:
             # Parent process: collect the result and increment id.
@@ -199,17 +204,14 @@ class pSMBO(BOBase):
                 observations = proc.parallel_execute(params)
                 # Report their results.
                 for idx, observation in enumerate(observations):
-                    config, trial_state, constraints, objs, elapsed_time = observation
-                    if objs is None:
-                        objs = self.FAILED_PERF
-                        observation = Observation(config, trial_state, constraints, self.FAILED_PERF, elapsed_time)
+                    if observation.objs is None:
+                        observation = Observation(
+                            config=observation.config, objs=self.FAILED_PERF, constraints=observation.constraints,
+                            trial_state=observation.trial_state, elapsed_time=observation.elapsed_time,
+                        )
                     self.config_advisor.update_observation(observation)
-                    if self.task_info['num_constraints'] > 0:
-                        self.logger.info('In the %d-th batch [%d/%d], config: %s, objective value: %s, constraints: %s.'
-                                         % (batch_id, idx+1, len(configs), config, objs, constraints))
-                    else:
-                        self.logger.info('In the %d-th batch [%d/%d], config: %s, objective value: %s.'
-                                         % (batch_id, idx+1, len(configs), config, objs))
+                    self.logger.info('In the %d-th batch [%d/%d], observation: %s.'
+                                     % (batch_id, idx+1, len(configs), observation))
                 batch_id += 1
 
     def run(self):

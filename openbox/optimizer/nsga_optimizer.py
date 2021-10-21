@@ -8,7 +8,6 @@ import copy
 import numpy as np
 from openbox.optimizer.nsga_base import NSGABase
 from openbox.utils.constants import MAXINT
-from openbox.core.base import Observation
 from openbox.utils.platypus_utils import get_variator, set_problem_types, objective_wrapper
 from openbox.utils.config_space import Configuration
 from platypus import Problem, NSGAII

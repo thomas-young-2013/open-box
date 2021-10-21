@@ -196,7 +196,7 @@ class MCAdvisor(Advisor):
     def update_observation(self, observation: Observation):
         super().update_observation(observation)
         if self.use_trust_region:
-            config, trial_state, constraints, objs, elapsed_time = observation
+            objs = observation.objs
             if self.num_objs > 1:
                 raise NotImplementedError()
             else:

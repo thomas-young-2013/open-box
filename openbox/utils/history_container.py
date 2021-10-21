@@ -51,7 +51,12 @@ class HistoryContainer(object):
     def update_observation(self, observation: Observation):
         self.update_times.append(time.time() - self.global_start_time)
 
-        config, trial_state, constraints, objs, elapsed_time = observation
+        config = observation.config
+        objs = observation.objs
+        constraints = observation.constraints
+        trial_state = observation.trial_state
+        elapsed_time = observation.elapsed_time
+
         self.configurations.append(config)
         if self.num_objs == 1:
             self.perfs.append(objs[0])

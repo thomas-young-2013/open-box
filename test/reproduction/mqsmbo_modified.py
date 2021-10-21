@@ -32,16 +32,17 @@ class mqSMBO_modified(mqSMBO):
                     break
                 # Report result.
                 result_num += 1
-                config, trial_state, constraints, objs, elapsed_time = observation
-                if objs is None:
-                    observation = Observation(config, trial_state, constraints, self.FAILED_PERF, elapsed_time)
+                if observation.objs is None:
+                    observation = Observation(
+                        config=observation.config, objs=self.FAILED_PERF, constraints=observation.constraints,
+                        trial_state=observation.trial_state, elapsed_time=observation.elapsed_time,
+                    )
                 self.config_advisor.update_observation(observation)
                 self.logger.info('Master: Get %d observation: %s' % (result_num, str(observation)))
 
-                config, trial_state, constraints, objs, elapsed_time = observation
                 global_time = time.time() - self.global_start_time
-                self.config_list.append(config)
-                self.perf_list.append(objs[0])  # single objective
+                self.config_list.append(observation.config)
+                self.perf_list.append(observation.objs[0])  # single objective
                 self.time_list.append(global_time)
 
             global_time = time.time() - self.global_start_time
@@ -64,7 +65,6 @@ class mqSMBO_modified(mqSMBO):
             result_num = 0
             result_needed = len(configs)
             while True:
-                # Observation: config, trial_state, constraints, objs, elapsed_time
                 observation = self.master_messager.receive_message()
                 if observation is None:
                     # Wait for workers.
@@ -73,17 +73,18 @@ class mqSMBO_modified(mqSMBO):
                     continue
                 # Report result.
                 result_num += 1
-                config, trial_state, constraints, objs, elapsed_time = observation
-                if objs is None:
-                    observation = Observation(config, trial_state, constraints, self.FAILED_PERF, elapsed_time)
+                if observation.objs is None:
+                    observation = Observation(
+                        config=observation.config, objs=self.FAILED_PERF, constraints=observation.constraints,
+                        trial_state=observation.trial_state, elapsed_time=observation.elapsed_time,
+                    )
                 self.config_advisor.update_observation(observation)
                 self.logger.info('Master: In the %d-th batch [%d], observation is: %s'
                                  % (batch_id, result_num, str(observation)))
 
-                config, trial_state, constraints, objs, elapsed_time = observation
                 global_time = time.time() - self.global_start_time
-                self.config_list.append(config)
-                self.perf_list.append(objs[0])  # single objective
+                self.config_list.append(observation.config)
+                self.perf_list.append(observation.objs[0])  # single objective
                 self.time_list.append(global_time)
 
                 if result_num == result_needed:

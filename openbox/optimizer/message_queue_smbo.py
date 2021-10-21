@@ -108,9 +108,11 @@ class mqSMBO(BOBase):
                     break
                 # Report result.
                 result_num += 1
-                config, trial_state, constraints, objs, elapsed_time = observation
-                if objs is None:
-                    observation = Observation(config, trial_state, constraints, self.FAILED_PERF, elapsed_time)
+                if observation.objs is None:
+                    observation = Observation(
+                        config=observation.config, objs=self.FAILED_PERF, constraints=observation.constraints,
+                        trial_state=observation.trial_state, elapsed_time=observation.elapsed_time,
+                    )
                 self.config_advisor.update_observation(observation)
                 self.logger.info('Master: Get %d observation: %s' % (result_num, str(observation)))
 
@@ -138,9 +140,11 @@ class mqSMBO(BOBase):
                     continue
                 # Report result.
                 result_num += 1
-                config, trial_state, constraints, objs, elapsed_time = observation
-                if objs is None:
-                    observation = Observation(config, trial_state, constraints, self.FAILED_PERF, elapsed_time)
+                if observation.objs is None:
+                    observation = Observation(
+                        config=observation.config, objs=self.FAILED_PERF, constraints=observation.constraints,
+                        trial_state=observation.trial_state, elapsed_time=observation.elapsed_time,
+                    )
                 self.config_advisor.update_observation(observation)
                 self.logger.info('Master: In the %d-th batch [%d], observation is: %s'
                                  % (batch_id, result_num, str(observation)))

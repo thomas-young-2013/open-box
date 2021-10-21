@@ -122,8 +122,9 @@ class EA_Advisor(object, metaclass=abc.ABCMeta):
 
         """
 
-        config, trial_state, constraints, objs, elapsed_time = observation
-        perf = objs[0]
+        config = observation.config
+        perf = observation.objs[0]
+        trial_state = observation.trial_state
 
         assert config in self.running_configs
         self.running_configs.remove(config)

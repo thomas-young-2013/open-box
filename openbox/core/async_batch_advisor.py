@@ -93,7 +93,8 @@ class AsyncBatchAdvisor(Advisor):
             batch_history_container = copy.deepcopy(history_container)
             # imputation
             for config in self.running_configs:
-                observation = Observation(config, SUCCESS, estimated_c, estimated_y, None)
+                observation = Observation(config=config, objs=estimated_y, constraints=estimated_c,
+                                          trial_state=SUCCESS, elapsed_time=None)
                 batch_history_container.update_observation(observation)
 
             # use super class get_suggestion
@@ -136,7 +137,7 @@ class AsyncBatchAdvisor(Advisor):
         return _config
 
     def update_observation(self, observation: Observation):
-        config, trial_state, constraints, objs, elapsed_time = observation
+        config = observation.config
         assert config in self.running_configs
         self.running_configs.remove(config)
         super().update_observation(observation)

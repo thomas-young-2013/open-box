@@ -1,12 +1,13 @@
 # License: MIT
 
 from collections import namedtuple
-from openbox.utils.constants import MAXINT
+from openbox.utils.constants import MAXINT, SUCCESS
 from openbox.acquisition_function import *
 from openbox.utils.util_funcs import get_types
 
 
-Observation = namedtuple('Observation', ['config', 'trial_state', 'constraints', 'objs', 'elapsed_time'])
+Observation = namedtuple('Observation', ['config', 'objs', 'constraints', 'trial_state', 'elapsed_time'],
+                         defaults=[None, SUCCESS, None])
 
 
 acq_dict = {
