@@ -119,7 +119,8 @@ class SMBO(BOBase):
         if task_id is None:
             raise ValueError('Task id is not SPECIFIED. Please input task id first.')
 
-        self.task_info = {'num_constraints': num_constraints, 'num_objs': num_objs}
+        self.num_objs = num_objs
+        self.num_constraints = num_constraints
         self.FAILED_PERF = [MAXINT] * num_objs
         super().__init__(objective_function, config_space, task_id=task_id, output_dir=logging_dir,
                          random_state=random_state, initial_runs=initial_runs, max_runs=max_runs,
@@ -129,7 +130,9 @@ class SMBO(BOBase):
         self.advisor_type = advisor_type
         if advisor_type == 'default':
             from openbox.core.generic_advisor import Advisor
-            self.config_advisor = Advisor(config_space, self.task_info,
+            self.config_advisor = Advisor(config_space,
+                                          num_objs=num_objs,
+                                          num_constraints=num_constraints,
                                           initial_trials=initial_runs,
                                           init_strategy=init_strategy,
                                           initial_configurations=initial_configurations,
@@ -145,7 +148,9 @@ class SMBO(BOBase):
         elif advisor_type == 'mcadvisor':
             from openbox.core.mc_advisor import MCAdvisor
             use_trust_region = kwargs.get('use_trust_region', False)
-            self.config_advisor = MCAdvisor(config_space, self.task_info,
+            self.config_advisor = MCAdvisor(config_space,
+                                            num_objs=num_objs,
+                                            num_constraints=num_constraints,
                                             mc_times=kwargs.get('mc_times', 10),
                                             initial_trials=initial_runs,
                                             init_strategy=init_strategy,
@@ -167,7 +172,9 @@ class SMBO(BOBase):
         elif advisor_type == 'ea':
             from openbox.core.ea_advisor import EA_Advisor
             assert num_objs == 1 and num_constraints == 0
-            self.config_advisor = EA_Advisor(config_space, self.task_info,
+            self.config_advisor = EA_Advisor(config_space,
+                                             num_objs=num_objs,
+                                             num_constraints=num_constraints,
                                              optimization_strategy=sample_strategy,
                                              batch_size=1,
                                              task_id=task_id,
@@ -176,7 +183,9 @@ class SMBO(BOBase):
                                              **kwargs)
         elif advisor_type == 'random':
             from openbox.core.random_advisor import RandomAdvisor
-            self.config_advisor = RandomAdvisor(config_space, self.task_info,
+            self.config_advisor = RandomAdvisor(config_space,
+                                                num_objs=num_objs,
+                                                num_constraints=num_constraints,
                                                 initial_trials=initial_runs,
                                                 init_strategy=init_strategy,
                                                 initial_configurations=initial_configurations,
@@ -247,13 +256,13 @@ class SMBO(BOBase):
             config_idx = history.configurations.index(config)
             trial_state = history.trial_states[config_idx]
             objs = history.perfs[config_idx]
-            constraints = history.constraint_perfs[config_idx] if self.task_info['num_constraints'] > 0 else None
-            if self.task_info['num_objs'] == 1:
+            constraints = history.constraint_perfs[config_idx] if self.num_constraints > 0 else None
+            if self.num_objs == 1:
                 objs = (objs,)
 
         self.iteration_id += 1
         # Logging.
-        if self.task_info['num_constraints'] > 0:
+        if self.num_constraints > 0:
             self.logger.info('Iteration %d, objective value: %s. constraints: %s.'
                              % (self.iteration_id, objs, constraints))
         else:

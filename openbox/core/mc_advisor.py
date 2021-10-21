@@ -12,9 +12,11 @@ from openbox.utils.util_funcs import get_types
 
 
 class MCAdvisor(Advisor):
-    def __init__(self, config_space, task_info,
+    def __init__(self, config_space,
+                 num_objs=1,
+                 num_constraints=0,
                  mc_times=10,
-                 initial_trials=10,
+                 initial_trials=3,
                  initial_configurations=None,
                  init_strategy='random_explore_first',
                  history_bo_data=None,
@@ -32,7 +34,9 @@ class MCAdvisor(Advisor):
         self.use_trust_region = use_trust_region
         self.turbo_state = None
 
-        super().__init__(config_space, task_info,
+        super().__init__(config_space,
+                         num_objs=num_objs,
+                         num_constraints=num_constraints,
                          initial_trials=initial_trials,
                          initial_configurations=initial_configurations,
                          init_strategy=init_strategy,

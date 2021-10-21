@@ -21,8 +21,9 @@ class Advisor(object, metaclass=abc.ABCMeta):
     """
 
     def __init__(self, config_space,
-                 task_info,
-                 initial_trials=10,
+                 num_objs=1,
+                 num_constraints=0,
+                 initial_trials=3,
                  initial_configurations=None,
                  init_strategy='random_explore_first',
                  history_bo_data=None,
@@ -38,9 +39,8 @@ class Advisor(object, metaclass=abc.ABCMeta):
         # Create output (logging) directory.
         # Init logging module.
         # Random seed generator.
-        self.task_info = task_info
-        self.num_objs = task_info['num_objs']
-        self.num_constraints = task_info['num_constraints']
+        self.num_objs = num_objs
+        self.num_constraints = num_constraints
         self.init_strategy = init_strategy
         self.output_dir = output_dir
         self.rng = np.random.RandomState(random_state)
@@ -392,6 +392,9 @@ class Advisor(object, metaclass=abc.ABCMeta):
                 configs.append(config)
                 sample_cnt = 0
         return configs
+
+    def get_history(self):
+        return self.history_container
 
     def save_history(self):
         """

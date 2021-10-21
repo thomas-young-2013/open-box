@@ -40,14 +40,17 @@ class mqSMBO(BOBase):
         if task_id is None:
             raise ValueError('Task id is not SPECIFIED. Please input task id first.')
 
-        self.task_info = {'num_constraints': num_constraints, 'num_objs': num_objs}
+        self.num_objs = num_objs
+        self.num_constraints = num_constraints
         self.FAILED_PERF = [MAXINT] * num_objs
         super().__init__(objective_function, config_space, task_id=task_id, output_dir=logging_dir,
                          random_state=random_state, initial_runs=initial_runs, max_runs=max_runs,
                          sample_strategy=sample_strategy, time_limit_per_trial=time_limit_per_trial,
                          history_bo_data=history_bo_data)
         if parallel_strategy == 'sync':
-            self.config_advisor = SyncBatchAdvisor(config_space, self.task_info,
+            self.config_advisor = SyncBatchAdvisor(config_space,
+                                                   num_objs=num_objs,
+                                                   num_constraints=num_constraints,
                                                    batch_size=batch_size,
                                                    batch_strategy=batch_strategy,
                                                    initial_trials=initial_runs,
@@ -63,7 +66,9 @@ class mqSMBO(BOBase):
                                                    output_dir=logging_dir,
                                                    random_state=random_state)
         elif parallel_strategy == 'async':
-            self.config_advisor = AsyncBatchAdvisor(config_space, self.task_info,
+            self.config_advisor = AsyncBatchAdvisor(config_space,
+                                                    num_objs=num_objs,
+                                                    num_constraints=num_constraints,
                                                     batch_size=batch_size,
                                                     batch_strategy=batch_strategy,
                                                     initial_trials=initial_runs,

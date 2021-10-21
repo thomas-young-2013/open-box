@@ -13,7 +13,7 @@ from openbox.core.base import build_acq_func, build_optimizer, build_surrogate
 
 class Advisor(object, metaclass=abc.ABCMeta):
     def __init__(self, config_space,
-                 initial_trials=10,
+                 initial_trials=3,
                  initial_configurations=None,
                  init_strategy='random_explore_first',
                  history_bo_data=None,

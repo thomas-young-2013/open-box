@@ -11,10 +11,11 @@ from openbox.core.base import Observation
 
 class SyncBatchAdvisor(Advisor):
     def __init__(self, config_space,
-                 task_info,
+                 num_objs=1,
+                 num_constraints=0,
                  batch_size=4,
                  batch_strategy='default',
-                 initial_trials=10,
+                 initial_trials=3,
                  initial_configurations=None,
                  init_strategy='random_explore_first',
                  history_bo_data=None,
@@ -30,7 +31,8 @@ class SyncBatchAdvisor(Advisor):
         self.batch_size = batch_size
         self.batch_strategy = batch_strategy
         super().__init__(config_space,
-                         task_info,
+                         num_objs=num_objs,
+                         num_constraints=num_constraints,
                          initial_trials=initial_trials,
                          initial_configurations=initial_configurations,
                          init_strategy=init_strategy,

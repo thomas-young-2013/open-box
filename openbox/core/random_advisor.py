@@ -10,8 +10,9 @@ class RandomAdvisor(Advisor):
     """
 
     def __init__(self, config_space,
-                 task_info,
-                 initial_trials=10,
+                 num_objs=1,
+                 num_constraints=0,
+                 initial_trials=3,
                  initial_configurations=None,
                  init_strategy='random_explore_first',
                  history_bo_data=None,
@@ -23,9 +24,11 @@ class RandomAdvisor(Advisor):
                  task_id='default_task_id',
                  random_state=None):
 
-        super().__init__(config_space, task_info, initial_trials, initial_configurations,
-                         init_strategy, history_bo_data, 'random', surrogate_type,
-                         acq_type, acq_optimizer_type, ref_point, output_dir, task_id, random_state)
+        super().__init__(
+            config_space, num_objs, num_constraints, initial_trials, initial_configurations,
+            init_strategy, history_bo_data, 'random', surrogate_type,
+            acq_type, acq_optimizer_type, ref_point, output_dir, task_id, random_state,
+        )
 
     def get_suggestion(self, history_container=None):
         """

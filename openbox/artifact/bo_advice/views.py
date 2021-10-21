@@ -51,7 +51,6 @@ def task_register(request):
 
             num_constraints = int(request.POST.get('num_constraints', 0))
             num_objs = int(request.POST.get('num_objs', 1))
-            task_info = {'num_constraints': num_constraints, 'num_objs': num_objs}
             options = json.loads(request.POST.get('options', '{}'))
 
             time_limit_per_trial = int(request.POST.get('time_limit_per_trial', 300))
@@ -80,7 +79,8 @@ def task_register(request):
 
             if advisor_type == 'default':
                 from openbox.core.generic_advisor import Advisor
-                config_advisor = Advisor(config_space, task_info, task_id=task_id, **options)
+                config_advisor = Advisor(config_space, num_objs=num_objs, num_constraints=num_constraints,
+                                         task_id=task_id, **options)
             elif advisor_type == 'tpe':
                 from openbox.core.tpe_advisor import TPE_Advisor
                 config_advisor = TPE_Advisor(config_space)

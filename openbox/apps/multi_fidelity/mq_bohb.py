@@ -35,9 +35,10 @@ class mqBOHB(mqHyperband):
 
         self.rand_prob = rand_prob
         self.bo_init_num = bo_init_num
-        task_info = {'num_constraints': 0, 'num_objs': 1}
         # using median_imputation batch_strategy implemented in OpenBox to generate BO suggestions
-        self.config_advisor = SyncBatchAdvisor(config_space, task_info,
+        self.config_advisor = SyncBatchAdvisor(config_space,
+                                               num_objs=1,
+                                               num_constraints=0,
                                                batch_size=None,
                                                batch_strategy='median_imputation',
                                                initial_trials=self.bo_init_num,

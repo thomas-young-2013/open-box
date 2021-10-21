@@ -17,7 +17,8 @@ class EA_Advisor(object, metaclass=abc.ABCMeta):
     """
 
     def __init__(self, config_space,
-                 task_info,
+                 num_objs=1,
+                 num_constraints=0,
                  population_size=30,
                  subset_size=20,
                  epsilon=0.2,
@@ -31,9 +32,8 @@ class EA_Advisor(object, metaclass=abc.ABCMeta):
         # Create output (logging) directory.
         # Init logging module.
         # Random seed generator.
-        self.task_info = task_info
-        self.num_objs = task_info['num_objs']
-        self.num_constraints = task_info['num_constraints']
+        self.num_objs = num_objs
+        self.num_constraints = num_constraints
         assert self.num_objs == 1 and self.num_constraints == 0
         self.output_dir = output_dir
         self.rng = np.random.RandomState(random_state)
@@ -162,3 +162,6 @@ class EA_Advisor(object, metaclass=abc.ABCMeta):
                 self.logger.warning('Cannot sample non duplicate configuration after %d iterations.' % max_sample_cnt)
                 break
         return config
+
+    def get_history(self):
+        return self.history_container

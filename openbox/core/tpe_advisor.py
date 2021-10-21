@@ -286,3 +286,5 @@ class TPE_Advisor:
                 sample_cnt = 0
         return configs
 
+    def get_history(self):
+        return self.history_container

@@ -71,7 +71,8 @@ class pSMBO(BOBase):
         if task_id is None:
             raise ValueError('Task id is not SPECIFIED. Please input task id first.')
 
-        self.task_info = {'num_constraints': num_constraints, 'num_objs': num_objs}
+        self.num_objs = num_objs
+        self.num_constraints = num_constraints
         self.FAILED_PERF = [MAXINT] * num_objs
         super().__init__(objective_function, config_space, task_id=task_id, output_dir=logging_dir,
                          random_state=random_state, initial_runs=initial_runs, max_runs=max_runs,
@@ -80,7 +81,9 @@ class pSMBO(BOBase):
 
         if parallel_strategy == 'sync':
             if sample_strategy in ['random', 'bo']:
-                self.config_advisor = SyncBatchAdvisor(config_space, self.task_info,
+                self.config_advisor = SyncBatchAdvisor(config_space,
+                                                       num_objs=num_objs,
+                                                       num_constraints=num_constraints,
                                                        batch_size=batch_size,
                                                        batch_strategy=batch_strategy,
                                                        initial_trials=initial_runs,
@@ -97,7 +100,9 @@ class pSMBO(BOBase):
                                                        random_state=random_state)
             elif sample_strategy == 'ea':
                 assert num_objs == 1 and num_constraints == 0
-                self.config_advisor = EA_Advisor(config_space, self.task_info,
+                self.config_advisor = EA_Advisor(config_space,
+                                                 num_objs=num_objs,
+                                                 num_constraints=num_constraints,
                                                  optimization_strategy=sample_strategy,
                                                  batch_size=batch_size,
                                                  task_id=task_id,
@@ -108,7 +113,9 @@ class pSMBO(BOBase):
         elif parallel_strategy == 'async':
             self.advisor_lock = Lock()
             if sample_strategy in ['random', 'bo']:
-                self.config_advisor = AsyncBatchAdvisor(config_space, self.task_info,
+                self.config_advisor = AsyncBatchAdvisor(config_space,
+                                                        num_objs=num_objs,
+                                                        num_constraints=num_constraints,
                                                         batch_size=batch_size,
                                                         batch_strategy=batch_strategy,
                                                         initial_trials=initial_runs,
@@ -125,7 +132,9 @@ class pSMBO(BOBase):
                                                         random_state=random_state)
             elif sample_strategy == 'ea':
                 assert num_objs == 1 and num_constraints == 0
-                self.config_advisor = EA_Advisor(config_space, self.task_info,
+                self.config_advisor = EA_Advisor(config_space,
+                                                 num_objs=num_objs,
+                                                 num_constraints=num_constraints,
                                                  optimization_strategy=sample_strategy,
                                                  batch_size=batch_size,
                                                  task_id=task_id,
@@ -186,7 +195,7 @@ class pSMBO(BOBase):
         history = self.get_history()
         iter_config = history.configurations[-n:]
         iter_trial_state = history.trial_states[-n:]
-        iter_constraints = history.constraint_perfs[-n:] if self.task_info['num_constraints'] > 0 else None
+        iter_constraints = history.constraint_perfs[-n:] if self.num_constraints > 0 else None
         iter_objs = history.perfs[-n:]     # caution: one dim if num_objs==1, different from SMBO.iterate()
         return iter_config, iter_trial_state, iter_constraints, iter_objs
 
