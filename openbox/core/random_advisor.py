@@ -22,12 +22,14 @@ class RandomAdvisor(Advisor):
                  ref_point=None,
                  output_dir='logs',
                  task_id='default_task_id',
-                 random_state=None):
+                 random_state=None,
+                 **kwargs):
 
         super().__init__(
             config_space, num_objs, num_constraints, initial_trials, initial_configurations,
             init_strategy, history_bo_data, 'random', surrogate_type,
             acq_type, acq_optimizer_type, ref_point, output_dir, task_id, random_state,
+            **kwargs,
         )
 
     def get_suggestion(self, history_container=None):

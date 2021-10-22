@@ -27,6 +27,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
                  initial_configurations=None,
                  init_strategy='random_explore_first',
                  history_bo_data=None,
+                 rand_prob=0.1,
                  optimization_strategy='bo',
                  surrogate_type=None,
                  acq_type=None,
@@ -34,7 +35,8 @@ class Advisor(object, metaclass=abc.ABCMeta):
                  ref_point=None,
                  output_dir='logs',
                  task_id='default_task_id',
-                 random_state=None):
+                 random_state=None,
+                 **kwargs):
 
         # Create output (logging) directory.
         # Init logging module.
@@ -52,6 +54,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
         self.history_file = os.path.join(history_folder, 'bo_history_%s.json' % task_id)
 
         # Basic components in Advisor.
+        self.rand_prob = rand_prob
         self.optimization_strategy = optimization_strategy
 
         # Init the basic ingredients in Bayesian optimization.
@@ -273,6 +276,10 @@ class Advisor(object, metaclass=abc.ABCMeta):
         if self.optimization_strategy == 'random':
             return self.sample_random_configs(1, history_container)[0]
 
+        if (not return_list) and self.rng.random() < self.rand_prob:
+            self.logger.info('Sample random config. rand_prob=%f.' % self.rand_prob)
+            return self.sample_random_configs(1, history_container)[0]
+
         X = convert_configurations_to_array(history_container.configurations)
         Y = history_container.get_transformed_perfs()
         cY = history_container.get_transformed_constraint_perfs()
@@ -331,18 +338,15 @@ class Advisor(object, metaclass=abc.ABCMeta):
             challengers = self.optimizer.maximize(runhistory=history_container,
                                                   num_points=5000)
             if return_list:
+                # Caution: return_list doesn't contain random configs sampled according to rand_prob
                 return challengers.challengers
 
-            is_repeated_config = True
-            repeated_time = 0
-            cur_config = None
-            while is_repeated_config:
-                cur_config = challengers.challengers[repeated_time]  # todo: test small space
-                if cur_config in history_container.configurations:
-                    repeated_time += 1
-                else:
-                    is_repeated_config = False
-            return cur_config
+            for config in challengers.challengers:
+                if config not in history_container.configurations:
+                    return config
+            self.logger.warning('Cannot get non duplicate configuration from BO candidates (len=%d). '
+                                'Sample random config.' % (len(challengers.challengers), ))
+            return self.sample_random_configs(1, history_container)[0]
         else:
             raise ValueError('Unknown optimization strategy: %s.' % self.optimization_strategy)
 

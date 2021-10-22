@@ -19,6 +19,7 @@ class SyncBatchAdvisor(Advisor):
                  initial_configurations=None,
                  init_strategy='random_explore_first',
                  history_bo_data=None,
+                 rand_prob=0.1,
                  optimization_strategy='bo',
                  surrogate_type=None,
                  acq_type=None,
@@ -37,6 +38,7 @@ class SyncBatchAdvisor(Advisor):
                          initial_configurations=initial_configurations,
                          init_strategy=init_strategy,
                          history_bo_data=history_bo_data,
+                         rand_prob=rand_prob,
                          optimization_strategy=optimization_strategy,
                          surrogate_type=surrogate_type,
                          acq_type=acq_type,
@@ -131,9 +133,14 @@ class SyncBatchAdvisor(Advisor):
             candidates = super().get_suggestion(history_container, return_list=True)
             idx = 0
             while len(batch_configs_list) < batch_size:
-                # todo: sample configuration proportionally
                 if idx >= len(candidates):
-                    self.logger.info('Sample random config.')
+                    self.logger.warning('Cannot get non duplicate configuration from BO candidates (len=%d). '
+                                        'Sample random config.' % (len(candidates),))
+                    cur_config = self.sample_random_configs(1, history_container,
+                                                            excluded_configs=batch_configs_list)[0]
+                elif self.rng.random() < self.rand_prob:
+                    # sample random configuration proportionally
+                    self.logger.info('Sample random config. rand_prob=%f.' % self.rand_prob)
                     cur_config = self.sample_random_configs(1, history_container,
                                                             excluded_configs=batch_configs_list)[0]
                 else:

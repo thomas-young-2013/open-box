@@ -58,7 +58,7 @@ opt = ParallelOptimizer(
     space,
     parallel_strategy='async',
     batch_size=4,
-    batch_strategy='median_imputation',
+    batch_strategy='default',
     num_objs=1,
     num_constraints=0,
     max_runs=50,
@@ -76,8 +76,8 @@ history = opt.run()
 
 + **batch_size=4** 设置并行worker的数量。
 
-+ **batch_strategy='median_imputation'** 设置如何同时提出多个建议的策略。
-我们推荐使用默认参数 **'median_imputation'** 来获取稳定的性能。
++ **batch_strategy='default'** 设置如何同时提出多个建议的策略。
+我们推荐使用默认参数 **'default'** 来获取稳定的性能。
 
 + **num_objs=1** 和 **num_constraints=0** 表明我们的函数返回一个没有约束的单目标值。
 
@@ -128,7 +128,7 @@ opt = DistributedOptimizer(
     space,
     parallel_strategy='async',
     batch_size=n_workers,
-    batch_strategy='median_imputation',
+    batch_strategy='default',
     num_objs=1,
     num_constraints=0,
     max_runs=50,
@@ -152,8 +152,8 @@ history = opt.run()
 
 + **batch_size=4** 设置并行worker的数量。
 
-+ **batch_strategy='median_imputation'** 设置如何同时提出多个建议的策略。
-我们推荐使用默认参数 **'median_imputation'** 来获取稳定的性能。
++ **batch_strategy='default'** 设置如何同时提出多个建议的策略。
+我们推荐使用默认参数 **'default'** 来获取稳定的性能。
 
 + **num_objs=1** 和 **num_constraints=0** 表明我们的函数返回一个没有约束的单目标值。
 

@@ -14,11 +14,12 @@ class AsyncBatchAdvisor(Advisor):
                  num_objs=1,
                  num_constraints=0,
                  batch_size=4,
-                 batch_strategy='median_imputation',
+                 batch_strategy='default',
                  initial_trials=3,
                  initial_configurations=None,
                  init_strategy='random_explore_first',
                  history_bo_data=None,
+                 rand_prob=0.1,
                  optimization_strategy='bo',
                  surrogate_type=None,
                  acq_type=None,
@@ -39,6 +40,7 @@ class AsyncBatchAdvisor(Advisor):
                          initial_configurations=initial_configurations,
                          init_strategy=init_strategy,
                          history_bo_data=history_bo_data,
+                         rand_prob=rand_prob,
                          optimization_strategy=optimization_strategy,
                          surrogate_type=surrogate_type,
                          acq_type=acq_type,
@@ -65,7 +67,11 @@ class AsyncBatchAdvisor(Advisor):
 
     def get_suggestion(self, history_container=None):
         self.logger.info('#Call get_suggestion. len of running configs = %d.' % len(self.running_configs))
+        config = self._get_suggestion(history_container)
+        self.running_configs.append(config)
+        return config
 
+    def _get_suggestion(self, history_container=None):
         if history_container is None:
             history_container = self.history_container
 
@@ -79,8 +85,13 @@ class AsyncBatchAdvisor(Advisor):
                 _config = self.sample_random_configs(1, history_container)[0]
             else:
                 _config = self.initial_configurations[num_config_all]
-            self.running_configs.append(_config)
             return _config
+
+        # sample random configuration proportionally
+        if self.rng.random() < self.rand_prob:
+            self.logger.info('Sample random config. rand_prob=%f.' % self.rand_prob)
+            return self.sample_random_configs(1, history_container,
+                                              excluded_configs=self.running_configs)[0]
 
         X = convert_configurations_to_array(history_container.configurations)
         Y = history_container.get_transformed_perfs()
@@ -100,7 +111,7 @@ class AsyncBatchAdvisor(Advisor):
                 batch_history_container.update_observation(observation)
 
             # use super class get_suggestion
-            _config = super().get_suggestion(batch_history_container)
+            return super().get_suggestion(batch_history_container)
 
         elif self.batch_strategy == 'local_penalization':
             # local_penalization only supports single objective with no constraint
@@ -114,29 +125,22 @@ class AsyncBatchAdvisor(Advisor):
                 runhistory=history_container,
                 num_points=5000
             )
-            _config = challengers.challengers[0]
+            return challengers.challengers[0]
 
         elif self.batch_strategy == 'default':
             # select first N candidates
             candidates = super().get_suggestion(history_container, return_list=True)
-            idx = 0
-            _config = None
-            # todo: sample configuration proportionally
-            while idx < len(candidates):
-                conf = candidates[idx]
-                idx += 1
-                if conf not in self.running_configs and conf not in history_container.configurations:
-                    _config = conf
-                    break
-            if _config is None:
-                self.logger.info('Sample random config.')
-                _config = self.sample_random_configs(1, history_container,
-                                                     excluded_configs=self.running_configs)[0]
+
+            for config in candidates:
+                if config not in self.running_configs and config not in history_container.configurations:
+                    return config
+
+            self.logger.warning('Cannot get non duplicate configuration from BO candidates (len=%d). '
+                                'Sample random config.' % (len(candidates),))
+            return self.sample_random_configs(1, history_container,
+                                              excluded_configs=self.running_configs)[0]
         else:
             raise ValueError('Invalid sampling strategy - %s.' % self.batch_strategy)
-
-        self.running_configs.append(_config)
-        return _config
 
     def update_observation(self, observation: Observation):
         config = observation.config

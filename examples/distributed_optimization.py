@@ -52,7 +52,7 @@ if __name__ == "__main__":
             space,
             parallel_strategy='async',
             batch_size=n_workers,
-            batch_strategy='median_imputation',
+            batch_strategy='default',
             num_objs=1,
             num_constraints=0,
             max_runs=50,

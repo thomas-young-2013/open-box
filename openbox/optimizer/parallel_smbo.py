@@ -66,6 +66,7 @@ class pSMBO(BOBase):
                  logging_dir='logs',
                  task_id='default_task_id',
                  random_state=1,
+                 advisor_kwargs: dict = None,
                  ):
 
         if task_id is None:
@@ -79,6 +80,10 @@ class pSMBO(BOBase):
                          sample_strategy=sample_strategy, time_limit_per_trial=time_limit_per_trial,
                          history_bo_data=history_bo_data)
 
+        self.parallel_strategy = parallel_strategy
+        self.batch_size = batch_size
+
+        advisor_kwargs = advisor_kwargs or {}
         if parallel_strategy == 'sync':
             if sample_strategy in ['random', 'bo']:
                 self.config_advisor = SyncBatchAdvisor(config_space,
@@ -97,7 +102,8 @@ class pSMBO(BOBase):
                                                        ref_point=ref_point,
                                                        task_id=task_id,
                                                        output_dir=logging_dir,
-                                                       random_state=random_state)
+                                                       random_state=random_state,
+                                                       **advisor_kwargs)
             elif sample_strategy == 'ea':
                 assert num_objs == 1 and num_constraints == 0
                 self.config_advisor = EA_Advisor(config_space,
@@ -107,7 +113,8 @@ class pSMBO(BOBase):
                                                  batch_size=batch_size,
                                                  task_id=task_id,
                                                  output_dir=logging_dir,
-                                                 random_state=random_state)
+                                                 random_state=random_state,
+                                                 **advisor_kwargs)
             else:
                 raise ValueError('Unknown sample_strategy: %s' % sample_strategy)
         elif parallel_strategy == 'async':
@@ -129,7 +136,8 @@ class pSMBO(BOBase):
                                                         ref_point=ref_point,
                                                         task_id=task_id,
                                                         output_dir=logging_dir,
-                                                        random_state=random_state)
+                                                        random_state=random_state,
+                                                        **advisor_kwargs)
             elif sample_strategy == 'ea':
                 assert num_objs == 1 and num_constraints == 0
                 self.config_advisor = EA_Advisor(config_space,
@@ -139,14 +147,12 @@ class pSMBO(BOBase):
                                                  batch_size=batch_size,
                                                  task_id=task_id,
                                                  output_dir=logging_dir,
-                                                 random_state=random_state)
+                                                 random_state=random_state,
+                                                 **advisor_kwargs)
             else:
                 raise ValueError('Unknown sample_strategy: %s' % sample_strategy)
         else:
             raise ValueError('Invalid parallel strategy - %s.' % parallel_strategy)
-
-        self.parallel_strategy = parallel_strategy
-        self.batch_size = batch_size
 
     def callback(self, observation: Observation):
         if observation.objs is None:

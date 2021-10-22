@@ -33,6 +33,7 @@ class mqSMBO(BOBase):
                  logging_dir='logs',
                  task_id='default_task_id',
                  random_state=1,
+                 advisor_kwargs: dict = None,
                  ip="",
                  port=13579,
                  authkey=b'abc',):
@@ -47,6 +48,13 @@ class mqSMBO(BOBase):
                          random_state=random_state, initial_runs=initial_runs, max_runs=max_runs,
                          sample_strategy=sample_strategy, time_limit_per_trial=time_limit_per_trial,
                          history_bo_data=history_bo_data)
+
+        self.parallel_strategy = parallel_strategy
+        self.batch_size = batch_size
+        max_queue_len = max(100, 3 * batch_size)
+        self.master_messager = MasterMessager(ip, port, authkey, max_queue_len, max_queue_len)
+
+        advisor_kwargs = advisor_kwargs or {}
         if parallel_strategy == 'sync':
             self.config_advisor = SyncBatchAdvisor(config_space,
                                                    num_objs=num_objs,
@@ -64,7 +72,8 @@ class mqSMBO(BOBase):
                                                    ref_point=ref_point,
                                                    task_id=task_id,
                                                    output_dir=logging_dir,
-                                                   random_state=random_state)
+                                                   random_state=random_state,
+                                                   **advisor_kwargs)
         elif parallel_strategy == 'async':
             self.config_advisor = AsyncBatchAdvisor(config_space,
                                                     num_objs=num_objs,
@@ -82,14 +91,10 @@ class mqSMBO(BOBase):
                                                     ref_point=ref_point,
                                                     task_id=task_id,
                                                     output_dir=logging_dir,
-                                                    random_state=random_state)
+                                                    random_state=random_state,
+                                                    **advisor_kwargs)
         else:
             raise ValueError('Invalid parallel strategy - %s.' % parallel_strategy)
-
-        self.parallel_strategy = parallel_strategy
-        self.batch_size = batch_size
-        max_queue_len = max(100, 3 * batch_size)
-        self.master_messager = MasterMessager(ip, port, authkey, max_queue_len, max_queue_len)
 
     def async_run(self):
         config_num = 0

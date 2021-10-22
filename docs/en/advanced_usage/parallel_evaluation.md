@@ -62,7 +62,7 @@ opt = ParallelOptimizer(
     space,
     parallel_strategy='async',
     batch_size=4,
-    batch_strategy='median_imputation',
+    batch_strategy='default',
     num_objs=1,
     num_constraints=0,
     max_runs=50,
@@ -81,8 +81,8 @@ We suggest using **'async'** because it makes better use of resources and achiev
 
 + **batch_size=4** sets the number of parallel workers.
 
-+ **batch_strategy='median_imputation'** sets the strategy on how to make multiple suggestions at the same time.
-We suggest using **'median_imputation'** by default for stable performance.
++ **batch_strategy='default'** sets the strategy on how to make multiple suggestions at the same time.
+We suggest using **'default'** for stable performance.
 
 + **num_objs=1** and **num_constraints=0** indicates that our function returns a single objective value with no constraint. 
 
@@ -132,7 +132,7 @@ opt = DistributedOptimizer(
     space,
     parallel_strategy='async',
     batch_size=n_workers,
-    batch_strategy='median_imputation',
+    batch_strategy='default',
     num_objs=1,
     num_constraints=0,
     max_runs=50,
@@ -157,8 +157,8 @@ We suggest using **'async'** because it makes better use of resources and achiev
 
 + **batch_size=4** sets the number of parallel workers.
 
-+ **batch_strategy='median_imputation'** sets the strategy on how to make multiple suggestions at the same time.
-We suggest using **'median_imputation'** by default for stable performance.
++ **batch_strategy='default'** sets the strategy on how to make multiple suggestions at the same time.
+We suggest using **'default'** for stable performance.
 
 + **num_objs=1** and **num_constraints=0** indicates that our function returns a single objective value with no constraint. 
 
