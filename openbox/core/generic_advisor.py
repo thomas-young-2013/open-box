@@ -29,9 +29,9 @@ class Advisor(object, metaclass=abc.ABCMeta):
                  history_bo_data=None,
                  rand_prob=0.1,
                  optimization_strategy='bo',
-                 surrogate_type=None,
-                 acq_type=None,
-                 acq_optimizer_type='local_random',
+                 surrogate_type='auto',
+                 acq_type='auto',
+                 acq_optimizer_type='auto',
                  ref_point=None,
                  output_dir='logs',
                  task_id='default_task_id',
@@ -87,8 +87,88 @@ class Advisor(object, metaclass=abc.ABCMeta):
         self.constraint_models = None
         self.acquisition_function = None
         self.optimizer = None
+        self.auto_alter_model = False
+        self.algo_auto_selection()
         self.check_setup()
         self.setup_bo_basics()
+
+    def algo_auto_selection(self):
+        from ConfigSpace import UniformFloatHyperparameter, UniformIntegerHyperparameter, \
+            CategoricalHyperparameter, OrdinalHyperparameter
+        # analyze config space
+        cont_types = (UniformFloatHyperparameter, UniformIntegerHyperparameter)
+        cat_types = (CategoricalHyperparameter, OrdinalHyperparameter)
+        n_cont_hp, n_cat_hp, n_other_hp = 0, 0, 0
+        for hp in self.config_space.get_hyperparameters():
+            if isinstance(hp, cont_types):
+                n_cont_hp += 1
+            elif isinstance(hp, cat_types):
+                n_cat_hp += 1
+            else:
+                n_other_hp += 1
+        n_total_hp = n_cont_hp + n_cat_hp + n_other_hp
+
+        info_str = ''
+
+        if self.surrogate_type == 'auto':
+            self.auto_alter_model = True
+            if n_total_hp >= 100:
+                self.optimization_strategy = 'random'
+                self.surrogate_type = 'prf'  # for setup procedure
+            elif n_total_hp >= 10:
+                self.surrogate_type = 'prf'
+            elif n_cat_hp > n_cont_hp:
+                self.surrogate_type = 'prf'
+            else:
+                self.surrogate_type = 'gp'
+            info_str += ' surrogate_type: %s.' % self.surrogate_type
+
+        if self.acq_type == 'auto':
+            if self.num_objs == 1:  # single objective
+                if self.num_constraints == 0:
+                    self.acq_type = 'ei'
+                else:   # with constraints
+                    self.acq_type = 'eic'
+            elif self.num_objs <= 4:    # multi objective (<=4)
+                if self.num_constraints == 0:
+                    self.acq_type = 'ehvi'
+                else:   # with constraints
+                    self.acq_type = 'ehvic'
+            else:   # multi objective (>4)
+                if self.num_constraints == 0:
+                    self.acq_type = 'mesmo'
+                else:   # with constraints
+                    self.acq_type = 'mesmoc'
+                self.surrogate_type = 'gp_rbf'
+                info_str = ' surrogate_type: %s.' % self.surrogate_type
+            info_str += ' acq_type: %s.' % self.acq_type
+
+        if self.acq_optimizer_type == 'auto':
+            if n_cat_hp + n_other_hp == 0:  # todo: support constant hp in scipy optimizer
+                self.acq_optimizer_type = 'random_scipy'
+            else:
+                self.acq_optimizer_type = 'local_random'
+            info_str += ' acq_optimizer_type: %s.' % self.acq_optimizer_type
+
+        if info_str != '':
+            info_str = '=== [BO auto selection] ===' + info_str
+            self.logger.info(info_str)
+
+    def alter_model(self, history_container):
+        if not self.auto_alter_model:
+            return
+
+        num_config_evaluated = len(history_container.configurations)
+        num_config_successful = len(history_container.successful_perfs)
+
+        if num_config_evaluated == 300:
+            if self.surrogate_type == 'gp':
+                self.surrogate_type = 'prf'
+                self.logger.info('n_observations=300, change surrogate model from GP to PRF!')
+                if self.acq_optimizer_type == 'random_scipy':
+                    self.acq_optimizer_type = 'local_random'
+                    self.logger.info('n_observations=300, change acq optimizer from random_scipy to local_random!')
+                self.setup_bo_basics()
 
     def check_setup(self):
         """
@@ -104,44 +184,22 @@ class Advisor(object, metaclass=abc.ABCMeta):
         # single objective
         if self.num_objs == 1:
             if self.num_constraints == 0:
-                if self.acq_type is None:
-                    self.acq_type = 'ei'
                 assert self.acq_type in ['ei', 'eips', 'logei', 'pi', 'lcb', 'lpei', ]
-                if self.surrogate_type is None:
-                    self.surrogate_type = 'gp'
             else:  # with constraints
-                if self.acq_type is None:
-                    self.acq_type = 'eic'
                 assert self.acq_type in ['eic', ]
-                if self.surrogate_type is None:
-                    self.surrogate_type = 'gp'
                 if self.constraint_surrogate_type is None:
                     self.constraint_surrogate_type = 'gp'
 
         # multi-objective
         else:
             if self.num_constraints == 0:
-                if self.acq_type is None:
-                    self.acq_type = 'ehvi'
                 assert self.acq_type in ['ehvi', 'mesmo', 'usemo', 'parego']
-                if self.surrogate_type is None:
-                    if self.acq_type == 'mesmo':
-                        self.surrogate_type = 'gp_rbf'
-                    else:
-                        self.surrogate_type = 'gp'
                 if self.acq_type == 'mesmo' and self.surrogate_type != 'gp_rbf':
                     self.surrogate_type = 'gp_rbf'
                     self.logger.warning('Surrogate model has changed to Gaussian Process with RBF kernel '
                                         'since MESMO is used. Surrogate_type should be set to \'gp_rbf\'.')
             else:  # with constraints
-                if self.acq_type is None:
-                    self.acq_type = 'ehvic'
                 assert self.acq_type in ['ehvic', 'mesmoc', 'mesmoc2']
-                if self.surrogate_type is None:
-                    if self.acq_type == 'mesmoc':
-                        self.surrogate_type = 'gp_rbf'
-                    else:
-                        self.surrogate_type = 'gp'
                 if self.constraint_surrogate_type is None:
                     if self.acq_type == 'mesmoc':
                         self.constraint_surrogate_type = 'gp_rbf'
@@ -266,6 +324,8 @@ class Advisor(object, metaclass=abc.ABCMeta):
         """
         if history_container is None:
             history_container = self.history_container
+
+        self.alter_model(history_container)
 
         num_config_evaluated = len(history_container.configurations)
         num_config_successful = len(history_container.successful_perfs)

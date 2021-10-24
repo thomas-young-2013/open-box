@@ -23,7 +23,8 @@ def branin(config):
 if __name__ == "__main__":
     advisor = Advisor(
         space,
-        surrogate_type='gp',
+        # surrogate_type='gp',
+        surrogate_type='auto',
         task_id='quick_start',
     )
 

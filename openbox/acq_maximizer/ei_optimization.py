@@ -576,7 +576,7 @@ class ScipyOptimizer(AcquisitionFunctionMaximizer):
         super().__init__(acquisition_function, config_space, rng)
         self.random_chooser = ChooserProb(prob=rand_prob, rng=rng)
 
-        types, bounds = get_types(self.config_space)
+        types, bounds = get_types(self.config_space)    # todo: support constant hp in scipy optimizer
         assert all(types == 0), 'Scipy optimizer (L-BFGS-B) only supports Integer and Float parameters.'
         self.bounds = bounds
 

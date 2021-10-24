@@ -26,11 +26,12 @@ config_dict = {
             "bound": [0, 15]
         },
     },
-    "advisor_type": 'default',
+    "advisor_type": "default",
     "max_runs": 50,
-    "surrogate_type": 'gp',
+    # "surrogate_type": "gp",
+    "surrogate_type": "auto",
     "time_limit_per_trial": 5,
-    "task_id": 'quick_example'
+    "task_id": "quick_example"
 }
 
 

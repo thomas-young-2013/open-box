@@ -30,7 +30,8 @@ if __name__ == "__main__":
         num_objs=1,
         num_constraints=0,
         max_runs=50,
-        surrogate_type='gp',
+        # surrogate_type='gp',
+        surrogate_type='auto',
         time_limit_per_trial=180,
         task_id='parallel_async',
     )
