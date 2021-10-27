@@ -72,9 +72,9 @@ prevent the disclosure of private information.
 **OpenBox** requires an email address to send activation link when users register new accounts. 
 Please enable SMTP authentication and then you may receive a secret key for authentication from the email provider.
 
-### 3.2 Modify litebo/artifact/artifact/settings.py
+### 3.2 Modify openbox/artifact/artifact/settings.py
 
-Then, modify <font color=#FF0000>**"litebo/artifact/artifact/settings.py"**</font> to set email information for
+Then, modify <font color=#FF0000>**"openbox/artifact/artifact/settings.py"**</font> to set email information for
 registration service. Please fill in the following lines:
 
 ```python

@@ -71,9 +71,9 @@ password=xxxx
 **OpenBox**需要一个电子邮件地址，以便在用户注册新帐户时发送激活链接。
 请开启SMTP身份验证，然后您可能会从电子邮件提供商处收到用于身份验证的密钥。
 
-### 3.2 修改 litebo/artifact/artifact/settings.py
+### 3.2 修改 openbox/artifact/artifact/settings.py
 
-接下来，修改 <font color=#FF0000>**"litebo/artifact/artifact/settings.py"**</font> 来为注册服务设置邮件信息。
+接下来，修改 <font color=#FF0000>**"openbox/artifact/artifact/settings.py"**</font> 来为注册服务设置邮件信息。
 请填写以下内容：
 
 ```python
