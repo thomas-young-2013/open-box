@@ -16,6 +16,7 @@ Here is an example of how to use <font color=#FF0000>**RemoteAdvisor**</font> to
 ```python
 import datetime
 import time
+import hashlib
 import numpy as np
 
 from openbox.artifact.remote_advisor import RemoteAdvisor
@@ -43,13 +44,16 @@ townsend_cs = ConfigurationSpace()
 townsend_cs.add_hyperparameters([UniformFloatHyperparameter(e, *townsend_params['float'][e])
                                  for e in townsend_params['float']])
 
+password = 'your_password'
+md5 = hashlib.md5()
+md5.update(password.encode('utf-8'))
 max_runs = 50
 # Create remote advisor
 config_advisor = RemoteAdvisor(config_space=townsend_cs,
                                server_ip='127.0.0.1',
                                port=11425,
                                email='your_email@xxxx.com',
-                               password='your_password',
+                               password=md5.hexdigest(),
                                num_constraints=1,
                                max_runs=max_runs,
                                task_name="task_test",

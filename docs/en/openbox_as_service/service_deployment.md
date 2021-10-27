@@ -83,6 +83,7 @@ EMAIL_PORT = 465
 EMAIL_HOST_USER = 'xxxx@xxxx.com'
 EMAIL_HOST_PASSWORD = 'xxxx'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+EMAIL_ACTIVE_ENABLE = False
 ```
 
 + **EMAIL_HOST:** SMTP host of email registration service provider. E.g., 'smtp.gmail.com'.
@@ -90,10 +91,17 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 or other ports if port 465 doesn't work.
 + **EMAIL_HOST_USER:** Your email address for registration service.
 + **EMAIL_HOST_PASSWORD:** Your secret key for SMTP authentication.
++ **EMAIL_ACTIVE_ENABLE:** Enable or disable the mail activation function.
 
 **Caution:** Do not push the file with private information to **Github** to prevent leakage.
 
-## 4 Start/Stop OpenBox Service
+## 4 Migrate Database
+```bash
+cd <path to the source code>/open-box
+./scripts/manage_service.sh migrate
+```
+
+## 5 Start/Stop OpenBox Service
 
 Finally, after setting up the database and registration service, you can start up the **OpenBox** service.
 
