@@ -3,6 +3,7 @@
 
 # License: 3-clause BSD
 # Copyright (c) 2016-2018, Ml4AAD Group (http://www.ml4aad.org/)
+# Author: Aaron Kimmig
 
 from abc import ABC, abstractmethod
 import logging
@@ -37,7 +38,7 @@ class ChooserNoCoolDown(RandomConfigurationChooser):
 
     """
 
-    def __init__(self, modulus: float=2.0):
+    def __init__(self, modulus: float = 2.0):
         self.logger = logging.getLogger(self.__module__ + "." + self.__class__.__name__)
         if modulus <= 1.0:
             self.logger.warning("Using SMAC with random configurations only."
@@ -53,7 +54,7 @@ class ChooserNoCoolDown(RandomConfigurationChooser):
 
 class ChooserLinearCoolDown(RandomConfigurationChooser):
 
-    def __init__(self, start_modulus: float=2.0, modulus_increment: float=0.3, end_modulus: float=np.inf):
+    def __init__(self, start_modulus: float = 2.0, modulus_increment: float = 0.3, end_modulus: float = np.inf):
         """Interleave a random configuration, decreasing the fraction of random configurations over time.
 
         Parameters
@@ -158,11 +159,11 @@ class ChooserCosineAnnealing(RandomConfigurationChooser):
     """
 
     def __init__(
-        self,
-        prob_max: float,
-        prob_min: float,
-        restart_iteration: int,
-        rng: np.random.RandomState,
+            self,
+            prob_max: float,
+            prob_min: float,
+            restart_iteration: int,
+            rng: np.random.RandomState,
     ):
         self.logger = logging.getLogger(
             self.__module__ + "." + self.__class__.__name__)
@@ -175,8 +176,9 @@ class ChooserCosineAnnealing(RandomConfigurationChooser):
 
     def next_smbo_iteration(self) -> None:
         self.prob = (
-            self.prob_min
-            + (0.5 * (self.prob_max - self.prob_min) * (1 + np.cos(self.iteration * np.pi / self.restart_iteration)))
+                self.prob_min
+                + (0.5 * (self.prob_max - self.prob_min) * (
+                    1 + np.cos(self.iteration * np.pi / self.restart_iteration)))
         )
         self.logger.error("Probability for random configs: %f" % (self.prob))
         self.iteration += 1
