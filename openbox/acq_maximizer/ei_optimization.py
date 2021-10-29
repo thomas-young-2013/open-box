@@ -1,4 +1,8 @@
 # License: MIT
+# This file is partially built on SMAC3(https://github.com/automl/SMAC3), which is licensed as follows,
+
+# License: 3-clause BSD
+# Copyright (c) 2016-2018, Ml4AAD Group (http://www.ml4aad.org/)
 
 import abc
 import logging

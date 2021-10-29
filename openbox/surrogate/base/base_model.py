@@ -1,4 +1,5 @@
-# License: MIT
+# License: 3-clause BSD
+# Copyright (c) 2016-2018, Ml4AAD Group (http://www.ml4aad.org/)
 
 import typing
 
