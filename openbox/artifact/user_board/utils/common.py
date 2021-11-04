@@ -5,7 +5,7 @@ import hashlib
 
 import jwt
 
-from artifact import settings
+from openbox.artifact import settings
 
 
 def create_token(payload, timeout):
