@@ -10,7 +10,7 @@ from openbox.utils.constants import MAXINT
 
 class NSGABase(object, metaclass=abc.ABCMeta):
     def __init__(self, objective_function, config_space, task_id='task_id', output_dir='logs/',
-                 random_state=1, max_runs=2500):
+                 random_state=None, max_runs=2500):
         self.output_dir = output_dir
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)

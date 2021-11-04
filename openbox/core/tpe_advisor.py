@@ -25,10 +25,12 @@ class TPE_Advisor:
                  min_bandwidth=1e-3,
                  task_id='default_task_id',
                  output_dir='logs',
-                 random_state=1):
-        self.top_n_percent = top_n_percent
+                 random_state=None):
+        self.rng = np.random.RandomState(random_state)
         self.config_space = config_space
-        self.config_space.seed(random_state)
+        self.config_space.seed(self.rng.randint(100000))
+
+        self.top_n_percent = top_n_percent
         self.bw_factor = bandwidth_factor
         self.min_bandwidth = min_bandwidth
 
@@ -44,9 +46,6 @@ class TPE_Advisor:
 
         self.num_samples = num_samples
         self.random_fraction = random_fraction
-
-        self.random_state = random_state
-        self.rng = np.random.RandomState(random_state)
 
         hps = self.config_space.get_hyperparameters()
 

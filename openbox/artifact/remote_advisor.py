@@ -13,22 +13,20 @@ class RemoteAdvisor(object):
     def __init__(self, config_space,
                  server_ip, port, email, password,
                  task_name='task',
-                 task_id='remote_bo',
                  num_constraints=0,
                  num_objs=1,
                  sample_strategy: str = 'bo',
-                 advisor_type='default',
-                 surrogate_type=None,
-                 acq_type=None,
-                 acq_optimizer_type='local_random',
+                 surrogate_type='auto',
+                 acq_type='auto',
+                 acq_optimizer_type='auto',
                  max_runs=200,
                  init_strategy='random_explore_first',
                  initial_configurations=None,
                  initial_runs=3,
-                 random_state=1,
+                 random_state=None,
                  time_limit_per_trial=300,
                  active_worker_num=1,
-                 parallel_type='async'
+                 parallel_type='async',
                  ):
 
         self.email = email

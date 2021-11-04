@@ -27,7 +27,7 @@ class NSGAOptimizer(NSGABase):
                  algorithm='nsgaii',
                  logging_dir='logs',
                  task_id='default_task_id',
-                 random_state=1,
+                 random_state=None,
                  **kwargs):
 
         if task_id is None:

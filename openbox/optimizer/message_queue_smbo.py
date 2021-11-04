@@ -32,7 +32,7 @@ class mqSMBO(BOBase):
                  history_bo_data: List[OrderedDict] = None,
                  logging_dir='logs',
                  task_id='default_task_id',
-                 random_state=1,
+                 random_state=None,
                  advisor_kwargs: dict = None,
                  ip="",
                  port=13579,
