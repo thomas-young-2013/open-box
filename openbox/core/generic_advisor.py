@@ -45,13 +45,9 @@ class Advisor(object, metaclass=abc.ABCMeta):
         self.num_constraints = num_constraints
         self.init_strategy = init_strategy
         self.output_dir = output_dir
+        self.task_id = task_id
         self.rng = np.random.RandomState(random_state)
         self.logger = get_logger(self.__class__.__name__)
-
-        history_folder = os.path.join(self.output_dir, 'bo_history')
-        if not os.path.exists(history_folder):
-            os.makedirs(history_folder)
-        self.history_file = os.path.join(history_folder, 'bo_history_%s.json' % task_id)
 
         # Basic components in Advisor.
         self.rand_prob = rand_prob
@@ -460,23 +456,25 @@ class Advisor(object, metaclass=abc.ABCMeta):
     def get_history(self):
         return self.history_container
 
-    def save_history(self):
+    def save_history(self, dir_path: str = None, file_name: str = None):
         """
-        Save the history into a json file.
-        Returns
-        -------
-
+        Save history to a json file.
         """
-        self.history_container.save_json(self.history_file)
+        if dir_path is None:
+            dir_path = os.path.join(self.output_dir, 'bo_history')
+        if not os.path.exists(dir_path):
+            os.makedirs(dir_path)
+        if file_name is None:
+            file_name = 'bo_history_%s.json' % self.task_id
+        return self.history_container.save_json(os.path.join(dir_path, file_name))
 
-    def load_history_from_json(self):
+    def load_history_from_json(self, fn=None):
         """
         Load history from a json file.
-        Returns
-        -------
-
         """
-        return self.history_container.load_history_from_json(self.config_space, self.history_file)
+        if fn is None:
+            fn = os.path.join(self.output_dir, 'bo_history', 'bo_history_%s.json' % self.task_id)
+        return self.history_container.load_history_from_json(self.config_space, fn)
 
     def get_suggestions(self):
         raise NotImplementedError
