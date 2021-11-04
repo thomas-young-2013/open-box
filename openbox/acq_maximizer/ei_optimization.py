@@ -20,6 +20,7 @@ from openbox.utils.config_space import get_one_exchange_neighbourhood, \
 from openbox.acq_maximizer.random_configuration_chooser import ChooserNoCoolDown, ChooserProb
 from openbox.utils.history_container import HistoryContainer, MultiStartHistoryContainer
 from openbox.utils.util_funcs import get_types
+from openbox.utils.constants import MAXINT
 
 
 class AcquisitionFunctionMaximizer(object, metaclass=abc.ABCMeta):
@@ -341,7 +342,7 @@ class LocalSearch(AcquisitionFunctionMaximizer):
             # Get one exchange neighborhood returns an iterator (in contrast of
             # the previously returned list).
             all_neighbors = get_one_exchange_neighbourhood(
-                incumbent, seed=self.rng.seed())
+                incumbent, seed=self.rng.randint(MAXINT))
 
             for neighbor in all_neighbors:
                 s_time = time.time()
