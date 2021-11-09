@@ -4,6 +4,7 @@ import abc
 import numpy as np
 import random
 
+from openbox.utils.util_funcs import check_random_state
 from openbox.utils.logging_utils import get_logger
 from openbox.utils.history_container import HistoryContainer
 from openbox.utils.constants import MAXINT, SUCCESS
@@ -36,7 +37,7 @@ class EA_Advisor(object, metaclass=abc.ABCMeta):
         self.num_constraints = num_constraints
         assert self.num_objs == 1 and self.num_constraints == 0
         self.output_dir = output_dir
-        self.rng = np.random.RandomState(random_state)
+        self.rng = check_random_state(random_state)
         self.config_space = config_space
         self.config_space_seed = self.rng.randint(MAXINT)
         self.config_space.seed(self.config_space_seed)

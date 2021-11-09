@@ -4,6 +4,7 @@ import os
 import abc
 import time
 import numpy as np
+from openbox.utils.util_funcs import check_random_state
 from openbox.utils.logging_utils import setup_logger, get_logger
 from openbox.utils.constants import MAXINT
 
@@ -20,7 +21,7 @@ class NSGABase(object, metaclass=abc.ABCMeta):
         _logger_id = '%s' % task_id
         self.logger_name = None
         self.logger = self._get_logger(_logger_id)
-        self.rng = np.random.RandomState(random_state)
+        self.rng = check_random_state(random_state)
 
         self.config_space = config_space
         self.config_space.seed(self.rng.randint(MAXINT))

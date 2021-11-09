@@ -6,6 +6,7 @@ import time
 import numpy as np
 from typing import List
 from collections import OrderedDict
+from openbox.utils.util_funcs import check_random_state
 from openbox.utils.logging_utils import setup_logger, get_logger
 
 
@@ -24,7 +25,7 @@ class BOBase(object, metaclass=abc.ABCMeta):
         _logger_id = '%s' % task_id
         self.logger_name = None
         self.logger = self._get_logger(_logger_id)
-        self.rng = np.random.RandomState(random_state)
+        self.rng = check_random_state(random_state)
 
         self.config_space = config_space
         self.objective_function = objective_function

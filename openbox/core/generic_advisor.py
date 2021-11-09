@@ -4,6 +4,7 @@ import os
 import abc
 import numpy as np
 
+from openbox.utils.util_funcs import check_random_state
 from openbox.utils.logging_utils import get_logger
 from openbox.utils.history_container import HistoryContainer, MOHistoryContainer, \
     MultiStartHistoryContainer
@@ -46,7 +47,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
         self.init_strategy = init_strategy
         self.output_dir = output_dir
         self.task_id = task_id
-        self.rng = np.random.RandomState(random_state)
+        self.rng = check_random_state(random_state)
         self.logger = get_logger(self.__class__.__name__)
 
         # Basic components in Advisor.

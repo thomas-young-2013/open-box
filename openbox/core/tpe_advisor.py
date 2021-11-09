@@ -9,6 +9,7 @@ import numpy as np
 import scipy.stats as sps
 import statsmodels.api as sm
 
+from openbox.utils.util_funcs import check_random_state
 from openbox.utils.history_container import HistoryContainer
 from openbox.core.base import Observation
 from openbox.utils.config_space.util import convert_configurations_to_array
@@ -26,7 +27,7 @@ class TPE_Advisor:
                  task_id='default_task_id',
                  output_dir='logs',
                  random_state=None):
-        self.rng = np.random.RandomState(random_state)
+        self.rng = check_random_state(random_state)
         self.config_space = config_space
         self.config_space.seed(self.rng.randint(100000))
 
