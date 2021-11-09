@@ -131,8 +131,9 @@ class GaussianProcess(BaseGP):
                 self.gp.fit(X, y)
                 break
             except np.linalg.LinAlgError as e:
-                if i == n_tries:
-                    raise e
+                if i == n_tries - 1:
+                    print('Fail to fit GP after 10 tries!')  # todo: check raise
+                    # raise e
                 # Assume that the last entry of theta is the noise
                 theta = np.exp(self.kernel.theta)
                 theta[-1] += 1
