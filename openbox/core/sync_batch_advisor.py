@@ -54,7 +54,7 @@ class SyncBatchAdvisor(Advisor):
         if self.batch_strategy is None:
             self.batch_strategy = 'default'
 
-        assert self.batch_strategy in ['default', 'median_imputation', 'local_penalization']
+        assert self.batch_strategy in ['default', 'median_imputation', 'local_penalization', 'reoptimization']
 
         if self.num_objs > 1 or self.num_constraints > 0:
             # local_penalization only supports single objective with no constraint
@@ -66,6 +66,7 @@ class SyncBatchAdvisor(Advisor):
     def get_suggestions(self, batch_size=None, history_container=None):
         if batch_size is None:
             batch_size = self.batch_size
+        assert batch_size >= 1
         if history_container is None:
             history_container = self.history_container
 
@@ -119,15 +120,51 @@ class SyncBatchAdvisor(Advisor):
             incumbent_value = history_container.get_incumbents()[0][1]
             # L = self.estimate_L(X)
             for i in range(batch_size):
-                self.acquisition_function.update(model=self.surrogate_model, eta=incumbent_value,
-                                                 num_data=len(history_container.data),
-                                                 batch_configs=batch_configs_list)
+                if self.rng.random() < self.rand_prob:
+                    # sample random configuration proportionally
+                    self.logger.info('Sample random config. rand_prob=%f.' % self.rand_prob)
+                    cur_config = self.sample_random_configs(1, history_container,
+                                                            excluded_configs=batch_configs_list)[0]
+                else:
+                    self.acquisition_function.update(model=self.surrogate_model, eta=incumbent_value,
+                                                     num_data=len(history_container.data),
+                                                     batch_configs=batch_configs_list)
 
-                challengers = self.optimizer.maximize(
-                    runhistory=history_container,
-                    num_points=5000,
-                )
-                batch_configs_list.append(challengers.challengers[0])
+                    challengers = self.optimizer.maximize(
+                        runhistory=history_container,
+                        num_points=5000,
+                    )
+                    cur_config = challengers.challengers[0]
+                batch_configs_list.append(cur_config)
+        elif self.batch_strategy == 'reoptimization':
+            surrogate_trained = False
+            for i in range(batch_size):
+                if self.rng.random() < self.rand_prob:
+                    # sample random configuration proportionally
+                    self.logger.info('Sample random config. rand_prob=%f.' % self.rand_prob)
+                    cur_config = self.sample_random_configs(1, history_container,
+                                                            excluded_configs=batch_configs_list)[0]
+                else:
+                    if not surrogate_trained:
+                        # set return_list=True to ensure surrogate trained
+                        candidates = super().get_suggestion(history_container, return_list=True)
+                        surrogate_trained = True
+                    else:
+                        # re-optimize acquisition function
+                        challengers = self.optimizer.maximize(runhistory=history_container,
+                                                              num_points=5000)
+                        candidates = challengers.challengers
+                    cur_config = None
+                    for config in candidates:
+                        if config not in batch_configs_list and config not in history_container.configurations:
+                            cur_config = config
+                            break
+                    if cur_config is None:
+                        self.logger.warning('Cannot get non duplicate configuration from BO candidates (len=%d). '
+                                            'Sample random config.' % (len(candidates),))
+                        cur_config = self.sample_random_configs(1, history_container,
+                                                                excluded_configs=batch_configs_list)[0]
+                batch_configs_list.append(cur_config)
         elif self.batch_strategy == 'default':
             # select first N candidates
             candidates = super().get_suggestion(history_container, return_list=True)
