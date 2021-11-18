@@ -1,13 +1,30 @@
 # License: MIT
 
-from collections import namedtuple
+import sys
 from openbox.utils.constants import MAXINT, SUCCESS
 from openbox.acquisition_function import *
 from openbox.utils.util_funcs import get_types
 
 
-Observation = namedtuple('Observation', ['config', 'objs', 'constraints', 'trial_state', 'elapsed_time'],
-                         defaults=[None, SUCCESS, None])
+class Observation(object):
+    def __init__(self, config, objs, constraints=None, trial_state=SUCCESS, elapsed_time=None):
+        self.config = config
+        self.objs = objs
+        self.constraints = constraints
+        self.trial_state = trial_state
+        self.elapsed_time = elapsed_time
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __str__(self):
+        return "Observation(" \
+               + "config=%s" % self.config \
+               + ", objs=%s" % self.objs \
+               + (", constraints=%s" % self.constraints if self.constraints is not None else "") \
+               + ", trial_state=%s" % self.trial_state \
+               + (", elapsed_time=%s" % self.elapsed_time if self.elapsed_time is not None else "") \
+               + ")"
 
 
 acq_dict = {
