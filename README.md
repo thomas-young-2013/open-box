@@ -46,7 +46,7 @@ The design of OpenBox follows the following principles:
 + Blog post: [to appear soon]()
 
 ## News
-+ OpenBox based solutions achieved the first place of ACM CIKM 2021 AnalyticCup (Task 2 - HPO) <span style="color:red">!!!</span>
++ OpenBox based solutions achieved the first place of [ACM CIKM 2021 AnalyticCup (Task 2 - HPO)](https://algo.browser.qq.com/).
 
 ## OpenBox Capabilities in a Glance
 <table>
