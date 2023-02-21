@@ -16,7 +16,7 @@
 [OpenBox Doc](https://open-box.readthedocs.io) | [OpenBox中文文档](https://open-box.readthedocs.io/zh_CN/latest/)
 
 
-## <span style="color:red">Now OpenBox is developed & maintained by [PKU-DAIR](https://github.com/PKU-DAIR/open-box)</span>
+## <span style="color:red">!!!Note OpenBox migrates to [PKU-DAIR/open-box](https://github.com/PKU-DAIR/open-box)</span>
 
 
 ## OpenBox: Generalized and Efficient Blackbox Optimization System
