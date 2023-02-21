@@ -15,7 +15,9 @@
 
 [OpenBox Doc](https://open-box.readthedocs.io) | [OpenBox中文文档](https://open-box.readthedocs.io/zh_CN/latest/)
 
-## Now OpenBox is developed & maintained by [PKU-DAIR](https://github.com/PKU-DAIR/open-box)
+
+## <span style="color:red">Now OpenBox is developed & maintained by [PKU-DAIR](https://github.com/PKU-DAIR/open-box)</span>
+
 
 ## OpenBox: Generalized and Efficient Blackbox Optimization System
 **OpenBox** is an efficient and generalized blackbox optimization (BBO) system, which supports the following characteristics: 1) **BBO with multiple objectives and constraints**, 2) **BBO with transfer learning**, 3) **BBO with distributed parallelization**, 4) **BBO with multi-fidelity acceleration** and 5) **BBO with early stops**.
